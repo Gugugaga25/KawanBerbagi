@@ -1,3 +1,37 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+@keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
+  }
+  
+  .float-slow {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .float-medium {
+    animation: float 5s ease-in-out infinite;
+  }
+  
+  .float-fast {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  .hero-grid {
+    background-image: radial-gradient(rgba(64,126,140,.12) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
