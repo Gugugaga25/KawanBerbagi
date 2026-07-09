@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "@inertiajs/react";
 import {
   MapPin,
   PackageCheck,
@@ -163,20 +164,18 @@ function Nav() {
           ))}
         </div>
         <div className="hidden md:flex items-center gap-3">
-          <a
-            href="#masuk"
-            className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
-            style={{ color: COLORS.navy }}
-          >
-            Masuk
-          </a>
-          <a
-            href="#daftar"
-            className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-            style={{ backgroundColor: COLORS.teal }}
-          >
-            Daftar
-          </a>
+            <Link 
+                href={route("login")}
+                className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
+                style={{ color: COLORS.navy }}>
+                Masuk
+            </Link>
+            <Link
+                href={route("register")}
+                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
+                style={{ backgroundColor: COLORS.teal }}>
+                Daftar
+            </Link>
         </div>
         <button
           className="md:hidden p-2 rounded-lg"
