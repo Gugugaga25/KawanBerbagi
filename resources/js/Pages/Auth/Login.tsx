@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, useForm } from "@inertiajs/react";
 import {
   Mail,
   Lock,
@@ -19,18 +19,21 @@ const COLORS = {
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const { data, setData, post, processing, errors, reset } = useForm({
+    email: '',
+    password: '',
+    remember: false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setData(e.target.name as any, e.target.value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submit login", formData);
+    post('/login', {
+      onFinish: () => reset('password'),
+    });
   };
 
   return (
@@ -111,7 +114,7 @@ export default function Login() {
                     name="email"
                     required
                     placeholder="nama@email.com"
-                    value={formData.email}
+                    value={data.email}
                     onChange={handleChange}
                     className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#407E8C]"
                     style={{
@@ -147,7 +150,7 @@ export default function Login() {
                     name="password"
                     required
                     placeholder="••••••••"
-                    value={formData.password}
+                    value={data.password}
                     onChange={handleChange}
                     className="w-full pl-11 pr-12 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#407E8C]"
                     style={{
@@ -242,7 +245,7 @@ export default function Login() {
                     name="email"
                     required
                     placeholder="nama@email.com"
-                    value={formData.email}
+                    value={data.email}
                     onChange={handleChange}
                     className="w-full pl-11 pr-4 py-3.5 rounded-xl text-base outline-none transition-all duration-200 border focus:border-[#407E8C]"
                     style={{
@@ -278,7 +281,7 @@ export default function Login() {
                     name="password"
                     required
                     placeholder="••••••••"
-                    value={formData.password}
+                    value={data.password}
                     onChange={handleChange}
                     className="w-full pl-11 pr-12 py-3.5 rounded-xl text-base outline-none transition-all duration-200 border focus:border-[#407E8C]"
                     style={{

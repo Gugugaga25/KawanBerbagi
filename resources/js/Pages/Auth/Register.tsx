@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, useForm } from "@inertiajs/react";
 import {
   Mail,
   Lock,
@@ -123,32 +123,28 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const [donaturData, setDonaturData] = useState({
+  const { data, setData, post, processing, errors, reset } = useForm({
+    role: "donatur",
     name: "",
     email: "",
     phone: "",
     city: "",
     password: "",
-    confirm: "",
+    password_confirmation: "",
     agree: false,
-  });
-
-  const [yayasanData, setYayasanData] = useState({
+    
     orgName: "",
-    email: "",
-    phone: "",
     picName: "",
     address: "",
     beneficiaries: "",
-    password: "",
-    confirm: "",
-    agree: false,
+    legalDoc: null as File | null,
+    orgPhoto: null as File | null,
   });
-  const [legalDoc, setLegalDoc] = useState<File | null>(null);
-  const [orgPhoto, setOrgPhoto] = useState<File | null>(null);
 
   const switchRole = () => {
-    setRole((r) => (r === "donatur" ? "yayasan" : "donatur"));
+    const newRole = role === "donatur" ? "yayasan" : "donatur";
+    setRole(newRole);
+    setData("role", newRole);
     setSubmitted(false);
     
     window.scrollTo({
@@ -159,8 +155,13 @@ export default function Register() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submit register", role === "donatur" ? donaturData : { ...yayasanData, legalDoc, orgPhoto });
-    setSubmitted(true);
+    post('/register', {
+      preserveScroll: true,
+      onSuccess: () => {
+        setSubmitted(true);
+        reset('password', 'password_confirmation');
+      },
+    });
   };
 
   const formOnRight = role === "yayasan";
@@ -316,11 +317,12 @@ export default function Register() {
                     <input
                       required
                       placeholder="Nama Anda"
-                      value={donaturData.name}
-                      onChange={(e) => setDonaturData({ ...donaturData, name: e.target.value })}
+                      value={data.name}
+                      onChange={(e) => setData("name", e.target.value)}
                       className={inputBase}
                       style={inputStyle}
                     />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </Field>
 
                   <Field icon={Mail} label="Alamat Email">
@@ -328,11 +330,12 @@ export default function Register() {
                       type="email"
                       required
                       placeholder="nama@email.com"
-                      value={donaturData.email}
-                      onChange={(e) => setDonaturData({ ...donaturData, email: e.target.value })}
+                      value={data.email}
+                      onChange={(e) => setData("email", e.target.value)}
                       className={inputBase}
                       style={inputStyle}
                     />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </Field>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -340,21 +343,23 @@ export default function Register() {
                       <input
                         required
                         placeholder="08xxxxxxxxxx"
-                        value={donaturData.phone}
-                        onChange={(e) => setDonaturData({ ...donaturData, phone: e.target.value })}
+                        value={data.phone}
+                        onChange={(e) => setData("phone", e.target.value)}
                         className={inputBase}
                         style={inputStyle}
                       />
+                      {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                     </Field>
                     <Field icon={MapPin} label="Kota">
                       <input
                         required
                         placeholder="Bandung"
-                        value={donaturData.city}
-                        onChange={(e) => setDonaturData({ ...donaturData, city: e.target.value })}
+                        value={data.city}
+                        onChange={(e) => setData("city", e.target.value)}
                         className={inputBase}
                         style={inputStyle}
                       />
+                      {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
                     </Field>
                   </div>
 
@@ -363,8 +368,8 @@ export default function Register() {
                       type={showPassword ? "text" : "password"}
                       required
                       placeholder="Minimal 8 karakter"
-                      value={donaturData.password}
-                      onChange={(e) => setDonaturData({ ...donaturData, password: e.target.value })}
+                      value={data.password}
+                      onChange={(e) => setData("password", e.target.value)}
                       className={inputBase.replace("pr-4", "pr-12")}
                       style={inputStyle}
                     />
@@ -376,6 +381,7 @@ export default function Register() {
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
+                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                   </Field>
 
                   <Field icon={Lock} label="Konfirmasi Kata Sandi">
@@ -383,8 +389,8 @@ export default function Register() {
                       type={showConfirm ? "text" : "password"}
                       required
                       placeholder="Ulangi kata sandi"
-                      value={donaturData.confirm}
-                      onChange={(e) => setDonaturData({ ...donaturData, confirm: e.target.value })}
+                      value={data.password_confirmation}
+                      onChange={(e) => setData("password_confirmation", e.target.value)}
                       className={inputBase.replace("pr-4", "pr-12")}
                       style={inputStyle}
                     />
@@ -402,8 +408,8 @@ export default function Register() {
                     <input
                       type="checkbox"
                       required
-                      checked={donaturData.agree}
-                      onChange={(e) => setDonaturData({ ...donaturData, agree: e.target.checked })}
+                      checked={data.agree}
+                      onChange={(e) => setData("agree", e.target.checked)}
                       className="mt-0.5 rounded"
                       style={{ accentColor: COLORS.teal }}
                     />
@@ -426,11 +432,12 @@ export default function Register() {
                     <input
                       required
                       placeholder="Yayasan Kasih Ibu"
-                      value={yayasanData.orgName}
-                      onChange={(e) => setYayasanData({ ...yayasanData, orgName: e.target.value })}
+                      value={data.orgName}
+                      onChange={(e) => setData("orgName", e.target.value)}
                       className={inputBase}
                       style={inputStyle}
                     />
+                    {errors.orgName && <p className="text-red-500 text-xs mt-1">{errors.orgName}</p>}
                   </Field>
 
                   <Field icon={Mail} label="Email Resmi Yayasan">
@@ -438,11 +445,12 @@ export default function Register() {
                       type="email"
                       required
                       placeholder="kontak@yayasan.org"
-                      value={yayasanData.email}
-                      onChange={(e) => setYayasanData({ ...yayasanData, email: e.target.value })}
+                      value={data.email}
+                      onChange={(e) => setData("email", e.target.value)}
                       className={inputBase}
                       style={inputStyle}
                     />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </Field>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -450,21 +458,23 @@ export default function Register() {
                       <input
                         required
                         placeholder="Nama pengurus"
-                        value={yayasanData.picName}
-                        onChange={(e) => setYayasanData({ ...yayasanData, picName: e.target.value })}
+                        value={data.picName}
+                        onChange={(e) => setData("picName", e.target.value)}
                         className={inputBase}
                         style={inputStyle}
                       />
+                      {errors.picName && <p className="text-red-500 text-xs mt-1">{errors.picName}</p>}
                     </Field>
                     <Field icon={Phone} label="No. Telepon PIC">
                       <input
                         required
                         placeholder="08xxxxxxxxxx"
-                        value={yayasanData.phone}
-                        onChange={(e) => setYayasanData({ ...yayasanData, phone: e.target.value })}
+                        value={data.phone}
+                        onChange={(e) => setData("phone", e.target.value)}
                         className={inputBase}
                         style={inputStyle}
                       />
+                      {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                     </Field>
                   </div>
 
@@ -472,11 +482,12 @@ export default function Register() {
                     <input
                       required
                       placeholder="Jl. Contoh No. 12, Kecamatan, Kota"
-                      value={yayasanData.address}
-                      onChange={(e) => setYayasanData({ ...yayasanData, address: e.target.value })}
+                      value={data.address}
+                      onChange={(e) => setData("address", e.target.value)}
                       className={inputBase}
                       style={inputStyle}
                     />
+                    {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                   </Field>
 
                   <Field icon={Users} label="Jumlah Penerima Manfaat">
@@ -485,37 +496,44 @@ export default function Register() {
                       min={1}
                       required
                       placeholder="Misal: 25"
-                      value={yayasanData.beneficiaries}
-                      onChange={(e) => setYayasanData({ ...yayasanData, beneficiaries: e.target.value })}
+                      value={data.beneficiaries}
+                      onChange={(e) => setData("beneficiaries", e.target.value)}
                       className={inputBase}
                       style={inputStyle}
                     />
+                    {errors.beneficiaries && <p className="text-red-500 text-xs mt-1">{errors.beneficiaries}</p>}
                   </Field>
 
-                  <FileField
-                    icon={FileText}
-                    label="Dokumen Legalitas"
-                    hint="Akta Notaris / SK Kemensos / Tanda Daftar Yayasan (PDF/JPG)"
-                    required
-                    file={legalDoc}
-                    onChange={setLegalDoc}
-                  />
+                  <div>
+                    <FileField
+                      icon={FileText}
+                      label="Dokumen Legalitas"
+                      hint="Akta Notaris / SK Kemensos / Tanda Daftar Yayasan (PDF/JPG)"
+                      required
+                      file={data.legalDoc}
+                      onChange={(f) => setData("legalDoc", f)}
+                    />
+                    {errors.legalDoc && <p className="text-red-500 text-xs mt-1">{errors.legalDoc}</p>}
+                  </div>
 
-                  <FileField
-                    icon={ImagePlus}
-                    label="Foto Panti (opsional)"
-                    hint="Membantu proses verifikasi lebih cepat"
-                    file={orgPhoto}
-                    onChange={setOrgPhoto}
-                  />
+                  <div>
+                    <FileField
+                      icon={ImagePlus}
+                      label="Foto Panti (opsional)"
+                      hint="Membantu proses verifikasi lebih cepat"
+                      file={data.orgPhoto}
+                      onChange={(f) => setData("orgPhoto", f)}
+                    />
+                    {errors.orgPhoto && <p className="text-red-500 text-xs mt-1">{errors.orgPhoto}</p>}
+                  </div>
 
                   <Field icon={Lock} label="Kata Sandi">
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       placeholder="Minimal 8 karakter"
-                      value={yayasanData.password}
-                      onChange={(e) => setYayasanData({ ...yayasanData, password: e.target.value })}
+                      value={data.password}
+                      onChange={(e) => setData("password", e.target.value)}
                       className={inputBase.replace("pr-4", "pr-12")}
                       style={inputStyle}
                     />
@@ -527,6 +545,7 @@ export default function Register() {
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
+                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                   </Field>
 
                   <Field icon={Lock} label="Konfirmasi Kata Sandi">
@@ -534,8 +553,8 @@ export default function Register() {
                       type={showConfirm ? "text" : "password"}
                       required
                       placeholder="Ulangi kata sandi"
-                      value={yayasanData.confirm}
-                      onChange={(e) => setYayasanData({ ...yayasanData, confirm: e.target.value })}
+                      value={data.password_confirmation}
+                      onChange={(e) => setData("password_confirmation", e.target.value)}
                       className={inputBase.replace("pr-4", "pr-12")}
                       style={inputStyle}
                     />
@@ -564,8 +583,8 @@ export default function Register() {
                     <input
                       type="checkbox"
                       required
-                      checked={yayasanData.agree}
-                      onChange={(e) => setYayasanData({ ...yayasanData, agree: e.target.checked })}
+                      checked={data.agree}
+                      onChange={(e) => setData("agree", e.target.checked)}
                       className="mt-0.5 rounded"
                       style={{ accentColor: COLORS.teal }}
                     />
