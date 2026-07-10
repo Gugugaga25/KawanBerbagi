@@ -164,18 +164,18 @@ function Nav() {
           ))}
         </div>
         <div className="hidden md:flex items-center gap-3">
-            <Link 
-                href={route("login")}
-                className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
-                style={{ color: COLORS.navy }}>
-                Masuk
-            </Link>
-            <Link
-                href={route("register")}
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.teal }}>
-                Daftar
-            </Link>
+          <Link
+            href={route("login")}
+            className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
+            style={{ color: COLORS.navy }}>
+            Masuk
+          </Link>
+          <Link
+            href={route("register")}
+            className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
+            style={{ backgroundColor: COLORS.teal }}>
+            Daftar
+          </Link>
         </div>
         <button
           className="md:hidden p-2 rounded-lg"

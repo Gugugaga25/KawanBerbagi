@@ -14,9 +14,9 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return Inertia::render('Dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -25,8 +25,29 @@ Route::middleware('auth')->group(function () {
     
     // Rute Admin
     Route::get('/admin/dashboard', function () {
-        return Inertia::render('Admin/AdminDashboard');
+        $pantis = \App\Models\Shelter::with('user')->get()->map(function ($panti) {
+            return [
+                'id' => $panti->id_shelter,
+                'nama' => $panti->nama_yayasan,
+                'alamat' => $panti->alamat,
+                'status' => $panti->status ?? 'Pending',
+                'pimpinan' => $panti->nama_penanggung_jawab,
+                'email' => $panti->user ? $panti->user->email : '',
+                'phone' => $panti->no_telepon ?? '',
+                'anak' => $panti->jumlah_anak ?? 0,
+                'legalDocUrl' => $panti->dokumen_legalitas_panti ? asset('storage/' . $panti->dokumen_legalitas_panti) : null,
+                'orgPhotoUrl' => $panti->dokumentasi_panti ? asset('storage/' . $panti->dokumentasi_panti) : null,
+            ];
+        });
+        return Inertia::render('Admin/AdminDashboard', [
+            'pantis' => $pantis
+        ]);
     })->name('admin.dashboard');
+
+    Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');
+    Route::patch('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'update'])->name('admin.panti.update');
+    Route::patch('/admin/panti/{id}/status', [App\Http\Controllers\Admin\PantiController::class, 'updateStatus'])->name('admin.panti.updateStatus');
+    Route::delete('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'destroy'])->name('admin.panti.destroy');
 });
 
 require __DIR__.'/auth.php';

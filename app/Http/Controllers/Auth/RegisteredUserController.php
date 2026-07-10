@@ -83,6 +83,9 @@ class RegisteredUserController extends Controller
                 'nama_yayasan' => $request->orgName,
                 'nama_penanggung_jawab' => $request->picName,
                 'alamat' => $request->address,
+                'no_telepon' => $request->phone,
+                'jumlah_anak' => (int) $request->beneficiaries,
+                'status' => 'Pending',
                 'dokumen_legalitas_panti' => $legalDocPath,
                 'dokumentasi_panti' => $orgPhotoPath,
             ]);

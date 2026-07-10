@@ -9,7 +9,7 @@ import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
 
 // --- KOMPONEN UTAMA ---
-export default function AdminDashboard() {
+export default function AdminDashboard({ pantis = [] }: { pantis?: any[] }) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 
   // 1. Sinkronisasi awal & event listener tombol Back/Forward browser
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
   // 3. Penentu konten berdasarkan tab aktif
   const renderContent = () => {
     switch (activeTab) {
-      case 'panti': return <PantiManagement />;
+      case 'panti': return <PantiManagement pantis={pantis} />;
       case 'donatur': return <DonaturManagement />;
       case 'kebutuhan': return <KebutuhanManagement />;
       case 'dashboard':
