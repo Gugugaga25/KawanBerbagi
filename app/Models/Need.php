@@ -15,10 +15,18 @@ class Need extends Model
         'id_shelter',
         'nama_kebutuhan',
         'jumlah',
+        'terkumpul',
+        'satuan',
+        'is_mendesak',
     ];
 
     public function shelter()
     {
         return $this->belongsTo(Shelter::class, 'id_shelter', 'id_shelter');
+    }
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class, 'id_needs', 'id_needs');
     }
 }

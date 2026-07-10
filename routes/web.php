@@ -14,9 +14,9 @@ Route::get('/', function () {
     ]);
 });
 
-// Route::get('/dashboard', function () {
-//     return Inertia::render('Dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -54,9 +54,41 @@ Route::middleware('auth')->group(function () {
             ];
         });
 
+        $needs = \App\Models\Need::with(['shelter', 'donations.donor'])->get()->map(function ($need) {
+            return [
+                'id' => $need->id_needs,
+                'barang' => $need->nama_kebutuhan,
+                'panti' => $need->shelter ? $need->shelter->nama_yayasan : '-',
+                'terkumpul' => $need->terkumpul,
+                'target' => $need->jumlah,
+                'satuan' => $need->satuan,
+                'mendesak' => $need->is_mendesak,
+                'status' => $need->terkumpul >= $need->jumlah ? 'Terpenuhi' : 'Berjalan',
+                'created_at' => $need->created_at ? $need->created_at->format('d M Y, H:i') : '-',
+                'donations' => $need->donations->map(function ($d) {
+                    return [
+                        'id' => $d->id_donation,
+                        'donor_name' => $d->donor ? $d->donor->nama_lengkap : 'Anonim',
+                        'jumlah' => $d->jumlah_donasi,
+                        'status' => $d->status,
+                        'tanggal' => $d->created_at ? $d->created_at->format('d M Y') : '-',
+                    ];
+                }),
+            ];
+        });
+
+        $activeShelters = \App\Models\Shelter::where('status', 'Active')->get()->map(function ($s) {
+            return [
+                'id' => $s->id_shelter,
+                'nama' => $s->nama_yayasan,
+            ];
+        });
+
         return Inertia::render('Admin/AdminDashboard', [
             'pantis' => $pantis,
-            'donaturs' => $donaturs
+            'donaturs' => $donaturs,
+            'needs' => $needs,
+            'activeShelters' => $activeShelters,
         ]);
     })->name('admin.dashboard');
 
@@ -68,6 +100,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/donatur', [App\Http\Controllers\Admin\DonaturController::class, 'store'])->name('admin.donatur.store');
     Route::patch('/admin/donatur/{id}', [App\Http\Controllers\Admin\DonaturController::class, 'update'])->name('admin.donatur.update');
     Route::delete('/admin/donatur/{id}', [App\Http\Controllers\Admin\DonaturController::class, 'destroy'])->name('admin.donatur.destroy');
+
+    Route::post('/admin/kebutuhan', [App\Http\Controllers\Admin\KebutuhanController::class, 'store'])->name('admin.kebutuhan.store');
+    Route::patch('/admin/kebutuhan/{id}', [App\Http\Controllers\Admin\KebutuhanController::class, 'update'])->name('admin.kebutuhan.update');
+    Route::delete('/admin/kebutuhan/{id}', [App\Http\Controllers\Admin\KebutuhanController::class, 'destroy'])->name('admin.kebutuhan.destroy');
 });
 
 require __DIR__.'/auth.php';

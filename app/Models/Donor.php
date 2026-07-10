@@ -22,4 +22,9 @@ class Donor extends Model
     {
         return $this->belongsTo(User::class, 'id_user', 'id_user');
     }
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class, 'id_donor', 'id_donor');
+    }
 }
