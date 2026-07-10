@@ -1,81 +1,173 @@
-import React from 'react';
-import { Filter, Download, Mail, Award, ArrowUpRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Filter, Plus, Mail, Award, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { useForm } from '@inertiajs/react';
+import DonaturRegistrationModal from '@/Components/DonaturRegistrationModal';
+import Dropdown from '@/Components/Dropdown';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
 
-const DATA_DONATUR = [
-  { id: 1, nama: "Rizky Ramadhan", email: "rizky.r@email.com", total: "Rp 4.500.000", frekuensi: 12, tier: "Gold", terakhir: "08 Jul 2026" },
-  { id: 2, nama: "Dewi Sartika", email: "dewi.s@email.com", total: "Rp 750.000", frekuensi: 3, tier: "Silver", terakhir: "05 Jul 2026" },
-  { id: 3, nama: "Bambang Pamungkas", email: "bepe20@email.com", total: "Rp 15.000.000", frekuensi: 45, tier: "Platinum", terakhir: "09 Jul 2026" },
-  { id: 4, nama: "Anisa Rahma", email: "anisa.r@email.com", total: "Rp 300.000", frekuensi: 1, tier: "Bronze", terakhir: "01 Jul 2026" },
-];
+export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
 
-export default function DonaturManagement() {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteData, setDeleteData] = useState<any>(null);
+  const { delete: destroy } = useForm();
+
+  const openAddModal = () => {
+    setEditData(null);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (donor: any) => {
+    setEditData(donor);
+    setIsModalOpen(true);
+  };
+
+  const confirmDelete = (donor: any) => {
+    setDeleteData(donor);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = () => {
+    if (deleteData) {
+      destroy(`/admin/donatur/${deleteData.id}`, {
+        onSuccess: () => {
+          setIsDeleteModalOpen(false);
+          setDeleteData(null);
+        }
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h3 className="text-2xl font-bold text-[#124354]">Data Donatur</h3>
-          <p className="text-sm text-gray-500 mt-1">Pantau aktivitas dan riwayat kontribusi dari para donatur.</p>
+          <h2 className="text-xl font-bold text-[#124354]">Data Donatur</h2>
+          <p className="text-sm text-[#5A7C85] mt-1">Kelola data donatur dan riwayat donasinya</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#F4F3EF] text-[#124354] rounded-xl text-sm font-medium hover:bg-[#EAE8E3] transition-colors">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-[#5A7C85] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Filter size={16} /> Filter Tier
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#124354] text-white rounded-xl text-sm font-medium hover:bg-[#0E3544] transition-colors shadow-sm">
-            <Download size={16} /> Ekspor Data
+          <button 
+            onClick={openAddModal}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#124354] text-white rounded-xl text-sm font-medium hover:bg-[#0E3544] transition-colors shadow-sm"
+          >
+            <Plus size={16} /> Tambah Donatur
           </button>
         </div>
       </div>
 
-      {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-[#F4F3EF] text-[#5A7C85] text-xs uppercase tracking-wider">
-              <tr>
-                <th className="px-6 py-4 font-bold">Donatur</th>
-                <th className="px-6 py-4 font-bold">Tier</th>
-                <th className="px-6 py-4 font-bold">Total Donasi</th>
-                <th className="px-6 py-4 font-bold">Frekuensi</th>
-                <th className="px-6 py-4 font-bold">Donasi Terakhir</th>
-                <th className="px-6 py-4 font-bold text-right">Aksi</th>
+      {/* Table Data */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="w-full">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider">Informasi Donatur</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider">Total Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider text-center">Tier</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider">Terakhir Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-[#124354] text-sm">
-              {DATA_DONATUR.map((don) => (
-                <tr key={don.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#124354] text-white flex items-center justify-center font-bold text-xs shadow-inner">
-                        {don.nama.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-bold">{don.nama}</p>
-                        <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                          <Mail size={10} /> {don.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-[#EAE8E3] text-[#124354]">
-                      <Award size={12} className="text-[#4A828F]" /> {don.tier}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-extrabold text-[#124354]">{don.total}</td>
-                  <td className="px-6 py-4 font-medium">{don.frekuensi} kali</td>
-                  <td className="px-6 py-4 text-gray-500 text-xs font-medium">{don.terakhir}</td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="inline-flex items-center gap-1 text-xs font-bold text-[#4A828F] hover:text-[#124354] hover:underline">
-                      Detail <ArrowUpRight size={14} />
-                    </button>
-                  </td>
+            <tbody className="divide-y divide-gray-100">
+              {donaturs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Belum ada data donatur.</td>
                 </tr>
-              ))}
+              ) : (
+                donaturs.map((donor) => (
+                  <tr key={donor.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#124354]/10 flex items-center justify-center font-bold text-[#124354]">
+                          {donor.nama.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-[#124354]">{donor.nama}</p>
+                          <div className="flex items-center gap-1.5 text-xs text-[#5A7C85] mt-0.5">
+                            <Mail size={12} /> {donor.email}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-semibold text-[#124354]">{donor.total}</p>
+                      <p className="text-xs text-[#5A7C85] mt-0.5">{donor.frekuensi} kali berdonasi</p>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+                        ${donor.tier === 'Platinum' ? 'bg-purple-100 text-purple-700' : 
+                          donor.tier === 'Gold' ? 'bg-yellow-100 text-yellow-700' : 
+                          donor.tier === 'Silver' ? 'bg-gray-100 text-gray-700' : 
+                          'bg-orange-100 text-orange-700'}`}
+                      >
+                        <Award size={14} /> {donor.tier}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-[#5A7C85]">
+                      {donor.terakhir}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Dropdown>
+                        <Dropdown.Trigger>
+                          <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
+                            <MoreVertical size={18} />
+                          </button>
+                        </Dropdown.Trigger>
+
+                        <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl">
+                          <button 
+                            onClick={() => openEditModal(donor)}
+                            className="flex items-center gap-2 text-[#124354] hover:bg-[#F4F3EF] block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out"
+                          >
+                            <Edit size={16} /> Edit
+                          </button>
+                          
+                          <button 
+                            onClick={() => confirmDelete(donor)}
+                            className="flex items-center gap-2 text-red-600 hover:bg-red-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out"
+                          >
+                            <Trash2 size={16} /> Hapus
+                          </button>
+                        </Dropdown.Content>
+                      </Dropdown>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      <DonaturRegistrationModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editData={editData}
+      />
+
+      <Modal show={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+        <div className="p-6">
+          <h2 className="text-lg font-medium text-gray-900">
+            Apakah Anda yakin ingin menghapus data donatur ini?
+          </h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Data donatur <strong>{deleteData?.nama}</strong> dan akun penggunanya akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+          </p>
+          <div className="mt-6 flex justify-end">
+            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)}>Batal</SecondaryButton>
+            <DangerButton className="ml-3" onClick={executeDelete}>
+              Hapus Data
+            </DangerButton>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

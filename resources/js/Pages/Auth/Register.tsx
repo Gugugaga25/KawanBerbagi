@@ -208,7 +208,7 @@ export default function Register() {
                   Pendaftaran Berhasil!
                 </h1>
                 <p className="text-base leading-relaxed mb-8" style={{ color: COLORS.navy, opacity: 0.75 }}>
-                  Terima kasih telah mendaftarkan <strong>{yayasanData.orgName || "yayasan Anda"}</strong>.
+                  Terima kasih telah mendaftarkan <strong>{data.orgName || "yayasan Anda"}</strong>.
                   Tim kami akan meninjau dokumen legalitas yang Anda unggah dalam{" "}
                   <strong>1–3 hari kerja</strong>.
                 </p>
@@ -261,7 +261,7 @@ export default function Register() {
 
                 <p className="text-sm mb-8" style={{ color: COLORS.navy, opacity: 0.6 }}>
                   Status verifikasi akan kami kirim ke{" "}
-                  <strong style={{ opacity: 1 }}>{yayasanData.email || "email Anda"}</strong>, dan juga bisa
+                  <strong style={{ opacity: 1 }}>{data.email || "email Anda"}</strong>, dan juga bisa
                   Anda cek kembali di halaman ini kapan saja.
                 </p>
 
@@ -287,7 +287,7 @@ export default function Register() {
                   Akun Berhasil Dibuat!
                 </h1>
                 <p className="text-base leading-relaxed mb-8" style={{ color: COLORS.navy, opacity: 0.75 }}>
-                  Selamat datang, {donaturData.name || "Kawan"}. Anda sudah bisa mulai mencari panti yang
+                  Selamat datang, {data.name || "Kawan"}. Anda sudah bisa mulai mencari panti yang
                   membutuhkan barang Anda.
                 </p>
                 {/* @ts-ignore */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import {
   MapPin,
   PackageCheck,
@@ -139,6 +139,8 @@ function Nav() {
     { label: "Untuk Siapa", href: "#untuk-siapa" },
     { label: "Fitur", href: "#fitur" },
   ];
+  const { auth } = usePage().props as any;
+
   return (
     <header
       className="sticky top-0 z-50 backdrop-blur"
@@ -164,18 +166,36 @@ function Nav() {
           ))}
         </div>
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            href={route("login")}
-            className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
-            style={{ color: COLORS.navy }}>
-            Masuk
-          </Link>
-          <Link
-            href={route("register")}
-            className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-            style={{ backgroundColor: COLORS.teal }}>
-            Daftar
-          </Link>
+          {auth?.user ? (
+            <>
+              <span className="text-sm font-medium mr-2" style={{ color: COLORS.navy }}>
+                Halo, {auth.user.name}
+              </span>
+              <Link
+                href={route("logout")}
+                method="post"
+                as="button"
+                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
+                style={{ backgroundColor: COLORS.navy }}>
+                Keluar
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href={route("login")}
+                className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
+                style={{ color: COLORS.navy }}>
+                Masuk
+              </Link>
+              <Link
+                href={route("register")}
+                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
+                style={{ backgroundColor: COLORS.teal }}>
+                Daftar
+              </Link>
+            </>
+          )}
         </div>
         <button
           className="md:hidden p-2 rounded-lg"

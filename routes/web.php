@@ -39,8 +39,24 @@ Route::middleware('auth')->group(function () {
                 'orgPhotoUrl' => $panti->dokumentasi_panti ? asset('storage/' . $panti->dokumentasi_panti) : null,
             ];
         });
+
+        $donaturs = \App\Models\Donor::with('user')->get()->map(function ($donor) {
+            return [
+                'id' => $donor->id_donor,
+                'nama' => $donor->nama_lengkap,
+                'email' => $donor->user ? $donor->user->email : '',
+                'total' => 'Rp 0',
+                'frekuensi' => 0,
+                'tier' => 'Bronze',
+                'terakhir' => '-',
+                'phone' => $donor->no_wa,
+                'city' => $donor->kota,
+            ];
+        });
+
         return Inertia::render('Admin/AdminDashboard', [
-            'pantis' => $pantis
+            'pantis' => $pantis,
+            'donaturs' => $donaturs
         ]);
     })->name('admin.dashboard');
 
@@ -48,6 +64,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'update'])->name('admin.panti.update');
     Route::patch('/admin/panti/{id}/status', [App\Http\Controllers\Admin\PantiController::class, 'updateStatus'])->name('admin.panti.updateStatus');
     Route::delete('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'destroy'])->name('admin.panti.destroy');
+
+    Route::post('/admin/donatur', [App\Http\Controllers\Admin\DonaturController::class, 'store'])->name('admin.donatur.store');
+    Route::patch('/admin/donatur/{id}', [App\Http\Controllers\Admin\DonaturController::class, 'update'])->name('admin.donatur.update');
+    Route::delete('/admin/donatur/{id}', [App\Http\Controllers\Admin\DonaturController::class, 'destroy'])->name('admin.donatur.destroy');
 });
 
 require __DIR__.'/auth.php';

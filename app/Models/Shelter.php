@@ -16,6 +16,9 @@ class Shelter extends Model
         'nama_yayasan',
         'nama_penanggung_jawab',
         'alamat',
+        'no_telepon',
+        'jumlah_anak',
+        'status',
         'dokumen_legalitas_panti',
         'dokumentasi_panti',
     ];
