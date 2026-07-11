@@ -16,6 +16,10 @@ class Donation extends Model
         'id_donor',
         'jumlah_donasi',
         'status',
+        'kurir',
+        'resi',
+        'pesan',
+        'bukti_penerimaan',
     ];
 
     public function need()

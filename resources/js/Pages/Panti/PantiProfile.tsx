@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Phone, Mail, Globe, ShieldCheck, 
   Camera, Plus, Edit2, X, UploadCloud
 } from 'lucide-react';
+import { useForm } from '@inertiajs/react';
 
 // ====== Data Dummy Galeri ======
 const DUMMY_GALLERY = [
@@ -13,7 +14,7 @@ const DUMMY_GALLERY = [
   { id: 5, category: 'Sosial', url: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=400&auto=format&fit=crop&sig=5' },
 ];
 
-export default function ProfilPanti() {
+export default function ProfilPanti({ pantiData }: { pantiData?: any }) {
   // States untuk kontrol UI
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
@@ -21,10 +22,45 @@ export default function ProfilPanti() {
 
   const galleryCategories = ['Semua', 'Pendidikan', 'Sosial', 'Religi'];
 
+  // useForm Hook
+  const { data, setData, patch, processing, errors, reset, clearErrors } = useForm({
+    nama_yayasan: pantiData?.nama_yayasan || '',
+    no_telepon: pantiData?.no_telepon || '',
+    jumlah_anak: (pantiData?.jumlah_anak || 0).toString(),
+    alamat: pantiData?.alamat || '',
+  });
+
+  useEffect(() => {
+    if (pantiData) {
+      setData({
+        nama_yayasan: pantiData.nama_yayasan || '',
+        no_telepon: pantiData.no_telepon || '',
+        jumlah_anak: (pantiData.jumlah_anak || 0).toString(),
+        alamat: pantiData.alamat || '',
+      });
+    }
+  }, [pantiData]);
+
   // Logic filter gambar berdasarkan kategori aktif
   const filteredGallery = activeGallery === 'Semua' 
     ? DUMMY_GALLERY 
     : DUMMY_GALLERY.filter(img => img.category === activeGallery);
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    patch(route('panti.profil.update'), {
+      onSuccess: () => {
+        setIsEditModalOpen(false);
+        clearErrors();
+      }
+    });
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    reset();
+    clearErrors();
+  };
 
   return (
     <div className="space-y-6 pb-20 text-sm">
@@ -48,7 +84,7 @@ export default function ProfilPanti() {
           <div className="flex flex-col md:flex-row gap-5 md:items-end">
             {/* Logo/Avatar */}
             <div className="w-24 h-24 rounded-2xl bg-white border-4 border-white shadow-md flex items-center justify-center text-3xl font-black text-[#124354] -mt-16 relative z-10 overflow-hidden">
-              <img src="https://ui-avatars.com/api/?name=Panti+Kasih+Ibu&background=124354&color=fff&size=200" alt="Logo" />
+              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(pantiData?.nama_yayasan || 'Panti')}&background=124354&color=fff&size=200`} alt="Logo" />
               <button className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity text-white">
                 <Camera size={20} />
               </button>
@@ -56,12 +92,12 @@ export default function ProfilPanti() {
             
             <div className="mb-1">
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl font-black text-[#124354] tracking-tight">Panti Asuhan Kasih Ibu</h1>
+                <h1 className="text-2xl font-black text-[#124354] tracking-tight">{pantiData?.nama_yayasan || 'Panti Asuhan'}</h1>
                 <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
-                  <ShieldCheck size={12} /> Terverifikasi
+                  <ShieldCheck size={12} /> {pantiData?.status || 'Active'}
                 </span>
               </div>
-              <p className="text-gray-500 text-xs">Berdiri sejak 2010 • Menampung 45 Anak Asuh</p>
+              <p className="text-gray-500 text-xs">Berdiri sejak 2010 • Menampung {pantiData?.jumlah_anak || 0} Anak Asuh</p>
             </div>
           </div>
           
@@ -84,7 +120,7 @@ export default function ProfilPanti() {
           <div className="bg-white rounded-[1.5rem] p-6 border border-gray-100 shadow-sm">
             <h2 className="text-lg font-bold text-[#124354] mb-3">Tentang Yayasan</h2>
             <p className="text-gray-500 leading-relaxed">
-              Panti Asuhan Kasih Ibu adalah lembaga kesejahteraan sosial yang berdedikasi untuk memberikan tempat tinggal, pendidikan, dan kasih sayang bagi anak-anak yatim piatu dan telantar. Visi kami adalah menciptakan generasi mandiri yang memiliki nilai moral tinggi dan siap menghadapi masa depan.
+              Panti Asuhan {pantiData?.nama_yayasan || 'Kasih Ibu'} adalah lembaga kesejahteraan sosial yang berdedikasi untuk memberikan tempat tinggal, pendidikan, dan kasih sayang bagi anak-anak yatim piatu dan telantar. Visi kami adalah menciptakan generasi mandiri yang memiliki nilai moral tinggi dan siap menghadapi masa depan.
             </p>
           </div>
 
@@ -145,15 +181,15 @@ export default function ProfilPanti() {
             <div className="space-y-4 text-gray-600">
               <div className="flex gap-3">
                 <MapPin size={18} className="text-gray-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">Jl. Melati Putih No. 45, Kecamatan Sukasari, Kota Bandung, Jawa Barat 40154</span>
+                <span className="leading-relaxed">{pantiData?.alamat || 'Belum ada alamat'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone size={18} className="text-gray-400 shrink-0" />
-                <span>+62 812-3456-7890</span>
+                <span>{pantiData?.no_telepon || 'Belum ada nomor telepon'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={18} className="text-gray-400 shrink-0" />
-                <span>halo@kasihibu.org</span>
+                <span>{pantiData?.user?.email || 'Belum ada email'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Globe size={18} className="text-gray-400 shrink-0" />
@@ -189,41 +225,61 @@ export default function ProfilPanti() {
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-black text-[#124354]">Edit Profil Yayasan</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
+              <button onClick={handleCloseEditModal} className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
                 <X size={20} />
               </button>
             </div>
             
-            <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsEditModalOpen(false); }}>
+            <form className="space-y-4" onSubmit={handleEditSubmit}>
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5 ml-1">Nama Panti</label>
-                <input type="text" className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" defaultValue="Panti Asuhan Kasih Ibu" />
+                <input 
+                  type="text" required
+                  value={data.nama_yayasan}
+                  onChange={e => setData('nama_yayasan', e.target.value)}
+                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" 
+                />
+                {errors.nama_yayasan && <p className="text-red-500 text-xs mt-1">{errors.nama_yayasan}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5 ml-1">Telepon</label>
-                  <input type="text" className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" defaultValue="+62 812-3456-7890" />
+                  <input 
+                    type="text" 
+                    value={data.no_telepon}
+                    onChange={e => setData('no_telepon', e.target.value)}
+                    className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" 
+                  />
+                  {errors.no_telepon && <p className="text-red-500 text-xs mt-1">{errors.no_telepon}</p>}
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5 ml-1">Website</label>
-                  <input type="text" className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" defaultValue="www.kasihibu.org" />
+                  <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5 ml-1">Jumlah Anak</label>
+                  <input 
+                    type="number" min="0" required
+                    value={data.jumlah_anak}
+                    onChange={e => setData('jumlah_anak', e.target.value)}
+                    className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" 
+                  />
+                  {errors.jumlah_anak && <p className="text-red-500 text-xs mt-1">{errors.jumlah_anak}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5 ml-1">Alamat Lengkap</label>
-                <textarea className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-20" defaultValue="Jl. Melati Putih No. 45, Kecamatan Sukasari, Kota Bandung, Jawa Barat 40154" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase text-gray-500 mb-1.5 ml-1">Tentang Yayasan</label>
-                <textarea className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-28" defaultValue="Panti Asuhan Kasih Ibu adalah lembaga kesejahteraan sosial yang berdedikasi..." />
+                <textarea 
+                  required
+                  value={data.alamat}
+                  onChange={e => setData('alamat', e.target.value)}
+                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-20" 
+                />
+                {errors.alamat && <p className="text-red-500 text-xs mt-1">{errors.alamat}</p>}
               </div>
               
               <div className="pt-4 flex gap-3">
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-6 py-3.5 rounded-xl font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-all w-full md:w-auto">
+                <button type="button" onClick={handleCloseEditModal} className="px-6 py-3.5 rounded-xl font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-all w-full md:w-auto">
                   Batal
                 </button>
-                <button type="submit" className="flex-1 py-3.5 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] hover:shadow-lg hover:shadow-[#124354]/20 transition-all">
-                  Simpan Perubahan
+                <button type="submit" disabled={processing} className="flex-1 py-3.5 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] hover:shadow-lg hover:shadow-[#124354]/20 transition-all disabled:opacity-50">
+                  {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
             </form>

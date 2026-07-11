@@ -7,6 +7,7 @@ import PantiOverview from './PantiOverview';
 import PantiWishlist from './PantiWishlist';
 import PantiProfile from './PantiProfile';
 import PantiDonasiMasuk from './PantiDonasiMasuk';
+import PantiSettings from './PantiSettings';
 
 const COLORS = {
   navy: "#083A4F",
@@ -29,7 +30,7 @@ function ComingSoon({ title }: { title: string }) {
   );
 }
 
-export default function PantiDashboard() {
+export default function PantiDashboard({ auth, pantiData, needs = [], donations = [] }: { auth: any, pantiData?: any, needs?: any[], donations?: any[] }) {
   const [activeTab, setActiveTab] = useState<PantiTabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -38,7 +39,7 @@ export default function PantiDashboard() {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab') as PantiTabType;
 
-      if (tabParam && ['dashboard', 'kebutuhan', 'donasi', 'profil'].includes(tabParam)) {
+      if (tabParam && ['dashboard', 'kebutuhan', 'donasi', 'profil', 'pengaturan'].includes(tabParam)) {
         setActiveTab(tabParam);
       } else {
         setActiveTab('dashboard');
@@ -62,9 +63,10 @@ export default function PantiDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'kebutuhan': return <PantiWishlist />;
-      case 'donasi': return <PantiDonasiMasuk />;
-      case 'profil': return <PantiProfile />;
+      case 'kebutuhan': return <PantiWishlist needs={needs} />;
+      case 'donasi': return <PantiDonasiMasuk donations={donations} />;
+      case 'profil': return <PantiProfile pantiData={pantiData} />;
+      case 'pengaturan': return <PantiSettings auth={auth} />;
       case 'dashboard':
       default:
         return <PantiOverview />;

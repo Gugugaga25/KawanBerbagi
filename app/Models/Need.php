@@ -18,6 +18,8 @@ class Need extends Model
         'terkumpul',
         'satuan',
         'is_mendesak',
+        'kategori',
+        'target_date',
     ];
 
     public function shelter()

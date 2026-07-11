@@ -105,12 +105,60 @@ Route::middleware('auth')->group(function () {
     // ================= ROUTE DASHBOARD PANTI =================
     Route::get('/panti/dashboard', function () {
         // Mengambil data spesifik panti yang sedang login saat ini
-        $panti = \App\Models\Shelter::where('id_user', auth()->id())->first();
+        $panti = \App\Models\Shelter::where('id_user', auth()->id())->with('user')->first();
+
+        $needs = [];
+        $donations = [];
+
+        if ($panti) {
+            $needs = \App\Models\Need::where('id_shelter', $panti->id_shelter)->get()->map(function ($need) {
+                return [
+                    'id' => $need->id_needs,
+                    'barang' => $need->nama_kebutuhan,
+                    'target' => $need->jumlah,
+                    'terkumpul' => $need->terkumpul,
+                    'satuan' => $need->satuan,
+                    'mendesak' => $need->is_mendesak,
+                    'kategori' => $need->kategori,
+                    'target_date' => $need->target_date,
+                    'status' => $need->terkumpul >= $need->jumlah ? 'selesai' : 'aktif',
+                ];
+            });
+
+            $donations = \App\Models\Donation::whereIn('id_needs', function ($query) use ($panti) {
+                $query->select('id_needs')->from('needs')->where('id_shelter', $panti->id_shelter);
+            })->with(['need', 'donor'])->get()->map(function ($donation) {
+                return [
+                    'id' => 'TRX-' . str_pad($donation->id_donation, 3, '0', STR_PAD_LEFT),
+                    'id_raw' => $donation->id_donation,
+                    'date' => $donation->created_at ? $donation->created_at->format('d M Y') : '-',
+                    'name' => $donation->donor ? $donation->donor->nama_lengkap : 'Anonim',
+                    'type' => 'Barang',
+                    'val' => $donation->jumlah_donasi . ' ' . ($donation->need ? $donation->need->satuan : 'Pcs'),
+                    'status' => $donation->status,
+                    'bukti' => $donation->bukti_penerimaan ? asset('storage/' . $donation->bukti_penerimaan) : null,
+                    'detail' => [
+                        'kurir' => $donation->kurir ?? '-',
+                        'resi' => $donation->resi ?? '-',
+                        'msg' => $donation->pesan ?? 'Tidak ada pesan.',
+                    ]
+                ];
+            });
+        }
 
         return Inertia::render('Panti/PantiDashboard', [
-            'pantiData' => $panti
+            'pantiData' => $panti,
+            'needs' => $needs,
+            'donations' => $donations
         ]);
     })->name('panti.dashboard');
+
+    Route::post('/panti/kebutuhan', [App\Http\Controllers\Panti\KebutuhanController::class, 'store'])->name('panti.kebutuhan.store');
+    Route::patch('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'update'])->name('panti.kebutuhan.update');
+    Route::delete('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'destroy'])->name('panti.kebutuhan.destroy');
+
+    Route::post('/panti/donasi/{id}/konfirmasi', [App\Http\Controllers\Panti\DonasiController::class, 'konfirmasi'])->name('panti.donasi.konfirmasi');
+    Route::patch('/panti/profil', [App\Http\Controllers\Panti\ProfilController::class, 'update'])->name('panti.profil.update');
 
     // ================= ACTIONS & AKSI MANAJEMEN ADMIN =================
     Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');

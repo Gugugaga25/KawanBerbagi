@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, Filter, Download, X, Package, Wallet, UploadCloud, ImageIcon, CheckCircle2 } from 'lucide-react';
+import { useForm } from '@inertiajs/react';
 
 const COLORS = {
   navy: "#083A4F",
@@ -9,28 +10,17 @@ const COLORS = {
   cream: "#E5E1DD",
 };
 
-// Dummy Data yang diperbarui dengan kurir, resi, dan bukti
-const DUMMY_DATA = [
-  { 
-    id: "TRX-001", date: "10 Jul 2026", name: "Hamba Allah", type: "Dana", val: "Rp 500.000", status: "Diterima",
-    detail: { kurir: "Transfer BCA", resi: "-", msg: "Semoga bermanfaat untuk adik-adik panti." },
-    bukti: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=100&h=100&fit=crop" // Mockup foto resi/transfer
-  },
-  { 
-    id: "TRX-002", date: "09 Jul 2026", name: "Budi Santoso", type: "Barang", val: "20 kg Beras Premium", status: "Dikirim",
-    detail: { kurir: "JNE Reguler", resi: "JX1294819200", msg: "Tolong konfirmasi kalau sudah sampai ya pak." },
-    bukti: null
-  },
-  { 
-    id: "TRX-003", date: "08 Jul 2026", name: "PT. ABC Maju", type: "Dana", val: "Rp 5.000.000", status: "Diproses",
-    detail: { kurir: "Transfer Mandiri", resi: "-", msg: "Donasi CSR Bulanan PT ABC Maju." },
-    bukti: null
-  },
-];
-
-export default function DonasiMasuk() {
+export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
   const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('Semua');
   const [selectedTx, setSelectedTx] = useState<any>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // useForm Hook
+  const { data, setData, post, processing, errors, reset } = useForm({
+    bukti_penerimaan: null as File | null,
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -39,6 +29,42 @@ export default function DonasiMasuk() {
       case 'Diproses': return 'bg-gray-100 text-gray-600 border-gray-200';
       default: return 'bg-gray-50 text-gray-600 border-gray-200';
     }
+  };
+
+  // Logika Pencarian dan Filter
+  const filteredData = donations.filter((row) => {
+    const matchSearch = row.name.toLowerCase().includes(search.toLowerCase()) || row.id.toLowerCase().includes(search.toLowerCase());
+    let matchType = true;
+    if (typeFilter === 'Dana') matchType = row.type === 'Dana';
+    if (typeFilter === 'Barang') matchType = row.type === 'Barang';
+    return matchSearch && matchType;
+  });
+
+  const handleBoxClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setData('bukti_penerimaan', e.target.files[0]);
+    }
+  };
+
+  const handleConfirmSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data.bukti_penerimaan) {
+      alert("Silakan unggah foto bukti penerimaan terlebih dahulu!");
+      return;
+    }
+
+    post(route('panti.donasi.konfirmasi', selectedTx.id_raw), {
+      onSuccess: () => {
+        setSelectedTx(null);
+        reset();
+      }
+    });
   };
 
   return (
@@ -66,9 +92,24 @@ export default function DonasiMasuk() {
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar w-full sm:w-auto">
-          <button className="px-4 py-2 bg-[#083A4F] text-white rounded-xl text-xs font-bold whitespace-nowrap">Semua</button>
-          <button className="px-4 py-2 text-gray-500 hover:bg-gray-50 rounded-xl text-xs font-bold whitespace-nowrap">Dana</button>
-          <button className="px-4 py-2 text-gray-500 hover:bg-gray-50 rounded-xl text-xs font-bold whitespace-nowrap">Barang</button>
+          <button 
+            onClick={() => setTypeFilter('Semua')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Semua' ? 'bg-[#083A4F] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Semua
+          </button>
+          <button 
+            onClick={() => setTypeFilter('Dana')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Dana' ? 'bg-[#083A4F] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Dana
+          </button>
+          <button 
+            onClick={() => setTypeFilter('Barang')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Barang' ? 'bg-[#083A4F] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Barang
+          </button>
           <div className="w-px h-6 bg-gray-200 mx-1 shrink-0" />
           <button className="p-2 text-gray-500 hover:bg-gray-50 rounded-xl transition-colors shrink-0"><Filter size={18} /></button>
         </div>
@@ -90,58 +131,64 @@ export default function DonasiMasuk() {
               </tr>
             </thead>
             <tbody className="text-[#124354]">
-              {DUMMY_DATA.map((row, i) => (
-                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 text-sm text-gray-500">{row.date}</td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-bold">{row.name}</p>
-                    <p className="text-xs text-gray-400">{row.id}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md">
-                      {row.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 font-bold text-sm">{row.val}</td>
-                  <td className="px-6 py-4">
-                    <span className={`border text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${getStatusBadge(row.status)}`}>
-                      {row.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {/* Kolom Bukti */}
-                    {row.bukti ? (
-                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200">
-                        <img src={row.bukti} alt="Bukti" className="w-full h-full object-cover" />
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400 italic">Belum ada</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    {/* Logika Tombol Aksi */}
-                    {row.status === 'Dikirim' ? (
-                      <button 
-                        onClick={() => setSelectedTx(row)}
-                        className="relative inline-flex items-center justify-center px-4 py-2 bg-[#407E8C] text-white hover:bg-[#083A4F] rounded-xl text-xs font-bold transition-all shadow-sm"
-                      >
-                        Tinjau
-                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white"></span>
-                        </span>
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => setSelectedTx(row)}
-                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-[#124354] hover:bg-gray-50 rounded-xl text-xs font-bold transition-all shadow-sm"
-                      >
-                        Detail
-                      </button>
-                    )}
+              {filteredData.length > 0 ? (
+                filteredData.map((row, i) => (
+                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 text-sm text-gray-500">{row.date}</td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-bold">{row.name}</p>
+                      <p className="text-xs text-gray-400">{row.id}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md">
+                        {row.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-bold text-sm">{row.val}</td>
+                    <td className="px-6 py-4">
+                      <span className={`border text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${getStatusBadge(row.status)}`}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {row.bukti ? (
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200">
+                          <img src={row.bukti} alt="Bukti" className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Belum ada</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {row.status === 'Dikirim' ? (
+                        <button 
+                          onClick={() => { reset(); setSelectedTx(row); }}
+                          className="relative inline-flex items-center justify-center px-4 py-2 bg-[#407E8C] text-white hover:bg-[#083A4F] rounded-xl text-xs font-bold transition-all shadow-sm"
+                        >
+                          Tinjau
+                          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white"></span>
+                          </span>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => { reset(); setSelectedTx(row); }}
+                          className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-[#124354] hover:bg-gray-50 rounded-xl text-xs font-bold transition-all shadow-sm"
+                        >
+                          Detail
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500 font-medium">
+                    Tidak ada data donasi masuk.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -153,7 +200,7 @@ export default function DonasiMasuk() {
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto hide-scrollbar">
             
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-[#124354]">Detail Pesanan</h3>
+              <h3 className="text-xl font-black text-[#124354]">Detail Donasi</h3>
               <button onClick={() => setSelectedTx(null)} className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
                 <X size={20} />
               </button>
@@ -167,7 +214,7 @@ export default function DonasiMasuk() {
                     {selectedTx.type === 'Dana' ? <Wallet size={24} /> : <Package size={24} />}
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 font-bold mb-0.5 uppercase tracking-wider">Total {selectedTx.type}</p>
+                    <p className="text-xs text-gray-500 font-bold mb-0.5 uppercase tracking-wider">Donasi {selectedTx.type}</p>
                     <p className="text-xl font-black text-[#124354] leading-none">{selectedTx.val}</p>
                   </div>
                 </div>
@@ -205,29 +252,59 @@ export default function DonasiMasuk() {
                 
                 {/* 1. Kondisi Jika Status "Dikirim" (Butuh Konfirmasi) */}
                 {selectedTx.status === 'Dikirim' && (
-                  <div className="space-y-4">
+                  <form onSubmit={handleConfirmSubmit} className="space-y-4">
                     <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4">
                       <p className="text-sm text-amber-800 font-medium">Barang sedang dalam pengiriman. Mohon unggah foto barang saat tiba sebagai bukti penerimaan.</p>
                     </div>
                     
                     {/* Kotak Upload Foto */}
-                    <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
-                      <div className="w-12 h-12 bg-[#F4F3EF] text-[#407E8C] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <UploadCloud size={24} />
+                    {data.bukti_penerimaan ? (
+                      <div className="border border-emerald-100 bg-emerald-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+                        <CheckCircle2 className="text-emerald-500 mb-2" size={32} />
+                        <p className="text-sm font-bold text-[#124354]">{data.bukti_penerimaan.name}</p>
+                        <button 
+                          type="button" 
+                          onClick={() => setData('bukti_penerimaan', null)} 
+                          className="text-xs text-red-500 mt-2 hover:underline font-bold"
+                        >
+                          Ganti File Foto
+                        </button>
                       </div>
-                      <p className="text-sm font-bold text-[#124354]">Pilih atau tarik foto ke sini</p>
-                      <p className="text-xs text-gray-500 mt-1">Maksimal ukuran file 5MB (JPG/PNG)</p>
-                    </div>
+                    ) : (
+                      <div 
+                        onClick={handleBoxClick}
+                        className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group"
+                      >
+                        <div className="w-12 h-12 bg-[#F4F3EF] text-[#407E8C] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                          <UploadCloud size={24} />
+                        </div>
+                        <p className="text-sm font-bold text-[#124354]">Pilih atau tarik foto ke sini</p>
+                        <p className="text-xs text-gray-500 mt-1">Maksimal ukuran file 5MB (JPG/PNG)</p>
+                      </div>
+                    )}
+                    
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      accept="image/*"
+                      className="hidden" 
+                    />
+                    {errors.bukti_penerimaan && <p className="text-red-500 text-xs mt-1">{errors.bukti_penerimaan}</p>}
 
                     <div className="flex gap-3 pt-2">
-                      <button onClick={() => setSelectedTx(null)} className="px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
+                      <button type="button" onClick={() => setSelectedTx(null)} className="px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
                         Kembali
                       </button>
-                      <button className="flex-1 py-3 bg-[#407E8C] text-white font-bold rounded-xl hover:bg-[#083A4F] transition-all flex items-center justify-center gap-2 shadow-md">
-                        <CheckCircle2 size={18} /> Konfirmasi Terima Barang
+                      <button 
+                        type="submit"
+                        disabled={processing}
+                        className="flex-1 py-3 bg-[#407E8C] text-white font-bold rounded-xl hover:bg-[#083A4F] transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+                      >
+                        <CheckCircle2 size={18} /> {processing ? 'Memproses...' : 'Konfirmasi Terima Barang'}
                       </button>
                     </div>
-                  </div>
+                  </form>
                 )}
 
                 {/* 2. Kondisi Jika Status "Diterima" (Lihat Bukti) */}

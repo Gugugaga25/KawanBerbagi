@@ -9,7 +9,7 @@ import {
   LogOut,
 } from 'lucide-react';
 
-export type PantiTabType = 'dashboard' | 'kebutuhan' | 'donasi' | 'profil';
+export type PantiTabType = 'dashboard' | 'kebutuhan' | 'donasi' | 'profil' | 'pengaturan';
 
 const SidebarItem = ({
   icon: Icon,
@@ -83,7 +83,14 @@ export default function PantiSidebar({
 
       {/* Account footer */}
       <div className="p-4 border-t border-gray-100 space-y-1">        
-        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354] rounded-xl font-medium transition-colors text-sm">
+        <button 
+          onClick={() => onTabChange('pengaturan')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition-all text-sm ${
+            activeTab === 'pengaturan'
+              ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10'
+              : 'text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354]'
+          }`}
+        >
           <Settings size={18} /> Pengaturan
         </button>
         

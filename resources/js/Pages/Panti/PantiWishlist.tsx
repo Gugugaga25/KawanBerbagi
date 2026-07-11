@@ -7,74 +7,126 @@ import {
   CheckCircle2, 
   Clock,
   Package,
-  MoreVertical,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
+import { useForm } from '@inertiajs/react';
 
-// ====== Data Dummy Awal ======
-const INITIAL_DATA = [
-  { id: 1, title: "Beras Putih Premium", category: "Pangan", target: 50, current: 36, unit: "kg", status: "aktif", daysLeft: 5 },
-  { id: 2, title: "Susu Formula Bayi (6-12 bln)", category: "Balita", target: 20, current: 18, unit: "kaleng", status: "aktif", daysLeft: 2 },
-  { id: 3, title: "Selimut & Pakaian Hangat", category: "Sandang", target: 30, current: 9, unit: "pcs", status: "aktif", daysLeft: 14 },
-  { id: 4, title: "Minyak Goreng & Bumbu Dapur", category: "Pangan", target: 20, current: 5, unit: "liter", status: "aktif", daysLeft: 21 },
-  { id: 5, title: "Buku Tulis & Alat Sekolah", category: "Pendidikan", target: 100, current: 100, unit: "paket", status: "selesai", daysLeft: 0 },
-];
-
-export default function PantiKebutuhan() {
+export default function PantiKebutuhan({ needs = [] }: { needs?: any[] }) {
   // State Utama
-  const [dataKebutuhan, setDataKebutuhan] = useState(INITIAL_DATA);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('Semua');
   
   // State Modal Form
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    category: 'Pangan',
-    target: '',
-    unit: 'kg',
-    daysLeft: ''
+  const [editData, setEditData] = useState<any>(null);
+
+  // State Modal Hapus
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteData, setDeleteData] = useState<any>(null);
+
+  // useForm Hook
+  const { data, setData, post, patch, delete: destroy, processing, errors, reset, clearErrors } = useForm({
+    nama_kebutuhan: '',
+    jumlah: '',
+    satuan: 'kg',
+    is_mendesak: false,
+    kategori: 'Pangan',
+    target_date: '',
   });
 
+  // Helper untuk menghitung sisa hari secara dinamis
+  const calculateDaysLeft = (targetDateStr: string | null) => {
+    if (!targetDateStr) return 0;
+    const target = new Date(targetDateStr);
+    const today = new Date();
+    target.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   // Logika Pencarian dan Filter
-  const filteredData = dataKebutuhan.filter((item) => {
-    const matchSearch = item.title.toLowerCase().includes(search.toLowerCase());
+  const filteredData = needs.filter((item) => {
+    const matchSearch = item.barang.toLowerCase().includes(search.toLowerCase());
     let matchFilter = true;
     
     if (filter === 'Aktif') matchFilter = item.status === 'aktif';
-    if (filter === 'Mendesak') matchFilter = item.status === 'aktif' && item.daysLeft <= 3;
+    if (filter === 'Mendesak') matchFilter = item.status === 'aktif' && (item.mendesak || calculateDaysLeft(item.target_date) <= 3);
     if (filter === 'Terpenuhi') matchFilter = item.status === 'selesai';
 
     return matchSearch && matchFilter;
   });
 
-  // Handler Submit Form Baru
-  const handleSumbitNew = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title || !formData.target || !formData.daysLeft) return;
+  // Handler Modal Form
+  const openAddModal = () => {
+    setEditData(null);
+    reset();
+    clearErrors();
+    setIsModalOpen(true);
+  };
 
-    const newItem = {
-      id: Date.now(),
-      title: formData.title,
-      category: formData.category,
-      target: Number(formData.target),
-      current: 0, // Awal mula current 0
-      unit: formData.unit,
-      status: "aktif",
-      daysLeft: Number(formData.daysLeft)
-    };
+  const openEditModal = (item: any) => {
+    setEditData(item);
+    setData({
+      nama_kebutuhan: item.barang,
+      jumlah: item.target.toString(),
+      satuan: item.satuan,
+      is_mendesak: !!item.mendesak,
+      kategori: item.kategori || 'Pangan',
+      target_date: item.target_date || '',
+    });
+    clearErrors();
+    setIsModalOpen(true);
+  };
 
-    setDataKebutuhan([newItem, ...dataKebutuhan]);
+  const handleCloseModal = () => {
     setIsModalOpen(false);
-    
-    // Reset Form
-    setFormData({ title: '', category: 'Pangan', target: '', unit: 'kg', daysLeft: '' });
+    reset();
+    clearErrors();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editData) {
+      patch(route('panti.kebutuhan.update', editData.id), {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          reset();
+        }
+      });
+    } else {
+      post(route('panti.kebutuhan.store'), {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          reset();
+        }
+      });
+    }
+  };
+
+  // Handler Hapus
+  const confirmDelete = (item: any) => {
+    setDeleteData(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = () => {
+    if (deleteData) {
+      destroy(route('panti.kebutuhan.destroy', deleteData.id), {
+        onSuccess: () => {
+          setIsDeleteModalOpen(false);
+          setDeleteData(null);
+        }
+      });
+    }
   };
 
   // Kalkulasi Angka Statistik secara Dinamis
-  const statAktif = dataKebutuhan.filter(d => d.status === 'aktif').length;
-  const statTerpenuhi = dataKebutuhan.filter(d => d.status === 'selesai').length;
-  const statMendesak = dataKebutuhan.filter(d => d.status === 'aktif' && d.daysLeft <= 3).length;
+  const statAktif = needs.filter(d => d.status === 'aktif').length;
+  const statTerpenuhi = needs.filter(d => d.status === 'selesai').length;
+  const statMendesak = needs.filter(d => d.status === 'aktif' && (d.mendesak || calculateDaysLeft(d.target_date) <= 3)).length;
 
   return (
     <div className="space-y-8 pb-20 text-sm relative">
@@ -86,7 +138,7 @@ export default function PantiKebutuhan() {
           <p className="text-gray-500 mt-1">Pantau dan kelola daftar logistik yang sedang dibutuhkan saat ini.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openAddModal}
           className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-[#124354] text-white text-sm font-semibold hover:bg-[#0E3544] hover:shadow-lg hover:shadow-[#124354]/20 transition-all shrink-0"
         >
           <Plus size={18} /> Buat Baru
@@ -102,7 +154,6 @@ export default function PantiKebutuhan() {
           { label: 'Partisipan', value: '128', icon: Package }, // Angka dummy untuk partisipan
         ].map((stat, i) => (
           <div key={i} className="bg-white rounded-2xl p-4 md:px-5 md:py-4 border border-gray-100 shadow-sm flex items-center gap-4 group hover:border-gray-200 transition-colors">
-            {/* BACKGROUND ICON DIUBAH MENJADI NAVY PERMANEN */}
             <div className="w-12 h-12 rounded-xl bg-[#124354] flex items-center justify-center text-white shrink-0 shadow-sm">
               <stat.icon size={20} />
             </div>
@@ -154,8 +205,9 @@ export default function PantiKebutuhan() {
         
         {filteredData.length > 0 ? (
           filteredData.map((item) => {
-            const percent = Math.min(Math.round((item.current / item.target) * 100), 100);
+            const percent = item.target > 0 ? Math.min(Math.round((item.terkumpul / item.target) * 100), 100) : 0;
             const isDone = item.status === 'selesai';
+            const daysLeft = calculateDaysLeft(item.target_date);
 
             return (
               <div 
@@ -165,24 +217,26 @@ export default function PantiKebutuhan() {
                 {/* Header: Kategori & Opsi */}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    {item.category}
+                    {item.kategori}
                   </span>
-                  <button className="text-gray-300 hover:text-[#124354] transition-colors">
-                    <MoreVertical size={16} />
-                  </button>
+                  {item.mendesak && !isDone && (
+                    <span className="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <AlertCircle size={12} /> Mendesak
+                    </span>
+                  )}
                 </div>
 
                 {/* Judul Barang */}
                 <h3 className="text-lg font-bold text-[#124354] mb-8 leading-snug line-clamp-2">
-                  {item.title}
+                  {item.barang}
                 </h3>
 
                 {/* Angka & Progress Bar */}
                 <div className="mt-auto">
                   <div className="flex justify-between items-baseline mb-3">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-extrabold text-[#124354]">{item.current}</span>
-                      <span className="text-sm font-medium text-gray-400">/ {item.target} {item.unit}</span>
+                      <span className="text-2xl font-extrabold text-[#124354]">{item.terkumpul}</span>
+                      <span className="text-sm font-medium text-gray-400">/ {item.target} {item.satuan}</span>
                     </div>
                     <span className="text-sm font-bold text-[#124354]">{percent}%</span>
                   </div>
@@ -203,16 +257,27 @@ export default function PantiKebutuhan() {
                       {isDone ? (
                         <CheckCircle2 size={15} className="text-[#10B981]" /> 
                       ) : (
-                        <Clock size={15} className={item.daysLeft <= 3 ? "text-red-500" : ""} />
+                        <Clock size={15} className={daysLeft <= 3 ? "text-red-500" : ""} />
                       )}
-                      <span className={item.daysLeft <= 3 && !isDone ? "text-red-500 font-bold" : ""}>
-                        {isDone ? 'Terpenuhi' : `Sisa ${item.daysLeft} hari`}
+                      <span className={daysLeft <= 3 && !isDone ? "text-red-500 font-bold" : ""}>
+                        {isDone ? 'Terpenuhi' : daysLeft > 0 ? `Sisa ${daysLeft} hari` : 'Tenggat Waktu Lewat'}
                       </span>
                     </div>
                     
-                    <button className="text-xs font-bold text-[#124354] hover:text-[#0E3544] underline decoration-transparent hover:decoration-[#124354] underline-offset-4 transition-all">
-                      {isDone ? 'Lihat Riwayat' : 'Edit Kebutuhan'}
-                    </button>
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={() => openEditModal(item)}
+                        className="text-xs font-bold text-[#124354] hover:text-[#0E3544] underline decoration-transparent hover:decoration-[#124354] underline-offset-4 transition-all"
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => confirmDelete(item)}
+                        className="text-xs font-bold text-red-500 hover:text-red-700 underline decoration-transparent hover:decoration-red-500 underline-offset-4 transition-all"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -228,7 +293,7 @@ export default function PantiKebutuhan() {
         {/* Card Buat Baru (Hanya muncul jika filter bukan "Terpenuhi") */}
         {filter !== 'Terpenuhi' && (
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={openAddModal}
             className="flex flex-col items-center justify-center gap-3 bg-transparent rounded-[1.5rem] p-6 border-2 border-dashed border-gray-200 min-h-[250px] hover:border-[#124354] hover:bg-[#124354]/5 transition-all group"
           >
             <div className="w-12 h-12 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-[#124354] group-hover:scale-110 transition-all shadow-sm">
@@ -243,22 +308,24 @@ export default function PantiKebutuhan() {
 
       </div>
 
-      {/* ================= MODAL FORM TAMBAH KEBUTUHAN ================= */}
+      {/* ================= MODAL FORM TAMBAH/EDIT KEBUTUHAN ================= */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-all">
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-[#124354]">Buat Kebutuhan Baru</h3>
+              <h3 className="text-xl font-black text-[#124354]">
+                {editData ? 'Ubah Kebutuhan' : 'Buat Kebutuhan Baru'}
+              </h3>
               <button 
-                onClick={() => setIsModalOpen(false)} 
+                onClick={handleCloseModal} 
                 className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <form onSubmit={handleSumbitNew} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               
               {/* Nama Barang */}
               <div>
@@ -266,18 +333,19 @@ export default function PantiKebutuhan() {
                 <input 
                   type="text" required
                   placeholder="Cth: Beras Premium, Susu Formula..."
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  value={data.nama_kebutuhan}
+                  onChange={(e) => setData('nama_kebutuhan', e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
                 />
+                {errors.nama_kebutuhan && <p className="text-red-500 text-xs mt-1">{errors.nama_kebutuhan}</p>}
               </div>
 
               {/* Kategori */}
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Kategori</label>
                 <select 
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  value={data.kategori}
+                  onChange={(e) => setData('kategori', e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
                 >
                   <option value="Pangan">Pangan (Sembako, Minuman)</option>
@@ -287,6 +355,7 @@ export default function PantiKebutuhan() {
                   <option value="Kesehatan">Kesehatan (Obat, P3K)</option>
                   <option value="Lainnya">Lainnya</option>
                 </select>
+                {errors.kategori && <p className="text-red-500 text-xs mt-1">{errors.kategori}</p>}
               </div>
 
               {/* Target & Satuan (Sebaris) */}
@@ -296,53 +365,69 @@ export default function PantiKebutuhan() {
                   <input 
                     type="number" min="1" required
                     placeholder="0"
-                    value={formData.target}
-                    onChange={(e) => setFormData({...formData, target: e.target.value})}
+                    value={data.jumlah}
+                    onChange={(e) => setData('jumlah', e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
                   />
+                  {errors.jumlah && <p className="text-red-500 text-xs mt-1">{errors.jumlah}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Satuan</label>
-                  <select 
-                    value={formData.unit}
-                    onChange={(e) => setFormData({...formData, unit: e.target.value})}
+                  <input 
+                    type="text" required
+                    placeholder="Cth: kg, L, pcs"
+                    value={data.satuan}
+                    onChange={(e) => setData('satuan', e.target.value)}
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
-                  >
-                    <option value="kg">Kilogram (kg)</option>
-                    <option value="liter">Liter (L)</option>
-                    <option value="pcs">Pcs / Buah</option>
-                    <option value="kaleng">Kaleng</option>
-                    <option value="paket">Paket / Dus</option>
-                  </select>
+                  />
+                  {errors.satuan && <p className="text-red-500 text-xs mt-1">{errors.satuan}</p>}
                 </div>
               </div>
 
-              {/* Tenggat Waktu */}
+              {/* Tenggat Waktu (Date Picker) */}
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estimasi Terpenuhi (Hari)</label>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Tenggat Waktu Kebutuhan</label>
                 <input 
-                  type="number" min="1" required
-                  placeholder="Cth: 14"
-                  value={formData.daysLeft}
-                  onChange={(e) => setFormData({...formData, daysLeft: e.target.value})}
+                  type="date" required
+                  value={data.target_date}
+                  onChange={(e) => setData('target_date', e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
                 />
+                {errors.target_date && <p className="text-red-500 text-xs mt-1">{errors.target_date}</p>}
+              </div>
+
+              {/* Mendesak Toggle */}
+              <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 bg-gray-50">
+                <div>
+                  <label className="text-sm font-bold text-[#124354] block">Tandai Mendesak</label>
+                  <p className="text-xs text-gray-500 mt-0.5">Kebutuhan ini akan diprioritaskan</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="sr-only peer"
+                    checked={data.is_mendesak}
+                    onChange={e => setData('is_mendesak', e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#407E8C]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                </label>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-4 mt-2 border-t border-gray-100">
                 <button 
                   type="button" 
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseModal}
                   className="px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-3 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] transition-all shadow-md"
+                  disabled={processing}
+                  className="flex-1 py-3 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] transition-all shadow-md disabled:opacity-50"
                 >
-                  Terbitkan Kebutuhan
+                  {processing ? 'Menyimpan...' : editData ? 'Simpan Perubahan' : 'Terbitkan Kebutuhan'}
                 </button>
               </div>
 
@@ -350,6 +435,37 @@ export default function PantiKebutuhan() {
           </div>
         </div>
       )}
+
+      {/* ================= MODAL KONFIRMASI HAPUS ================= */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-all">
+          <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-[#124354] mb-3">Hapus Kebutuhan</h3>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Apakah Anda yakin ingin menghapus kebutuhan <strong>{deleteData?.barang}</strong>? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setDeleteData(null);
+                }}
+                className="px-5 py-2.5 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all text-xs"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={executeDelete}
+                disabled={processing}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all text-xs shadow-md disabled:opacity-50"
+              >
+                {processing ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
