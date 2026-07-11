@@ -71,27 +71,27 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
       </div>
 
       {/* Table Data */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="text-white text-xs uppercase tracking-wider" style={{background: COLORS.navy}}>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible">
+        <div className="overflow-visible">
+          <table className="w-full text-left border-separate border-spacing-0">
+            <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Informasi Donatur</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Total Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Tier</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Terakhir Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Aksi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-2xl" style={{background: COLORS.navy}}>Informasi Donatur</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.navy}}>Total Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.navy}}>Tier</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.navy}}>Terakhir Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-2xl" style={{background: COLORS.navy}}>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody>
               {donaturs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">Belum ada data donatur.</td>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500 border-b border-gray-100">Belum ada data donatur.</td>
                 </tr>
               ) : (
                 donaturs.map((donor) => (
                   <tr key={donor.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 border-b border-gray-100">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-[#124354]/10 flex items-center justify-center font-bold text-[#124354]">
                           {donor.nama.charAt(0)}
@@ -104,11 +104,11 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 border-b border-gray-100">
                       <p className="font-semibold text-[#124354]">{donor.total}</p>
                       <p className="text-xs text-[#5A7C85] mt-0.5">{donor.frekuensi} kali berdonasi</p>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-6 py-4 text-center border-b border-gray-100">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
                         ${donor.tier === 'Platinum' ? 'bg-purple-100 text-purple-700' : 
                           donor.tier === 'Gold' ? 'bg-yellow-100 text-yellow-700' : 
@@ -118,10 +118,10 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                         <Award size={14} /> {donor.tier}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-[#5A7C85]">
+                    <td className="px-6 py-4 text-sm font-medium text-[#5A7C85] border-b border-gray-100">
                       {donor.terakhir}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right border-b border-gray-100">
                       <Dropdown>
                         <Dropdown.Trigger>
                           <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">

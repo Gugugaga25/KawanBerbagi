@@ -80,23 +80,23 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="text-white text-xs uppercase tracking-wider" style={{background: COLORS.navy}}>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible">
+        <div className="overflow-visible">
+          <table className="w-full text-left border-separate border-spacing-0">
+            <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-bold">Nama Panti</th>
-                <th className="px-6 py-4 font-bold">Pimpinan</th>
-                <th className="px-6 py-4 font-bold">Lokasi</th>
-                <th className="px-6 py-4 font-bold">Jml. Anak</th>
-                <th className="px-6 py-4 font-bold">Status</th>
-                <th className="px-6 py-4 font-bold text-right">Aksi</th>
+                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.navy}}>Nama Panti</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Pimpinan</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Lokasi</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Jml. Anak</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Status</th>
+                <th className="px-6 py-4 font-bold text-right rounded-tr-2xl" style={{background: COLORS.navy}}>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-[#124354] text-sm">
+            <tbody className="text-[#124354] text-sm">
               {displayData.map((panti) => (
                 <tr key={panti.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-lg bg-[#EAE8E3] text-[#124354] flex items-center justify-center font-bold">
                         <Building2 size={18} />
@@ -104,10 +104,10 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                       <span className="font-bold">{panti.nama}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-medium">{panti.pimpinan}</td>
-                  <td className="px-6 py-4 text-gray-500">{panti.alamat}</td>
-                  <td className="px-6 py-4 font-semibold">{panti.anak} Anak</td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 font-medium border-b border-gray-100">{panti.pimpinan}</td>
+                  <td className="px-6 py-4 text-gray-500 border-b border-gray-100">{panti.alamat}</td>
+                  <td className="px-6 py-4 font-semibold border-b border-gray-100">{panti.anak} Anak</td>
+                  <td className="px-6 py-4 border-b border-gray-100">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                       panti.status === 'Active' 
                         ? 'bg-green-50 text-green-700 border border-green-200' 
@@ -119,7 +119,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                       {panti.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right border-b border-gray-100">
                     <Dropdown>
                       <Dropdown.Trigger>
                         <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
