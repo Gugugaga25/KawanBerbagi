@@ -1,0 +1,269 @@
+import React, { useState } from 'react';
+import { Search, Filter, Download, X, Package, Wallet, UploadCloud, ImageIcon, CheckCircle2 } from 'lucide-react';
+
+const COLORS = {
+  navy: "#083A4F",
+  gold: "#A58D66",
+  mist: "#C0D5D6",
+  teal: "#407E8C",
+  cream: "#E5E1DD",
+};
+
+// Dummy Data yang diperbarui dengan kurir, resi, dan bukti
+const DUMMY_DATA = [
+  { 
+    id: "TRX-001", date: "10 Jul 2026", name: "Hamba Allah", type: "Dana", val: "Rp 500.000", status: "Diterima",
+    detail: { kurir: "Transfer BCA", resi: "-", msg: "Semoga bermanfaat untuk adik-adik panti." },
+    bukti: "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=100&h=100&fit=crop" // Mockup foto resi/transfer
+  },
+  { 
+    id: "TRX-002", date: "09 Jul 2026", name: "Budi Santoso", type: "Barang", val: "20 kg Beras Premium", status: "Dikirim",
+    detail: { kurir: "JNE Reguler", resi: "JX1294819200", msg: "Tolong konfirmasi kalau sudah sampai ya pak." },
+    bukti: null
+  },
+  { 
+    id: "TRX-003", date: "08 Jul 2026", name: "PT. ABC Maju", type: "Dana", val: "Rp 5.000.000", status: "Diproses",
+    detail: { kurir: "Transfer Mandiri", resi: "-", msg: "Donasi CSR Bulanan PT ABC Maju." },
+    bukti: null
+  },
+];
+
+export default function DonasiMasuk() {
+  const [search, setSearch] = useState('');
+  const [selectedTx, setSelectedTx] = useState<any>(null);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Diterima': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      case 'Dikirim': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'Diproses': return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-gray-50 text-gray-600 border-gray-200';
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-20 text-sm relative">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div>
+          <h1 className="text-3xl font-extrabold text-[#124354] tracking-tight">Donasi Masuk</h1>
+          <p className="text-gray-500 mt-1">Riwayat lengkap penerimaan donasi dana maupun barang.</p>
+        </div>
+        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-gray-200 text-[#124354] text-sm font-semibold hover:bg-gray-50 transition-all shrink-0 shadow-sm">
+          <Download size={16} /> Unduh Laporan
+        </button>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-2.5 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="relative w-full sm:max-w-md flex items-center px-3 bg-gray-50 rounded-xl">
+          <Search className="text-gray-400 shrink-0" size={16} />
+          <input 
+            type="text" 
+            placeholder="Cari nama donatur atau ID..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full py-2.5 pl-3 text-sm bg-transparent border-0 focus:ring-0 outline-none text-[#124354] placeholder-gray-400"
+          />
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar w-full sm:w-auto">
+          <button className="px-4 py-2 bg-[#083A4F] text-white rounded-xl text-xs font-bold whitespace-nowrap">Semua</button>
+          <button className="px-4 py-2 text-gray-500 hover:bg-gray-50 rounded-xl text-xs font-bold whitespace-nowrap">Dana</button>
+          <button className="px-4 py-2 text-gray-500 hover:bg-gray-50 rounded-xl text-xs font-bold whitespace-nowrap">Barang</button>
+          <div className="w-px h-6 bg-gray-200 mx-1 shrink-0" />
+          <button className="p-2 text-gray-500 hover:bg-gray-50 rounded-xl transition-colors shrink-0"><Filter size={18} /></button>
+        </div>
+      </div>
+
+      {/* Table Data */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-gray-100 text-xs text-white uppercase tracking-wider" style={{background: COLORS.navy}}>
+                <th className="px-6 py-4 font-bold">Tanggal</th>
+                <th className="px-6 py-4 font-bold">Donatur</th>
+                <th className="px-6 py-4 font-bold">Jenis</th>
+                <th className="px-6 py-4 font-bold">Nominal / Barang</th>
+                <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold">Bukti Terima</th>
+                <th className="px-6 py-4 font-bold text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="text-[#124354]">
+              {DUMMY_DATA.map((row, i) => (
+                <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-500">{row.date}</td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm font-bold">{row.name}</p>
+                    <p className="text-xs text-gray-400">{row.id}</p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 px-2.5 py-1 rounded-md">
+                      {row.type}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 font-bold text-sm">{row.val}</td>
+                  <td className="px-6 py-4">
+                    <span className={`border text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${getStatusBadge(row.status)}`}>
+                      {row.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    {/* Kolom Bukti */}
+                    {row.bukti ? (
+                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-200">
+                        <img src={row.bukti} alt="Bukti" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">Belum ada</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {/* Logika Tombol Aksi */}
+                    {row.status === 'Dikirim' ? (
+                      <button 
+                        onClick={() => setSelectedTx(row)}
+                        className="relative inline-flex items-center justify-center px-4 py-2 bg-[#407E8C] text-white hover:bg-[#083A4F] rounded-xl text-xs font-bold transition-all shadow-sm"
+                      >
+                        Tinjau
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border-2 border-white"></span>
+                        </span>
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setSelectedTx(row)}
+                        className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-[#124354] hover:bg-gray-50 rounded-xl text-xs font-bold transition-all shadow-sm"
+                      >
+                        Detail
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ================= MODAL DETAIL & KONFIRMASI ================= */}
+      {selectedTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-all">
+          <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto hide-scrollbar">
+            
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-[#124354]">Detail Pesanan</h3>
+              <button onClick={() => setSelectedTx(null)} className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Info Header */}
+              <div className="flex items-center justify-between p-4 bg-[#F4F3EF] rounded-2xl border border-gray-200/50">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#407E8C] shadow-sm">
+                    {selectedTx.type === 'Dana' ? <Wallet size={24} /> : <Package size={24} />}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-bold mb-0.5 uppercase tracking-wider">Total {selectedTx.type}</p>
+                    <p className="text-xl font-black text-[#124354] leading-none">{selectedTx.val}</p>
+                  </div>
+                </div>
+                <span className={`border text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg ${getStatusBadge(selectedTx.status)}`}>
+                  {selectedTx.status}
+                </span>
+              </div>
+
+              {/* Rincian Logistik & ID */}
+              <div className="grid grid-cols-2 gap-4 px-1">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">ID Transaksi</p>
+                  <p className="text-sm font-bold text-[#124354]">{selectedTx.id}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Donatur</p>
+                  <p className="text-sm font-bold text-[#124354]">{selectedTx.name}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Layanan Logistik</p>
+                  <p className="text-sm font-bold text-[#124354]">{selectedTx.detail.kurir}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nomor Resi</p>
+                  <p className="text-sm font-bold text-[#407E8C]">{selectedTx.detail.resi}</p>
+                </div>
+                <div className="col-span-2 mt-2">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pesan Donatur</p>
+                  <p className="text-sm text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100 italic">"{selectedTx.detail.msg}"</p>
+                </div>
+              </div>
+
+              {/* Area Bukti Terima & Aksi */}
+              <div className="pt-4 border-t border-gray-100">
+                
+                {/* 1. Kondisi Jika Status "Dikirim" (Butuh Konfirmasi) */}
+                {selectedTx.status === 'Dikirim' && (
+                  <div className="space-y-4">
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4">
+                      <p className="text-sm text-amber-800 font-medium">Barang sedang dalam pengiriman. Mohon unggah foto barang saat tiba sebagai bukti penerimaan.</p>
+                    </div>
+                    
+                    {/* Kotak Upload Foto */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+                      <div className="w-12 h-12 bg-[#F4F3EF] text-[#407E8C] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <UploadCloud size={24} />
+                      </div>
+                      <p className="text-sm font-bold text-[#124354]">Pilih atau tarik foto ke sini</p>
+                      <p className="text-xs text-gray-500 mt-1">Maksimal ukuran file 5MB (JPG/PNG)</p>
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <button onClick={() => setSelectedTx(null)} className="px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
+                        Kembali
+                      </button>
+                      <button className="flex-1 py-3 bg-[#407E8C] text-white font-bold rounded-xl hover:bg-[#083A4F] transition-all flex items-center justify-center gap-2 shadow-md">
+                        <CheckCircle2 size={18} /> Konfirmasi Terima Barang
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Kondisi Jika Status "Diterima" (Lihat Bukti) */}
+                {selectedTx.status === 'Diterima' && (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Foto Bukti Penerimaan</p>
+                      {selectedTx.bukti ? (
+                        <div className="w-full h-40 rounded-xl overflow-hidden border border-gray-200">
+                          <img src={selectedTx.bukti} alt="Bukti Penerimaan" className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400 gap-2">
+                          <ImageIcon size={20} /> <span className="text-sm font-medium">Tidak ada foto</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#124354] text-white font-bold rounded-xl transition-all hover:bg-[#083A4F]">
+                      Tutup
+                    </button>
+                  </div>
+                )}
+
+                {/* 3. Kondisi Jika Status "Diproses" */}
+                {selectedTx.status === 'Diproses' && (
+                  <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#124354] text-white font-bold rounded-xl transition-all hover:bg-[#083A4F]">
+                    Tutup
+                  </button>
+                )}
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

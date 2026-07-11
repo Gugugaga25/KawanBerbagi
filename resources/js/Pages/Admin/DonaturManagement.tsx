@@ -7,6 +7,14 @@ import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 
+const COLORS = {
+  navy: "#083A4F",
+  gold: "#A58D66",
+  mist: "#C0D5D6",
+  teal: "#407E8C",
+  cream: "#E5E1DD",
+};
+
 export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
@@ -46,7 +54,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h2 className="text-xl font-bold text-[#124354]">Data Donatur</h2>
+        <h3 className="text-2xl font-bold text-[#124354]">Data Donatur</h3>
           <p className="text-sm text-[#5A7C85] mt-1">Kelola data donatur dan riwayat donasinya</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -63,16 +71,16 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
       </div>
 
       {/* Table Data */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="w-full">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider">Informasi Donatur</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider">Total Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider text-center">Tier</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider">Terakhir Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold text-[#5A7C85] uppercase tracking-wider text-right">Aksi</th>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="text-white text-xs uppercase tracking-wider" style={{background: COLORS.navy}}>
+              <tr>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Informasi Donatur</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Total Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center">Tier</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider">Terakhir Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { router } from '@inertiajs/react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -34,15 +35,31 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
+  
+  // Fungsi logout dimasukkan ke sini dan diberi type event-nya
+  const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    
+    // Langsung nembak ke route POST /logout bawaan Laravel via Inertia
+    router.post('/logout'); 
+  };
+
   return (
-    <aside className="w-64 bg-white border-r border-gray-200/80 flex flex-col z-20">
-      <div className="p-8">
+    <aside className="w-64 bg-white h-full border-r border-gray-200/80 flex flex-col z-20">
+      {/* Brand mark */}
+      <div className="p-7 pb-5">
         <h1 className="text-2xl font-extrabold text-[#124354] tracking-tight">
           KawanBerbagi<span className="text-[#4A828F]">.</span>
         </h1>
       </div>
-      
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
+
+      <div className="mx-6 border-b border-gray-100" />
+
+      {/* Nav */}
+      <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#5A7C85]/50 pl-4 mb-2">
+          Menu Utama
+        </p>
         <SidebarItem icon={LayoutDashboard} label="Dashboard" tabId="dashboard" activeTab={activeTab} onClick={onTabChange} />
         <SidebarItem icon={Building2} label="Manajemen Panti" tabId="panti" activeTab={activeTab} onClick={onTabChange} />
         <SidebarItem icon={Users} label="Data Donatur" tabId="donatur" activeTab={activeTab} onClick={onTabChange} />

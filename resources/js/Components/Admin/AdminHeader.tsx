@@ -13,7 +13,7 @@ export default function AdminHeader({ activeTab }: AdminHeaderProps) {
           Admin Panel
         </span>
         <h2 className="text-lg font-bold text-[#124354] capitalize">
-          {activeTab === 'dashboard' ? 'Overview Dashboard' : `Manajemen ${activeTab}`}
+          {activeTab === 'dashboard' ? 'Dashboard Admin' : `Manajemen ${activeTab}`}
         </h2>
       </div>
       

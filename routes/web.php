@@ -14,7 +14,17 @@ Route::get('/', function () {
     ]);
 });
 
+// Route penengah pasca-login (mencegah panti masuk ke halaman kosong bawaan breeze)
 Route::get('/dashboard', function () {
+    // Cek apakah id user ini terdaftar di tabel shelters
+    // (Sesuaikan 'id_user' dengan nama kolom foreign key di tabel shelter kamu)
+    $isPanti = \App\Models\Shelter::where('id_user', auth()->id())->exists();
+
+    if ($isPanti) {
+        return redirect()->route('panti.dashboard');
+    }
+
+    // Jika bukan panti (misal user biasa/donatur), arahkan ke dashboard default
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -23,7 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Rute Admin
+    // ================= ROUTE DASHBOARD ADMIN =================
     Route::get('/admin/dashboard', function () {
         $pantis = \App\Models\Shelter::with('user')->get()->map(function ($panti) {
             return [
@@ -92,6 +102,17 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('admin.dashboard');
 
+    // ================= ROUTE DASHBOARD PANTI =================
+    Route::get('/panti/dashboard', function () {
+        // Mengambil data spesifik panti yang sedang login saat ini
+        $panti = \App\Models\Shelter::where('id_user', auth()->id())->first();
+
+        return Inertia::render('Panti/PantiDashboard', [
+            'pantiData' => $panti
+        ]);
+    })->name('panti.dashboard');
+
+    // ================= ACTIONS & AKSI MANAJEMEN ADMIN =================
     Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');
     Route::patch('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'update'])->name('admin.panti.update');
     Route::patch('/admin/panti/{id}/status', [App\Http\Controllers\Admin\PantiController::class, 'updateStatus'])->name('admin.panti.updateStatus');

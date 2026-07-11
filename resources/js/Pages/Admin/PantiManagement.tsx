@@ -14,6 +14,13 @@ const DATA_PANTI = [
   { id: 4, nama: "Panti Wreda Bahagia", alamat: "Yogyakarta", status: "Terverifikasi", pimpinan: "Lestari", anak: 28 },
 ];
 
+const COLORS = {
+  navy: '#083A4F',
+  gold: '#A58D66',
+  mist: '#C0D5D6',
+  teal: '#407E8C',
+};
+
 export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
@@ -60,7 +67,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
           <p className="text-sm text-gray-500 mt-1">Kelola verifikasi dan data panti yang terdaftar di sistem.</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#F4F3EF] text-[#124354] rounded-xl text-sm font-medium hover:bg-[#EAE8E3] transition-colors">
+          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-[#5A7C85] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
             <Filter size={16} /> Filter Status
           </button>
           <button 
@@ -73,10 +80,10 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div className="w-full">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-[#F4F3EF] text-[#5A7C85] text-xs uppercase tracking-wider">
+            <thead className="text-white text-xs uppercase tracking-wider" style={{background: COLORS.navy}}>
               <tr>
                 <th className="px-6 py-4 font-bold">Nama Panti</th>
                 <th className="px-6 py-4 font-bold">Pimpinan</th>
