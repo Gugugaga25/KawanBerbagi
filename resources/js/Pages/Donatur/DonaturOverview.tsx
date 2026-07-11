@@ -1,0 +1,268 @@
+import React from 'react';
+import {
+  Heart,
+  Package,
+  Clock,
+  AlertCircle,
+  ArrowRight,
+  ArrowUpRight,
+  MapPin,
+  Quote,
+  TrendingUp,
+  Award,
+  Truck,
+  Activity,
+  CheckCircle2,
+  Box
+} from 'lucide-react';
+
+const COLORS = {
+  navy: "#083A4F",
+  gold: "#A58D66",
+  mist: "#C0D5D6",
+  teal: "#407E8C",
+  cream: "#F9F8F6",
+};
+
+const DONOR_NAME = "Budi Santoso";
+
+// Dummy Data (Dibatasi hanya 2 data)
+const ACTIVE_DONATIONS = [
+  { id: 1, item: "Beras Premium 15kg", org: "Yayasan Kasih Ibu", stage: 2 }, // 0=Diproses, 1=Dikirim, 2=Diterima
+  { id: 2, item: "Susu Bayi (12 kaleng)", org: "Panti Asuhan Nurul Iman", stage: 1 },
+];
+
+const STAGES = ["Diproses", "Dikirim", "Diterima"];
+
+const URGENT_NEARBY = [
+  { id: 1, org: "Panti Nurul Iman", location: "Jakarta Timur", item: "Susu Formula", filled: 18, total: 20 },
+  { id: 2, org: "Panti Wreda Bahagia", location: "Yogyakarta", item: "Selimut Hangat", filled: 9, total: 30 },
+  { id: 3, org: "Rumah Yatim Cahaya", location: "Surabaya", item: "Alat Sekolah", filled: 42, total: 100 },
+  { id: 4, org: "Yayasan Bina Amal", location: "Bandung", item: "Pakaian Layak", filled: 15, total: 50 },
+];
+
+export default function DonaturOverview() {
+  // Filter donasi yang butuh resi (stage === 0 / Diproses)
+  const needsAction = ACTIVE_DONATIONS.filter(d => d.stage === 0);
+
+  return (
+    <div className="space-y-6 w-full font-sans">
+      
+      {/* ================= HERO SECTION ================= */}
+      <div className="relative rounded-[2rem] p-8 md:p-10 overflow-hidden shadow-sm" style={{ backgroundColor: COLORS.navy }}>
+        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] rounded-full mix-blend-screen filter blur-[100px] opacity-40" style={{ backgroundColor: COLORS.teal }}></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full mix-blend-screen filter blur-[80px] opacity-20 translate-y-1/2 -translate-x-1/2" style={{ backgroundColor: COLORS.gold }}></div>
+        
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+          <div className="max-w-3xl">
+            <h1 className="text-2xl md:text-3xl font-extrabold leading-tight mb-2 text-white">
+              Halo, {DONOR_NAME.split(' ')[0]}.
+            </h1>
+            <p className="text-sm font-semibold opacity-90 text-white max-w-xl">
+              Kebaikan Anda sedang dalam perjalanan. Saat ini ada <strong style={{ color: COLORS.gold }}>{ACTIVE_DONATIONS.length} donasi</strong> yang diproses.
+            </p>
+          </div>
+
+          {/* Stats Section */}
+          <div className="flex flex-wrap gap-6 items-center shrink-0 mt-2 lg:mt-0 lg:ml-auto">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/10 border border-white/10 backdrop-blur-sm">
+                <Package size={20} style={{ color: COLORS.mist }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-white">12</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider opacity-80" style={{ color: COLORS.mist }}>Total Donasi</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/10 border border-white/10 backdrop-blur-sm">
+                <Activity size={20} style={{ color: COLORS.mist }} />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-white">7</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider opacity-80" style={{ color: COLORS.mist }}>Panti Terbantu</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= CONDITIONAL ACTION BANNER ================= */}
+      {needsAction.length > 0 && (
+        <div className="bg-red-50 border border-red-100 rounded-[1.5rem] p-4 md:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-red-100 text-red-500 flex items-center justify-center shrink-0">
+              <AlertCircle size={20} />
+            </div>
+            <div>
+              <p className="text-sm font-extrabold text-red-900">Perlu Tindakan: Input Resi Pengiriman</p>
+              <p className="text-xs font-semibold text-red-700 opacity-80 mt-0.5">
+                Donasi <strong>{needsAction[0].item}</strong> menunggu resi. Tenggat: 18 jam lagi.
+              </p>
+            </div>
+          </div>
+          <button className="whitespace-nowrap text-xs font-bold flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-white transition-transform hover:scale-[1.02] shrink-0" style={{ backgroundColor: COLORS.navy }}>
+            Input Resi <ArrowRight size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* ================= ROW 2: Lacak (Kiri) & Dampak (Kanan) ================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        {/* Lacak Donasi (Span 7) */}
+        <div className="lg:col-span-7 bg-white rounded-[2rem] p-6 md:p-8 border shadow-sm flex flex-col" style={{ borderColor: COLORS.mist }}>
+          <div className="flex justify-between items-start mb-6 pb-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-bold" style={{ color: COLORS.navy }}>Lacak Donasi Anda</h2>
+              <p className="text-xs font-semibold opacity-70 mt-0.5" style={{ color: COLORS.navy }}>
+                Status pengiriman paket terkini
+              </p>
+            </div>
+            <button className="text-xs font-bold flex items-center gap-1 hover:opacity-70 transition-opacity" style={{ color: COLORS.teal }}>
+              Lihat Semua <ArrowUpRight size={14} />
+            </button>
+          </div>
+
+          <div className="space-y-4 flex-grow">
+            {ACTIVE_DONATIONS.map((d) => (
+              <div key={d.id} className="p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gray-50/30 hover:bg-white transition-colors" style={{ borderColor: `${COLORS.mist}80` }}>
+                
+                {/* Info Item */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border bg-white flex items-center justify-center shadow-sm shrink-0" style={{ borderColor: COLORS.mist, color: COLORS.teal }}>
+                    <Box size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-extrabold" style={{ color: COLORS.navy }}>{d.item}</h4>
+                    <p className="text-[11px] font-semibold opacity-70" style={{ color: COLORS.navy }}>{d.org}</p>
+                  </div>
+                </div>
+
+                {/* Visualisasi Status (Lebih Lega & Rapi) */}
+                <div className="flex flex-col items-start sm:items-end shrink-0 w-full sm:w-auto mt-3 sm:mt-0">
+                  {/* Jarak (mb-3) ditambah supaya tidak menumpuk dengan progress bar */}
+                  <div className="flex items-center gap-3 mb-3">
+                    {/* Badge Status */}
+                    <span 
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border
+                        ${d.stage === 0 ? 'bg-amber-50 text-amber-600 border-amber-200' : 
+                          d.stage === 1 ? 'bg-blue-50 text-blue-600 border-blue-200' : 
+                          'bg-emerald-50 text-emerald-600 border-emerald-200'}`}
+                    >
+                      {d.stage === 0 && <Clock size={12} />}
+                      {d.stage === 1 && <Truck size={12} />}
+                      {d.stage === 2 && <CheckCircle2 size={12} />}
+                      {STAGES[d.stage]}
+                    </span>
+                    
+                    {/* Tombol Detail */}
+                    <button className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border hover:bg-gray-50 transition-colors" style={{ borderColor: COLORS.mist, color: COLORS.navy }}>
+                      Detail
+                    </button>
+                  </div>
+                  
+                  {/* Mini Progress Bar Solid (sedikit lebih tebal) */}
+                  <div className="w-full sm:w-48 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div 
+                      className="h-full rounded-full transition-all duration-1000" 
+                      style={{ 
+                        width: `${(d.stage / (STAGES.length - 1)) * 100}%`, 
+                        backgroundColor: d.stage === 2 ? '#10B981' : COLORS.teal 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Impact Story (Span 5) */}
+        <div className="lg:col-span-5 relative rounded-[2rem] p-6 md:p-8 overflow-hidden shadow-sm flex flex-col justify-center" style={{ backgroundColor: COLORS.navy }}>
+          <Quote size={100} className="absolute -bottom-6 -right-4 opacity-10 text-white" />
+          
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-md bg-white/10 border border-white/20 backdrop-blur-sm">
+              <Award size={12} style={{ color: COLORS.gold }} />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-white">
+                Kisah Dampak
+              </span>
+            </div>
+            
+            <p className="text-base font-semibold leading-relaxed italic mb-6 text-white">
+              "Buku-buku dari donatur sangat berarti. Adik-adik panti kini bisa belajar setiap sore dengan penuh semangat dan harapan baru."
+            </p>
+            
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: COLORS.gold }}></div>
+              <div>
+                <p className="text-xs font-bold text-white">Pengurus Yayasan</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">Panti Asuhan Kasih Ibu</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ================= ROW 3: Kebutuhan Mendesak ================= */}
+      <div className="bg-white rounded-[2rem] p-6 md:p-8 border shadow-sm" style={{ borderColor: COLORS.mist }}>
+        <div className="flex justify-between items-start mb-6 pb-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-lg font-bold" style={{ color: COLORS.navy }}>Kebutuhan Mendesak</h2>
+            <p className="text-xs font-semibold opacity-70 mt-0.5" style={{ color: COLORS.navy }}>
+              Panti di sekitar Anda yang butuh bantuan segera
+            </p>
+          </div>
+          <button className="text-xs font-bold flex items-center gap-1 hover:opacity-70 transition-opacity" style={{ color: COLORS.teal }}>
+            Lihat Semua <ArrowUpRight size={14} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {URGENT_NEARBY.map((c) => {
+            const pct = Math.round((c.filled / c.total) * 100);
+            return (
+              <div key={c.id} className="flex flex-col p-4 rounded-2xl border bg-gray-50/30 hover:bg-white transition-colors" style={{ borderColor: `${COLORS.mist}80` }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-600 border border-red-100 uppercase tracking-widest flex items-center gap-1 shrink-0">
+                     <TrendingUp size={10} /> Urgent
+                  </span>
+                </div>
+                
+                <h4 className="text-sm font-extrabold truncate mb-1" style={{ color: COLORS.navy }}>
+                  {c.item}
+                </h4>
+                <p className="text-[11px] font-semibold opacity-70 flex items-center gap-1 mb-5" style={{ color: COLORS.navy }}>
+                  <MapPin size={10} style={{ color: COLORS.teal }} /> {c.org}
+                </p>
+
+                <div className="mt-auto">
+                  <div className="flex justify-between items-baseline mb-1.5">
+                    <span className="text-[10px] font-bold opacity-60 uppercase" style={{ color: COLORS.navy }}>Progres</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xs font-extrabold" style={{ color: COLORS.navy }}>{c.filled}</span>
+                      <span className="text-[10px] font-bold opacity-60" style={{ color: COLORS.navy }}>/ {c.total}</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden mb-4">
+                    <div 
+                      className="h-full rounded-full transition-all duration-1000" 
+                      style={{ width: `${pct}%`, backgroundColor: COLORS.navy }} 
+                    />
+                  </div>
+                  <button className="w-full py-2.5 text-xs font-bold rounded-xl border transition-colors hover:bg-gray-50" style={{ borderColor: COLORS.mist, color: COLORS.navy }}>
+                    Bantu Sekarang
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+    </div>
+  );
+}
