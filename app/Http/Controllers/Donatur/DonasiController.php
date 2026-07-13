@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Donatur;
 
 use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Need;
@@ -46,5 +47,64 @@ class DonasiController extends Controller
         ]);
 
         return redirect()->route('dashboard', ['tab' => 'donasi'])->with('success', 'Donasi berhasil dibuat. Silakan lengkapi informasi resi pengiriman.');
+    }
+
+    /**
+     * Update resi dan kurir pengiriman donasi.
+     */
+    public function updateResi(Request $request, $id)
+    {
+        $donor = Donor::where('id_user', Auth::id())->firstOrFail();
+        $donation = Donation::where('id_donation', $id)->where('id_donor', $donor->id_donor)->firstOrFail();
+
+        $request->validate([
+            'kurir' => 'required|string|max:255',
+            'resi' => 'nullable|required_if:kurir,!=,Antar Mandiri|string|max:255',
+        ]);
+
+        $donation->update([
+            'kurir' => $request->kurir,
+            'resi' => $request->kurir === 'Antar Mandiri' ? '-' : $request->resi,
+            'status' => 'Dikirim',
+        ]);
+
+        return back()->with('success', 'Resi pengiriman berhasil diperbarui.');
+    }
+
+    /**
+     * Tampilkan detail transaksi donasi.
+     */
+    public function show($id)
+    {
+        $donor = Donor::where('id_user', Auth::id())->firstOrFail();
+        $donation = Donation::where('id_donation', $id)
+            ->where('id_donor', $donor->id_donor)
+            ->with(['need.shelter'])
+            ->firstOrFail();
+
+        $detail = [
+            'id' => 'TRX-' . str_pad($donation->id_donation, 3, '0', STR_PAD_LEFT),
+            'id_raw' => $donation->id_donation,
+            'barang' => $donation->need ? $donation->need->nama_kebutuhan : 'Kebutuhan Dihapus',
+            'jumlah' => $donation->jumlah_donasi,
+            'satuan' => $donation->need ? $donation->need->satuan : 'Pcs',
+            'status' => $donation->status,
+            'kurir' => $donation->kurir ?? '-',
+            'resi' => $donation->resi ?? '-',
+            'pesan' => $donation->pesan ?? '-',
+            'tanggal' => $donation->created_at ? $donation->created_at->format('d M Y, H:i') : '-',
+            'bukti_penerimaan' => $donation->bukti_penerimaan ? asset('storage/' . $donation->bukti_penerimaan) : null,
+            'ucapan_terimakasih' => $donation->ucapan_terimakasih ?? '-',
+            'panti' => [
+                'nama' => $donation->need && $donation->need->shelter ? $donation->need->shelter->nama_yayasan : '-',
+                'penanggung_jawab' => $donation->need && $donation->need->shelter ? $donation->need->shelter->nama_penanggung_jawab : '-',
+                'alamat' => $donation->need && $donation->need->shelter ? $donation->need->shelter->alamat : '-',
+                'telepon' => $donation->need && $donation->need->shelter ? $donation->need->shelter->no_telepon : '-',
+            ]
+        ];
+
+        return Inertia::render('Donatur/DonationDetail', [
+            'donation' => $detail
+        ]);
     }
 }

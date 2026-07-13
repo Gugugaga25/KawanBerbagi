@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, MapPin, Package, SlidersHorizontal, X, Heart } from 'lucide-react';
+import { Search, MapPin, Package, SlidersHorizontal, X } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 
 const COLORS = {
@@ -93,7 +93,7 @@ export default function CariPanti({ needs = [] }: { needs?: any[] }) {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Search + filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -116,11 +116,11 @@ export default function CariPanti({ needs = [] }: { needs?: any[] }) {
           >
             <SlidersHorizontal size={15} /> {selectedLocation === "Semua" ? "Filter Lokasi" : `Lokasi: ${selectedLocation}`}
           </button>
-          
+
           {isLocationDropdownOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setIsLocationDropdownOpen(false)} />
-              <div 
+              <div
                 className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white border z-20 py-1 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-150"
                 style={{ borderColor: COLORS.mist }}
               >
@@ -246,7 +246,7 @@ export default function CariPanti({ needs = [] }: { needs?: any[] }) {
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-black text-[#124354] flex items-center gap-2">
-                <Heart className="text-red-500 fill-red-500" size={22} /> Form Donasi Barang
+                Form Donasi Barang
               </h3>
               <button onClick={handleCloseModal} className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
                 <X size={20} />
@@ -266,14 +266,14 @@ export default function CariPanti({ needs = [] }: { needs?: any[] }) {
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#124354] uppercase tracking-wider mb-1.5 ml-1">Jumlah Donasi ({selectedCampaign.unit})</label>
-                <input 
-                  type="number" 
-                  min="1" 
+                <input
+                  type="number"
+                  min="1"
                   max={selectedCampaign.total - selectedCampaign.filled}
                   required
                   value={data.jumlah_donasi}
                   onChange={e => setData('jumlah_donasi', e.target.value)}
-                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium" 
+                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium"
                   placeholder={`Contoh: ${selectedCampaign.total - selectedCampaign.filled}`}
                 />
                 {errors.jumlah_donasi && <p className="text-red-500 text-xs mt-1">{errors.jumlah_donasi}</p>}
@@ -281,26 +281,26 @@ export default function CariPanti({ needs = [] }: { needs?: any[] }) {
 
               <div>
                 <label className="block text-xs font-bold text-[#124354] uppercase tracking-wider mb-1.5 ml-1">Pesan untuk Panti (Opsional)</label>
-                <textarea 
+                <textarea
                   value={data.pesan}
                   onChange={e => setData('pesan', e.target.value)}
-                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-24" 
+                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-24"
                   placeholder="Kirim pesan dukungan atau info pengemasan..."
                 />
                 {errors.pesan && <p className="text-red-500 text-xs mt-1">{errors.pesan}</p>}
               </div>
 
               <div className="pt-4 flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={handleCloseModal} 
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
                   className="px-6 py-3.5 rounded-xl font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-all w-full md:w-auto"
                 >
                   Batal
                 </button>
-                <button 
-                  type="submit" 
-                  disabled={processing} 
+                <button
+                  type="submit"
+                  disabled={processing}
                   className="flex-1 py-3.5 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] hover:shadow-lg hover:shadow-[#124354]/20 transition-all disabled:opacity-50 flex justify-center items-center gap-2"
                 >
                   {processing ? 'Mengirim...' : 'Kirim Donasi'}

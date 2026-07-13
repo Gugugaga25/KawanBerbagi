@@ -20,6 +20,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
   // useForm Hook
   const { data, setData, post, processing, errors, reset } = useForm({
     bukti_penerimaan: null as File | null,
+    ucapan_terimakasih: '',
   });
 
   const getStatusBadge = (status: string) => {
@@ -292,6 +293,19 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                     />
                     {errors.bukti_penerimaan && <p className="text-red-500 text-xs mt-1">{errors.bukti_penerimaan}</p>}
 
+                    <div>
+                      <label className="block text-xs font-bold text-[#124354] uppercase tracking-wider mb-1.5 ml-1">
+                        Pesan Ucapan Terima Kasih (Opsional)
+                      </label>
+                      <textarea 
+                        value={data.ucapan_terimakasih}
+                        onChange={e => setData('ucapan_terimakasih', e.target.value)}
+                        className="w-full p-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-20" 
+                        placeholder="Tulis pesan ucapan terima kasih kepada donatur..."
+                      />
+                      {errors.ucapan_terimakasih && <p className="text-red-500 text-xs mt-1">{errors.ucapan_terimakasih}</p>}
+                    </div>
+
                     <div className="flex gap-3 pt-2">
                       <button type="button" onClick={() => setSelectedTx(null)} className="px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
                         Kembali
@@ -322,6 +336,15 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                         </div>
                       )}
                     </div>
+                    
+                    {selectedTx.detail && selectedTx.detail.thanks_msg && (
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Ucapan Terima Kasih Anda</p>
+                        <p className="text-xs text-emerald-800 bg-emerald-50/50 p-3.5 rounded-xl border border-emerald-100/50 italic leading-relaxed">
+                          "{selectedTx.detail.thanks_msg}"
+                        </p>
+                      </div>
+                    )}
                     
                     <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#124354] text-white font-bold rounded-xl transition-all hover:bg-[#083A4F]">
                       Tutup

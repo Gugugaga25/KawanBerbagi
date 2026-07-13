@@ -51,6 +51,7 @@ class DonationSeeder extends Seeder
                 'resi' => '-',
                 'pesan' => 'Semoga membantu mencukupi kebutuhan beras adik-adik.',
                 'bukti_penerimaan' => 'bukti_penerimaan/dummy_bukti.jpg',
+                'ucapan_terimakasih' => 'Terima kasih banyak atas donasi beras putih premiumnya. Sangat membantu kebutuhan pangan anak-anak di panti kami.',
             ]);
         }
 
@@ -87,6 +88,7 @@ class DonationSeeder extends Seeder
                 'resi' => '-',
                 'pesan' => 'Semoga susu formula ini berkah buat anak-anak bayi.',
                 'bukti_penerimaan' => 'bukti_penerimaan/dummy_susu2.jpg',
+                'ucapan_terimakasih' => 'Terima kasih banyak atas bantuan susu bayi SGM untuk anak-anak kami. Semoga Allah membalas kebaikan Anda.',
             ]);
         }
 
@@ -123,6 +125,7 @@ class DonationSeeder extends Seeder
                 'resi' => 'JT981249129',
                 'pesan' => 'Semoga popok dewasa membantu kenyamanan kakek nenek di panti wreda.',
                 'bukti_penerimaan' => 'bukti_penerimaan/dummy_popok.jpg',
+                'ucapan_terimakasih' => 'Terima kasih banyak atas bantuan popok dewasa untuk kakek nenek di panti. Bantuan ini sangat bermanfaat bagi kami.',
             ]);
         }
 

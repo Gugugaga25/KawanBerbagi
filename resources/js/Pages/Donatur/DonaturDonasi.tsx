@@ -10,7 +10,7 @@ import {
   Calendar,
   Search,
 } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 
 const COLORS = {
   navy: "#083A4F",
@@ -105,15 +105,40 @@ function Stepper({ stage }: { stage: Stage }) {
   );
 }
 
-export default function DonasiSaya() {
+export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }) {
   const [filter, setFilter] = useState<FilterId>('semua');
   const [query, setQuery] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [resiInput, setResiInput] = useState({ courier: 'JNE', number: '' });
-  const [donations, setDonations] = useState(DONATIONS);
+
+  const donationsList = useMemo(() => {
+    return myDonations.map((d: any) => {
+      let stage: Stage = 0;
+      if (d.status === 'Dikirim') stage = 1;
+      else if (d.status === 'Diterima') stage = 2;
+
+      let method = '';
+      if (d.kurir && d.kurir !== '-') {
+        method = d.kurir;
+        if (d.resi && d.resi !== '-') {
+          method += ` • ${d.resi}`;
+        }
+      }
+
+      return {
+        id: d.id_raw,
+        trx_id: d.id,
+        item: `${d.barang} (${d.jumlah} ${d.satuan})`,
+        org: d.panti,
+        date: d.tanggal,
+        stage: stage,
+        method: method || undefined
+      };
+    });
+  }, [myDonations]);
 
   const filtered = useMemo(() => {
-    return donations.filter((d) => {
+    return donationsList.filter((d) => {
       const matchFilter =
         filter === 'semua' ? true :
         filter === 'resi' ? d.stage === 0 :
@@ -127,18 +152,18 @@ export default function DonasiSaya() {
 
       return matchFilter && matchQuery;
     });
-  }, [donations, filter, query]);
+  }, [donationsList, filter, query]);
 
   const handleSubmitResi = (id: number) => {
-    setDonations((prev) =>
-      prev.map((d) =>
-        d.id === id
-          ? { ...d, stage: 1 as Stage, method: `${resiInput.courier} • ${resiInput.number || 'Antar Mandiri'}` }
-          : d
-      )
-    );
-    setEditingId(null);
-    setResiInput({ courier: 'JNE', number: '' });
+    router.patch(route('donatur.donasi.updateResi', id), {
+      kurir: resiInput.courier,
+      resi: resiInput.courier === 'Antar Mandiri' ? '' : resiInput.number
+    }, {
+      onSuccess: () => {
+        setEditingId(null);
+        setResiInput({ courier: 'JNE', number: '' });
+      }
+    });
   };
 
   return (
@@ -178,7 +203,7 @@ export default function DonasiSaya() {
       </div>
 
       <p className="text-sm px-1" style={{ color: COLORS.navy, opacity: 0.5 }}>
-        Menampilkan {filtered.length} dari {donations.length} donasi
+        Menampilkan {filtered.length} dari {donationsList.length} donasi
       </p>
 
       {/* ================= LIST DONASI ================= */}

@@ -16,7 +16,23 @@ const COLORS = {
   cream: '#E5E1DD',
 };
 
-export default function DonaturDashboard({ needs = [] }: { needs?: any[] }) {
+export default function DonaturDashboard({ 
+  needs = [], 
+  myDonations = [],
+  donaturData = null,
+  recentDonations = [],
+  urgentNeeds = [],
+  stats = { totalDonasi: 0, pantiTerbantu: 0 },
+  needsResi = [],
+}: { 
+  needs?: any[]; 
+  myDonations?: any[];
+  donaturData?: any;
+  recentDonations?: any[];
+  urgentNeeds?: any[];
+  stats?: { totalDonasi: number; pantiTerbantu: number };
+  needsResi?: any[];
+}) {
   console.log("DonaturDashboard needs:", needs);
   const [activeTab, setActiveTab] = useState<DonaturTabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -51,11 +67,17 @@ export default function DonaturDashboard({ needs = [] }: { needs?: any[] }) {
   const renderContent = () => {
     switch (activeTab) {
       case 'cari': return <CariPanti needs={needs} />;
-      case 'donasi': return <DonasiSaya />;
-      case 'profil': return <ProfilSaya />;
+      case 'donasi': return <DonasiSaya myDonations={myDonations} />;
+      case 'profil': return <ProfilSaya donaturData={donaturData} />;
       case 'dashboard':
       default:
-        return <DonaturOverview />;
+        return <DonaturOverview 
+          donaturData={donaturData}
+          recentDonations={recentDonations}
+          urgentNeeds={urgentNeeds}
+          stats={stats}
+          needsResi={needsResi}
+        />;
     }
   };
 
@@ -75,7 +97,12 @@ export default function DonaturDashboard({ needs = [] }: { needs?: any[] }) {
         fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:w-64 lg:relative lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <DonaturSidebar activeTab={activeTab} onTabChange={handleTabChange} />
+        <DonaturSidebar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          donaturData={donaturData}
+          stats={stats}
+        />
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
@@ -96,7 +123,7 @@ export default function DonaturDashboard({ needs = [] }: { needs?: any[] }) {
 
         {/* Header Desktop Asli */}
         <div className="hidden lg:block">
-          <DonaturHeader activeTab={activeTab} />
+          <DonaturHeader activeTab={activeTab} donaturData={donaturData} />
         </div>
 
         {/* Konten */}

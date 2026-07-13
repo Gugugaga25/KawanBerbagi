@@ -26,9 +26,10 @@ class DonasiController extends Controller
             })
             ->firstOrFail();
 
-        // Validasi file bukti penerimaan
+        // Validasi file bukti penerimaan dan ucapan terima kasih
         $request->validate([
             'bukti_penerimaan' => 'required|image|max:5120', // Maks 5MB
+            'ucapan_terimakasih' => 'nullable|string|max:1000',
         ]);
 
         // Proses unggah file bukti
@@ -43,7 +44,8 @@ class DonasiController extends Controller
             $donation->bukti_penerimaan = $path;
         }
 
-        // Perbarui status donasi menjadi 'Diterima'
+        // Perbarui status donasi menjadi 'Diterima' dan simpan ucapan terima kasih
+        $donation->ucapan_terimakasih = $request->ucapan_terimakasih;
         $donation->status = 'Diterima';
         $donation->save();
 

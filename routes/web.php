@@ -153,6 +153,7 @@ Route::middleware('auth')->group(function () {
                         'kurir' => $donation->kurir ?? '-',
                         'resi' => $donation->resi ?? '-',
                         'msg' => $donation->pesan ?? 'Tidak ada pesan.',
+                        'thanks_msg' => $donation->ucapan_terimakasih ?? '',
                     ]
                 ];
             });
@@ -175,25 +176,58 @@ Route::middleware('auth')->group(function () {
 
         if ($donatur) {
             // 1. Riwayat donasi yang pernah dikirim oleh donatur ini
-            $myDonations = \App\Models\Donation::where('id_donor', $donatur->id_donor)
+            $allDonations = \App\Models\Donation::where('id_donor', $donatur->id_donor)
                 ->with(['need.shelter'])
-                ->get()
-                ->map(function ($d) {
-                    return [
-                        'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
-                        'id_raw' => $d->id_donation,
-                        'tanggal' => $d->created_at ? $d->created_at->format('d M Y') : '-',
-                        'barang' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
-                        'panti' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
-                        'jumlah' => $d->jumlah_donasi,
-                        'satuan' => $d->need ? $d->need->satuan : 'Pcs',
-                        'status' => $d->status,
-                        'kurir' => $d->kurir ?? '-',
-                        'resi' => $d->resi ?? '-',
-                    ];
-                });
+                ->latest()
+                ->get();
 
-            // 2. Daftar kebutuhan panti lain yang berstatus aktif/belum terpenuhi
+            $myDonations = $allDonations->map(function ($d) {
+                return [
+                    'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
+                    'id_raw' => $d->id_donation,
+                    'tanggal' => $d->created_at ? $d->created_at->format('d M Y') : '-',
+                    'barang' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
+                    'panti' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
+                    'jumlah' => $d->jumlah_donasi,
+                    'satuan' => $d->need ? $d->need->satuan : 'Pcs',
+                    'status' => $d->status,
+                    'kurir' => $d->kurir ?? '-',
+                    'resi' => $d->resi ?? '-',
+                ];
+            });
+
+            // 2. 3 donasi terbaru untuk overview (lacak donasi)
+            $recentDonations = $allDonations->take(3)->map(function ($d) {
+                $stageMap = ['Diproses' => 0, 'Dikirim' => 1, 'Diterima' => 2];
+                return [
+                    'id_raw' => $d->id_donation,
+                    'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
+                    'item' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
+                    'org' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
+                    'status' => $d->status,
+                    'stage' => $stageMap[$d->status] ?? 0,
+                    'kurir' => $d->kurir ?? '-',
+                    'resi' => $d->resi ?? '-',
+                ];
+            });
+
+            // 3. Stats
+            $totalDonasi = $allDonations->count();
+            $pantiTerbantu = $allDonations->filter(function ($d) {
+                return $d->need && $d->need->shelter;
+            })->pluck('need.shelter.id_shelter')->unique()->count();
+
+            // 4. Donasi yang butuh input resi (status Diproses tapi belum ada resi)
+            $needsResi = $allDonations->filter(function ($d) {
+                return $d->status === 'Diproses' && (!$d->resi || $d->resi === '-');
+            })->take(1)->map(function ($d) {
+                return [
+                    'id_raw' => $d->id_donation,
+                    'item' => $d->need ? $d->need->nama_kebutuhan : '-',
+                ];
+            })->values();
+
+            // 5. Daftar kebutuhan panti lain yang berstatus aktif/belum terpenuhi
             $needs = \App\Models\Need::with('shelter')
                 ->whereHas('shelter', function ($query) {
                     $query->where('status', 'Active');
@@ -213,12 +247,30 @@ Route::middleware('auth')->group(function () {
                         'urgent' => (bool) $need->is_mendesak,
                     ];
                 });
+
+            // 6. Kebutuhan mendesak (untuk overview)
+            $urgentNeeds = $needs->filter(fn($n) => $n['urgent'])->take(4)->values();
         }
 
         return Inertia::render('Donatur/DonaturDashboard', [
-            'donaturData' => $donatur,
-            'myDonations' => $myDonations,
-            'needs' => $needs
+            'donaturData' => $donatur ? [
+                'id_donor'     => $donatur->id_donor,
+                'nama_lengkap' => $donatur->nama_lengkap,
+                'no_wa'        => $donatur->no_wa,
+                'kota'         => $donatur->kota,
+                'foto_profil'  => $donatur->foto_profil ? asset('storage/' . $donatur->foto_profil) : null,
+                'email'        => $donatur->user ? $donatur->user->email : '',
+                'member_since' => $donatur->created_at ? $donatur->created_at->format('M Y') : '-',
+            ] : null,
+            'myDonations'     => $myDonations ?? [],
+            'needs'           => $needs ?? [],
+            'recentDonations' => $recentDonations ?? [],
+            'urgentNeeds'     => $urgentNeeds ?? [],
+            'stats'           => [
+                'totalDonasi'   => $totalDonasi ?? 0,
+                'pantiTerbantu' => $pantiTerbantu ?? 0,
+            ],
+            'needsResi'       => $needsResi ?? [],
         ]);
     })->name('donatur.dashboard');
 
@@ -241,7 +293,11 @@ Route::middleware('auth')->group(function () {
         ->name('donatur.donasi.show');
 
     Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');
-    Route::patch('/donatur/profil', [App\Http\Controllers\Donatur\ProfilController::class, 'update'])->name('donatur.profil.update');
+    Route::patch('/donatur/donasi/{id}/resi', [App\Http\Controllers\Donatur\DonasiController::class, 'updateResi'])->name('donatur.donasi.updateResi');
+    Route::post('/donatur/profil', [App\Http\Controllers\Donatur\ProfilController::class, 'update'])->name('donatur.profil.update');
+    Route::patch('/donatur/profil', [App\Http\Controllers\Donatur\ProfilController::class, 'update']);
+    Route::patch('/donatur/profil/email', [App\Http\Controllers\Donatur\ProfilController::class, 'updateEmail'])->name('donatur.profil.updateEmail');
+    Route::patch('/donatur/profil/password', [App\Http\Controllers\Donatur\ProfilController::class, 'updatePassword'])->name('donatur.profil.updatePassword');
 
     // ================= ACTIONS & AKSI MANAJEMEN ADMIN =================
     Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');
