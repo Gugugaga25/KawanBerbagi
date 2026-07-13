@@ -29,8 +29,8 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
   const [deleteData, setDeleteData] = useState<any>(null);
   const { delete: destroy } = useForm();
 
-  // Jika data dari backend kosong, fallback ke data statis
-  const displayData = pantis && pantis.length > 0 ? pantis : DATA_PANTI;
+  // Hapus fallback DATA_PANTI, langsung gunakan properti pantis
+  const displayData = pantis || [];
 
   const openAddModal = () => {
     setEditData(null);
@@ -94,69 +94,76 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
               </tr>
             </thead>
             <tbody className="text-[#124354] text-sm">
-              {displayData.map((panti) => (
-                <tr key={panti.id} className="hover:bg-gray-50/80 transition-colors">
-                  <td className="px-6 py-4 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#EAE8E3] text-[#124354] flex items-center justify-center font-bold">
-                        <Building2 size={18} />
-                      </div>
-                      <span className="font-bold">{panti.nama}</span>
+              {displayData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 border-b border-gray-100">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <Building2 size={32} className="text-gray-300" />
+                      <p className="font-medium">Tidak ada data panti</p>
+                      <p className="text-xs text-gray-400">Silakan daftarkan panti baru untuk mulai mengelola.</p>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-medium border-b border-gray-100">{panti.pimpinan}</td>
-                  <td className="px-6 py-4 text-gray-500 border-b border-gray-100">{panti.alamat}</td>
-                  <td className="px-6 py-4 font-semibold border-b border-gray-100">{panti.anak} Anak</td>
-                  <td className="px-6 py-4 border-b border-gray-100">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                      panti.status === 'Active' 
-                        ? 'bg-green-50 text-green-700 border border-green-200' 
-                        : panti.status === 'Inactive'
-                        ? 'bg-red-50 text-red-700 border border-red-200'
-                        : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
-                      {panti.status === 'Active' ? <CheckCircle size={12} /> : panti.status === 'Inactive' ? <XCircle size={12} /> : <Clock size={12} />}
-                      {panti.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right border-b border-gray-100">
-                    <Dropdown>
-                      <Dropdown.Trigger>
-                        <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
-                          <MoreVertical size={18} />
-                        </button>
-                      </Dropdown.Trigger>
-
-                      <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl">
-                        <button 
-                          onClick={() => openEditModal(panti)}
-                          className="flex items-center gap-2 text-[#124354] hover:bg-[#F4F3EF] block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out"
-                        >
-                          <Edit size={16} /> Edit
-                        </button>
-                        
-                        {(panti.status === 'Pending' || panti.status === 'menunggu') && (
-                          <>
-                            <Dropdown.Link href={`/admin/panti/${panti.id}/status`} method="patch" data={{ status: 'Active' }} as="button" className="flex items-center gap-2 text-green-600 hover:bg-green-50 w-full text-left">
-                              <CheckCircle2 size={16} /> Verifikasi
-                            </Dropdown.Link>
-                            <Dropdown.Link href={`/admin/panti/${panti.id}/status`} method="patch" data={{ status: 'Inactive' }} as="button" className="flex items-center gap-2 text-amber-600 hover:bg-amber-50 w-full text-left">
-                              <XCircle size={16} /> Tolak
-                            </Dropdown.Link>
-                          </>
-                        )}
-
-                        <button 
-                          onClick={() => confirmDelete(panti)}
-                          className="flex items-center gap-2 text-red-600 hover:bg-red-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out"
-                        >
-                          <Trash2 size={16} /> Hapus
-                        </button>
-                      </Dropdown.Content>
-                    </Dropdown>
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                displayData.map((panti) => (
+                  <tr key={panti.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="px-6 py-4 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-[#EAE8E3] text-[#124354] flex items-center justify-center font-bold">
+                          <Building2 size={18} />
+                        </div>
+                        <span className="font-bold">{panti.nama}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-medium border-b border-gray-100">{panti.pimpinan}</td>
+                    <td className="px-6 py-4 text-gray-500 border-b border-gray-100">{panti.alamat}</td>
+                    <td className="px-6 py-4 font-semibold border-b border-gray-100">{panti.anak} Anak</td>
+                    <td className="px-6 py-4 border-b border-gray-100">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                        panti.status === 'Active' 
+                          ? 'bg-green-50 text-green-700 border border-green-200' 
+                          : panti.status === 'Inactive'
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        {panti.status === 'Active' ? <CheckCircle size={12} /> : panti.status === 'Inactive' ? <XCircle size={12} /> : <Clock size={12} />}
+                        {panti.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right border-b border-gray-100">
+                      <Dropdown>
+                        <Dropdown.Trigger>
+                          <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
+                            <MoreVertical size={18} />
+                          </button>
+                        </Dropdown.Trigger>
+  
+                        <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl">
+                          <button 
+                            onClick={() => openEditModal(panti)}
+                            className="flex items-center gap-2 text-[#124354] hover:bg-[#F4F3EF] block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out"
+                          >
+                            <Edit size={16} /> Edit
+                          </button>
+                          
+                          {(panti.status === 'Pending' || panti.status === 'menunggu') && (
+                          <Dropdown.Link href={`/admin/panti/${panti.id}/verification`} className="flex items-center gap-2 text-blue-600 hover:bg-blue-50 w-full text-left">
+                            <CheckCircle2 size={16} /> Tinjau
+                          </Dropdown.Link>
+                        )}
+  
+                          <button 
+                            onClick={() => confirmDelete(panti)}
+                            className="flex items-center gap-2 text-red-600 hover:bg-red-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out"
+                          >
+                            <Trash2 size={16} /> Hapus
+                          </button>
+                        </Dropdown.Content>
+                      </Dropdown>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

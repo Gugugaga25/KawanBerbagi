@@ -137,7 +137,10 @@ export default function Register() {
     picName: "",
     address: "",
     beneficiaries: "",
-    legalDoc: null as File | null,
+    aktaDoc: null as File | null,
+    skDoc: null as File | null,
+    izinDoc: null as File | null,
+    npwpDoc: null as File | null,
     orgPhoto: null as File | null,
   });
 
@@ -504,16 +507,54 @@ export default function Register() {
                     {errors.beneficiaries && <p className="text-red-500 text-xs mt-1">{errors.beneficiaries}</p>}
                   </Field>
 
-                  <div>
-                    <FileField
-                      icon={FileText}
-                      label="Dokumen Legalitas"
-                      hint="Akta Notaris / SK Kemensos / Tanda Daftar Yayasan (PDF/JPG)"
-                      required
-                      file={data.legalDoc}
-                      onChange={(f) => setData("legalDoc", f)}
-                    />
-                    {errors.legalDoc && <p className="text-red-500 text-xs mt-1">{errors.legalDoc}</p>}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <FileField
+                        icon={FileText}
+                        label="Akta Pendirian Yayasan"
+                        hint="PDF/JPG (Maks 5MB)"
+                        required
+                        file={data.aktaDoc}
+                        onChange={(f) => setData("aktaDoc", f)}
+                      />
+                      {errors.aktaDoc && <p className="text-red-500 text-xs mt-1">{errors.aktaDoc}</p>}
+                    </div>
+                    <div>
+                      <FileField
+                        icon={FileText}
+                        label="SK Kemenkumham / Kemensos"
+                        hint="PDF/JPG (Maks 5MB)"
+                        required
+                        file={data.skDoc}
+                        onChange={(f) => setData("skDoc", f)}
+                      />
+                      {errors.skDoc && <p className="text-red-500 text-xs mt-1">{errors.skDoc}</p>}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <FileField
+                        icon={FileText}
+                        label="TDY / Izin Operasional"
+                        hint="PDF/JPG (Maks 5MB)"
+                        required
+                        file={data.izinDoc}
+                        onChange={(f) => setData("izinDoc", f)}
+                      />
+                      {errors.izinDoc && <p className="text-red-500 text-xs mt-1">{errors.izinDoc}</p>}
+                    </div>
+                    <div>
+                      <FileField
+                        icon={FileText}
+                        label="NIB / NPWP Yayasan"
+                        hint="PDF/JPG (Maks 5MB)"
+                        required
+                        file={data.npwpDoc}
+                        onChange={(f) => setData("npwpDoc", f)}
+                      />
+                      {errors.npwpDoc && <p className="text-red-500 text-xs mt-1">{errors.npwpDoc}</p>}
+                    </div>
                   </div>
 
                   <div>

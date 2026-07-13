@@ -140,7 +140,10 @@ export default function PantiRegistrationModal({
     address: "",
     beneficiaries: "",
     status: "Pending",
-    legalDoc: null as File | null,
+    aktaDoc: null as File | null,
+    skDoc: null as File | null,
+    izinDoc: null as File | null,
+    npwpDoc: null as File | null,
     orgPhoto: null as File | null,
     _method: 'post',
   });
@@ -161,7 +164,10 @@ export default function PantiRegistrationModal({
         address: editData.alamat || "",
         beneficiaries: editData.anak?.toString() || "",
         status: editData.status || "Pending",
-        legalDoc: null,
+        aktaDoc: null,
+        skDoc: null,
+        izinDoc: null,
+        npwpDoc: null,
         orgPhoto: null,
         _method: 'patch',
       });
@@ -340,35 +346,88 @@ export default function PantiRegistrationModal({
                         <div>
                           <FileField
                             icon={FileText}
-                            label="Dokumen Legalitas"
+                            label="Akta Pendirian Yayasan"
                             hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
                             required={!editData}
-                            file={data.legalDoc}
-                            onChange={(f) => setData("legalDoc", f)}
+                            file={data.aktaDoc}
+                            onChange={(f) => setData("aktaDoc", f)}
                           />
-                          {errors.legalDoc && <p className="text-red-500 text-xs mt-1">{errors.legalDoc}</p>}
-                          {editData && editData.legalDocUrl && !data.legalDoc && (
-                            <a href={editData.legalDocUrl} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
-                              Lihat Dokumen Saat Ini
+                          {errors.aktaDoc && <p className="text-red-500 text-xs mt-1">{errors.aktaDoc}</p>}
+                          {editData && editData.akta_yayasan && !data.aktaDoc && (
+                            <a href={`/storage/${editData.akta_yayasan}`} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
+                              Lihat Akta Saat Ini
                             </a>
                           )}
                         </div>
 
                         <div>
                           <FileField
-                            icon={ImagePlus}
-                            label="Foto Panti (opsional)"
-                            hint="Membantu verifikasi"
-                            file={data.orgPhoto}
-                            onChange={(f) => setData("orgPhoto", f)}
+                            icon={FileText}
+                            label="SK Kemenkumham / Kemensos"
+                            hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
+                            required={!editData}
+                            file={data.skDoc}
+                            onChange={(f) => setData("skDoc", f)}
                           />
-                          {errors.orgPhoto && <p className="text-red-500 text-xs mt-1">{errors.orgPhoto}</p>}
-                          {editData && editData.orgPhotoUrl && !data.orgPhoto && (
-                            <a href={editData.orgPhotoUrl} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
-                              Lihat Foto Saat Ini
+                          {errors.skDoc && <p className="text-red-500 text-xs mt-1">{errors.skDoc}</p>}
+                          {editData && editData.sk_kemenkumham && !data.skDoc && (
+                            <a href={`/storage/${editData.sk_kemenkumham}`} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
+                              Lihat SK Saat Ini
                             </a>
                           )}
                         </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <FileField
+                            icon={FileText}
+                            label="TDY / Izin Operasional"
+                            hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
+                            required={!editData}
+                            file={data.izinDoc}
+                            onChange={(f) => setData("izinDoc", f)}
+                          />
+                          {errors.izinDoc && <p className="text-red-500 text-xs mt-1">{errors.izinDoc}</p>}
+                          {editData && editData.izin_operasional && !data.izinDoc && (
+                            <a href={`/storage/${editData.izin_operasional}`} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
+                              Lihat Izin Saat Ini
+                            </a>
+                          )}
+                        </div>
+
+                        <div>
+                          <FileField
+                            icon={FileText}
+                            label="NIB / NPWP Yayasan"
+                            hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
+                            required={!editData}
+                            file={data.npwpDoc}
+                            onChange={(f) => setData("npwpDoc", f)}
+                          />
+                          {errors.npwpDoc && <p className="text-red-500 text-xs mt-1">{errors.npwpDoc}</p>}
+                          {editData && editData.npwp_yayasan && !data.npwpDoc && (
+                            <a href={`/storage/${editData.npwp_yayasan}`} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
+                              Lihat NPWP Saat Ini
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <FileField
+                          icon={ImagePlus}
+                          label="Foto Panti (opsional)"
+                          hint="Membantu verifikasi"
+                          file={data.orgPhoto}
+                          onChange={(f) => setData("orgPhoto", f)}
+                        />
+                        {errors.orgPhoto && <p className="text-red-500 text-xs mt-1">{errors.orgPhoto}</p>}
+                        {editData && editData.orgPhotoUrl && !data.orgPhoto && (
+                          <a href={editData.orgPhotoUrl} target="_blank" rel="noreferrer" className="text-xs text-[#407E8C] hover:underline mt-1 block">
+                            Lihat Foto Saat Ini
+                          </a>
+                        )}
                       </div>
 
                       {editData && (

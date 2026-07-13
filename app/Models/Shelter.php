@@ -19,7 +19,10 @@ class Shelter extends Model
         'no_telepon',
         'jumlah_anak',
         'status',
-        'dokumen_legalitas_panti',
+        'akta_yayasan',
+        'sk_kemenkumham',
+        'izin_operasional',
+        'npwp_yayasan',
         'dokumentasi_panti',
     ];
 

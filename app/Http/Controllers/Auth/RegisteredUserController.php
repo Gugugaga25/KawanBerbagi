@@ -64,11 +64,17 @@ class RegisteredUserController extends Controller
                 'picName' => 'required|string|max:255',
                 'phone' => 'required|string|max:20',
                 'address' => 'required|string',
-                'legalDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'aktaDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'skDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'izinDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'npwpDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'orgPhoto' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             ]);
 
-            $legalDocPath = $request->file('legalDoc')->store('legal_docs', 'public');
+            $aktaPath = $request->file('aktaDoc')->store('legal_docs/akta', 'public');
+            $skPath = $request->file('skDoc')->store('legal_docs/sk', 'public');
+            $izinPath = $request->file('izinDoc')->store('legal_docs/izin', 'public');
+            $npwpPath = $request->file('npwpDoc')->store('legal_docs/npwp', 'public');
             $orgPhotoPath = $request->hasFile('orgPhoto') ? $request->file('orgPhoto')->store('org_photos', 'public') : null;
 
             $user = User::create([
@@ -86,7 +92,10 @@ class RegisteredUserController extends Controller
                 'no_telepon' => $request->phone,
                 'jumlah_anak' => (int) $request->beneficiaries,
                 'status' => 'Pending',
-                'dokumen_legalitas_panti' => $legalDocPath,
+                'akta_yayasan' => $aktaPath,
+                'sk_kemenkumham' => $skPath,
+                'izin_operasional' => $izinPath,
+                'npwp_yayasan' => $npwpPath,
                 'dokumentasi_panti' => $orgPhotoPath,
             ]);
         }

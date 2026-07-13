@@ -23,12 +23,18 @@ class PantiController extends Controller
             'phone' => 'required|string|max:20',
             'beneficiaries' => 'required|integer|min:0',
             'address' => 'required|string',
-            'legalDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'aktaDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'skDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'izinDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'npwpDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'orgPhoto' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $legalDocPath = $request->file('legalDoc')->store('legal_docs', 'public');
+        $aktaPath = $request->file('aktaDoc')->store('legal_docs/akta', 'public');
+        $skPath = $request->file('skDoc')->store('legal_docs/sk', 'public');
+        $izinPath = $request->file('izinDoc')->store('legal_docs/izin', 'public');
+        $npwpPath = $request->file('npwpDoc')->store('legal_docs/npwp', 'public');
         $orgPhotoPath = $request->hasFile('orgPhoto') ? $request->file('orgPhoto')->store('org_photos', 'public') : null;
 
         $user = User::create([
@@ -46,7 +52,10 @@ class PantiController extends Controller
             'no_telepon' => $request->phone,
             'jumlah_anak' => (int) $request->beneficiaries,
             'status' => 'Pending',
-            'dokumen_legalitas_panti' => $legalDocPath,
+            'akta_yayasan' => $aktaPath,
+            'sk_kemenkumham' => $skPath,
+            'izin_operasional' => $izinPath,
+            'npwp_yayasan' => $npwpPath,
             'dokumentasi_panti' => $orgPhotoPath,
         ]);
 
@@ -70,14 +79,25 @@ class PantiController extends Controller
             'beneficiaries' => 'required|integer|min:0',
             'status' => 'nullable|string|in:Active,Pending,Inactive',
             'address' => 'required|string',
-            'legalDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'aktaDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'skDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'izinDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'npwpDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'orgPhoto' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        if ($request->hasFile('legalDoc')) {
-            $legalDocPath = $request->file('legalDoc')->store('legal_docs', 'public');
-            $shelter->dokumen_legalitas_panti = $legalDocPath;
+        if ($request->hasFile('aktaDoc')) {
+            $shelter->akta_yayasan = $request->file('aktaDoc')->store('legal_docs/akta', 'public');
+        }
+        if ($request->hasFile('skDoc')) {
+            $shelter->sk_kemenkumham = $request->file('skDoc')->store('legal_docs/sk', 'public');
+        }
+        if ($request->hasFile('izinDoc')) {
+            $shelter->izin_operasional = $request->file('izinDoc')->store('legal_docs/izin', 'public');
+        }
+        if ($request->hasFile('npwpDoc')) {
+            $shelter->npwp_yayasan = $request->file('npwpDoc')->store('legal_docs/npwp', 'public');
         }
 
         if ($request->hasFile('orgPhoto')) {
@@ -106,6 +126,35 @@ class PantiController extends Controller
     }
 
     /**
+     * Show the verification page for the specified panti.
+     */
+    public function verification($id)
+    {
+        $shelter = Shelter::with('user')->findOrFail($id);
+        
+        $panti = [
+            'id' => $shelter->id_shelter,
+            'nama' => $shelter->nama_yayasan,
+            'alamat' => $shelter->alamat,
+            'status' => $shelter->status ?? 'Pending',
+            'pimpinan' => $shelter->nama_penanggung_jawab,
+            'email' => $shelter->user ? $shelter->user->email : '',
+            'phone' => $shelter->no_telepon ?? '',
+            'anak' => $shelter->jumlah_anak ?? 0,
+            'akta_yayasan' => $shelter->akta_yayasan,
+            'sk_kemenkumham' => $shelter->sk_kemenkumham,
+            'izin_operasional' => $shelter->izin_operasional,
+            'npwp_yayasan' => $shelter->npwp_yayasan,
+            'orgPhotoUrl' => $shelter->dokumentasi_panti ? asset('storage/' . $shelter->dokumentasi_panti) : null,
+            'created_at' => $shelter->created_at,
+        ];
+
+        return \Inertia\Inertia::render('Admin/PantiVerification', [
+            'panti' => $panti
+        ]);
+    }
+
+    /**
      * Update only the status of the specified panti.
      */
     public function updateStatus(Request $request, $id)
@@ -118,7 +167,7 @@ class PantiController extends Controller
         $shelter->status = $request->status;
         $shelter->save();
 
-        return redirect()->back()->with('success', 'Status panti berhasil diperbarui');
+        return redirect('/admin/dashboard?tab=panti')->with('success', 'Status panti berhasil diperbarui');
     }
 
     /**

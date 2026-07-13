@@ -51,7 +51,10 @@ Route::middleware('auth')->group(function () {
                 'email' => $panti->user ? $panti->user->email : '',
                 'phone' => $panti->no_telepon ?? '',
                 'anak' => $panti->jumlah_anak ?? 0,
-                'legalDocUrl' => $panti->dokumen_legalitas_panti ? asset('storage/' . $panti->dokumen_legalitas_panti) : null,
+                'akta_yayasan' => $panti->akta_yayasan,
+                'sk_kemenkumham' => $panti->sk_kemenkumham,
+                'izin_operasional' => $panti->izin_operasional,
+                'npwp_yayasan' => $panti->npwp_yayasan,
                 'orgPhotoUrl' => $panti->dokumentasi_panti ? asset('storage/' . $panti->dokumentasi_panti) : null,
             ];
         });
@@ -234,6 +237,7 @@ Route::middleware('auth')->group(function () {
     // ================= ACTIONS & AKSI MANAJEMEN ADMIN =================
     Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');
     Route::patch('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'update'])->name('admin.panti.update');
+    Route::get('/admin/panti/{id}/verification', [App\Http\Controllers\Admin\PantiController::class, 'verification'])->name('admin.panti.verification');
     Route::patch('/admin/panti/{id}/status', [App\Http\Controllers\Admin\PantiController::class, 'updateStatus'])->name('admin.panti.updateStatus');
     Route::delete('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'destroy'])->name('admin.panti.destroy');
 
