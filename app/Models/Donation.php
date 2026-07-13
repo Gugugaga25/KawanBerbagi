@@ -20,6 +20,7 @@ class Donation extends Model
         'resi',
         'pesan',
         'bukti_penerimaan',
+        'ucapan_terimakasih',
     ];
 
     public function need()

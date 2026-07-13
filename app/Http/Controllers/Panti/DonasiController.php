@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Panti;
 use App\Http\Controllers\Controller;
 use App\Models\Donation;
 use App\Models\Shelter;
+use App\Models\Donor;
+use App\Models\DonaturNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -54,6 +56,21 @@ class DonasiController extends Controller
         if ($need) {
             $need->terkumpul += $donation->jumlah_donasi;
             $need->save();
+        }
+
+        // Kirim notifikasi ke donatur: donasi telah diterima
+        $donaturUserId = $donation->donor?->id_user ?? null;
+        if ($donaturUserId) {
+            $ucapan = $request->ucapan_terimakasih
+                ? '"' . $request->ucapan_terimakasih . '"'
+                : 'Terima kasih atas kepedulian Anda!';
+            DonaturNotification::kirim(
+                $donaturUserId,
+                'thank_you',
+                'Donasi Anda Telah Diterima! 🎉',
+                'Panti ' . $shelter->nama_yayasan . ' telah mengkonfirmasi penerimaan donasi Anda. ' . $ucapan,
+                ['id_donation' => $donation->id_donation]
+            );
         }
 
         return redirect()->route('panti.dashboard', ['tab' => 'donasi'])->with('success', 'Donasi berhasil dikonfirmasi dan diterima.');

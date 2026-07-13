@@ -299,6 +299,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/donatur/profil/email', [App\Http\Controllers\Donatur\ProfilController::class, 'updateEmail'])->name('donatur.profil.updateEmail');
     Route::patch('/donatur/profil/password', [App\Http\Controllers\Donatur\ProfilController::class, 'updatePassword'])->name('donatur.profil.updatePassword');
 
+    // Notifikasi donatur
+    Route::get('/donatur/notifications', [App\Http\Controllers\Donatur\NotificationController::class, 'index'])->name('donatur.notifications.index');
+    Route::patch('/donatur/notifications/{id}/read', [App\Http\Controllers\Donatur\NotificationController::class, 'markAsRead'])->name('donatur.notifications.read');
+    Route::patch('/donatur/notifications/read-all', [App\Http\Controllers\Donatur\NotificationController::class, 'markAllRead'])->name('donatur.notifications.readAll');
+
     // ================= ACTIONS & AKSI MANAJEMEN ADMIN =================
     Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');
     Route::patch('/admin/panti/{id}', [App\Http\Controllers\Admin\PantiController::class, 'update'])->name('admin.panti.update');

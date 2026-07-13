@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use App\Models\Donation;
 use App\Models\Donor;
 use App\Models\Need;
+use App\Models\DonaturNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -38,13 +39,22 @@ class DonasiController extends Controller
         }
 
         // Buat data donasi baru dengan status awal 'Diproses'
-        Donation::create([
+        $donation = Donation::create([
             'id_needs' => $need->id_needs,
             'id_donor' => $donor->id_donor,
             'jumlah_donasi' => $request->jumlah_donasi,
             'status' => 'Diproses',
             'pesan' => $request->pesan,
         ]);
+
+        // Kirim notifikasi: donasi berhasil dibuat
+        DonaturNotification::kirim(
+            Auth::id(),
+            'status_update',
+            'Donasi Berhasil Dibuat! 📦',
+            'Donasi ' . $request->jumlah_donasi . ' ' . $need->satuan . ' ' . $need->nama_kebutuhan . ' sedang diproses. Segera input resi pengiriman.',
+            ['id_donation' => $donation->id_donation]
+        );
 
         return redirect()->route('dashboard', ['tab' => 'donasi'])->with('success', 'Donasi berhasil dibuat. Silakan lengkapi informasi resi pengiriman.');
     }
@@ -64,9 +74,18 @@ class DonasiController extends Controller
 
         $donation->update([
             'kurir' => $request->kurir,
-            'resi' => $request->kurir === 'Antar Mandiri' ? '-' : $request->resi,
+            'resi'  => $request->kurir === 'Antar Mandiri' ? '-' : $request->resi,
             'status' => 'Dikirim',
         ]);
+
+        // Kirim notifikasi: status berubah ke Dikirim
+        DonaturNotification::kirim(
+            Auth::id(),
+            'status_update',
+            'Donasi Sedang Dalam Pengiriman 🚚',
+            'Donasi Anda dengan resi ' . ($request->resi ?? 'Antar Mandiri') . ' via ' . $request->kurir . ' kini berstatus Dikirim.',
+            ['id_donation' => $donation->id_donation]
+        );
 
         return back()->with('success', 'Resi pengiriman berhasil diperbarui.');
     }
