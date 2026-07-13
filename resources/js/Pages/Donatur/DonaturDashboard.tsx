@@ -16,7 +16,8 @@ const COLORS = {
   cream: '#E5E1DD',
 };
 
-export default function DonaturDashboard() {
+export default function DonaturDashboard({ needs = [] }: { needs?: any[] }) {
+  console.log("DonaturDashboard needs:", needs);
   const [activeTab, setActiveTab] = useState<DonaturTabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -49,7 +50,7 @@ export default function DonaturDashboard() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'cari': return <CariPanti />;
+      case 'cari': return <CariPanti needs={needs} />;
       case 'donasi': return <DonasiSaya />;
       case 'profil': return <ProfilSaya />;
       case 'dashboard':

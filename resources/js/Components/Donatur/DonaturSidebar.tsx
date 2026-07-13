@@ -1,4 +1,5 @@
 import React from 'react';
+import { router } from '@inertiajs/react';
 import {
   LayoutDashboard,
   Search,
@@ -53,6 +54,11 @@ export default function DonaturSidebar({
   donorName = 'Budi Santoso',
   totalDonations = 12,
 }: DonaturSidebarProps) {
+  const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    router.post('/logout');
+  };
+
   return (
     <aside className="w-64 bg-white h-full border-r border-gray-200/80 flex flex-col z-20">
       
@@ -79,6 +85,7 @@ export default function DonaturSidebar({
       {/* Footer Navigasi (Pengaturan & Keluar) */}
       <div className="p-4 border-t border-gray-100 space-y-1">    
         <button 
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm"
         >
           <LogOut size={18} /> Keluar

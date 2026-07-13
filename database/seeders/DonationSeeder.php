@@ -16,22 +16,35 @@ class DonationSeeder extends Seeder
      */
     public function run(): void
     {
-        // Temukan donatur dan kebutuhan yang sudah dibuat sebelumnya
-        $donor = Donor::first();
-        
-        $needBeras = Need::where('nama_kebutuhan', 'Beras Putih Premium')->first();
-        $needSusu = Need::where('nama_kebutuhan', 'Susu Formula Bayi (6-12 bln)')->first();
-        $needSelimut = Need::where('nama_kebutuhan', 'Selimut & Pakaian Hangat')->first();
-
-        if (!$donor) {
+        // Ambil semua donatur yang sudah dibuat di UserSeeder
+        $donors = Donor::all();
+        if ($donors->count() < 3) {
             return;
         }
 
-        // Seed data Donasi Masuk
-        if ($needBeras) {
+        $donor1 = $donors[0]; // Rizky Ramadhan
+        $donor2 = $donors[1]; // Budi Santoso
+        $donor3 = $donors[2]; // Siti Aminah
+
+        // Ambil beberapa kebutuhan panti asuhan
+        $needBeras1 = Need::where('nama_kebutuhan', 'Beras Putih Premium')->first();
+        $needSusu1 = Need::where('nama_kebutuhan', 'Susu Formula Bayi (6-12 bln)')->first();
+        $needSelimut1 = Need::where('nama_kebutuhan', 'Selimut & Pakaian Hangat')->first();
+
+        $needSusu2 = Need::where('nama_kebutuhan', 'Susu Bayi SGM')->first();
+        $needBuku2 = Need::where('nama_kebutuhan', 'Buku Iqra & Juz Amma')->first();
+
+        $needSelimut3 = Need::where('nama_kebutuhan', 'Selimut Hangat Tebal')->first();
+        $needPopok3 = Need::where('nama_kebutuhan', 'Popok Dewasa Size L')->first();
+
+        $needSeragam4 = Need::where('nama_kebutuhan', 'Seragam SD & Celana')->first();
+        $needBeras4 = Need::where('nama_kebutuhan', 'Beras Pandan Wangi')->first();
+
+        // --- Donasi dari Donatur 1 (Rizky Ramadhan) ---
+        if ($needBeras1) {
             Donation::create([
-                'id_needs' => $needBeras->id_needs,
-                'id_donor' => $donor->id_donor,
+                'id_needs' => $needBeras1->id_needs,
+                'id_donor' => $donor1->id_donor,
                 'jumlah_donasi' => 10,
                 'status' => 'Diterima',
                 'kurir' => 'Gojek (Instant)',
@@ -41,10 +54,10 @@ class DonationSeeder extends Seeder
             ]);
         }
 
-        if ($needSusu) {
+        if ($needSusu1) {
             Donation::create([
-                'id_needs' => $needSusu->id_needs,
-                'id_donor' => $donor->id_donor,
+                'id_needs' => $needSusu1->id_needs,
+                'id_donor' => $donor1->id_donor,
                 'jumlah_donasi' => 2,
                 'status' => 'Dikirim',
                 'kurir' => 'JNE Reguler',
@@ -53,13 +66,75 @@ class DonationSeeder extends Seeder
             ]);
         }
 
-        if ($needSelimut) {
+        if ($needSelimut1) {
             Donation::create([
-                'id_needs' => $needSelimut->id_needs,
-                'id_donor' => $donor->id_donor,
+                'id_needs' => $needSelimut1->id_needs,
+                'id_donor' => $donor1->id_donor,
                 'jumlah_donasi' => 5,
                 'status' => 'Diproses',
                 'pesan' => 'Sedang kami kemas dan persiapkan untuk dikirim.',
+            ]);
+        }
+
+        // --- Donasi dari Donatur 2 (Budi Santoso) ---
+        if ($needSusu2) {
+            Donation::create([
+                'id_needs' => $needSusu2->id_needs,
+                'id_donor' => $donor2->id_donor,
+                'jumlah_donasi' => 4,
+                'status' => 'Diterima',
+                'kurir' => 'GrabExpress',
+                'resi' => '-',
+                'pesan' => 'Semoga susu formula ini berkah buat anak-anak bayi.',
+                'bukti_penerimaan' => 'bukti_penerimaan/dummy_susu2.jpg',
+            ]);
+        }
+
+        if ($needBuku2) {
+            Donation::create([
+                'id_needs' => $needBuku2->id_needs,
+                'id_donor' => $donor2->id_donor,
+                'jumlah_donasi' => 10,
+                'status' => 'Dikirim',
+                'kurir' => 'SiCepat Reguler',
+                'resi' => 'SIS9831938928',
+                'pesan' => 'Paket buku Iqra dan Juz Amma untuk mengaji sore hari.',
+            ]);
+        }
+
+        // --- Donasi dari Donatur 3 (Siti Aminah) ---
+        if ($needSelimut3) {
+            Donation::create([
+                'id_needs' => $needSelimut3->id_needs,
+                'id_donor' => $donor3->id_donor,
+                'jumlah_donasi' => 5,
+                'status' => 'Diproses',
+                'pesan' => 'Pakaian hangat dan selimut tebal untuk lansia.',
+            ]);
+        }
+
+        if ($needPopok3) {
+            Donation::create([
+                'id_needs' => $needPopok3->id_needs,
+                'id_donor' => $donor3->id_donor,
+                'jumlah_donasi' => 10,
+                'status' => 'Diterima',
+                'kurir' => 'J&T Express',
+                'resi' => 'JT981249129',
+                'pesan' => 'Semoga popok dewasa membantu kenyamanan kakek nenek di panti wreda.',
+                'bukti_penerimaan' => 'bukti_penerimaan/dummy_popok.jpg',
+            ]);
+        }
+
+        if ($needBeras4) {
+            Donation::create([
+                'id_needs' => $needBeras4->id_needs,
+                'id_donor' => $donor3->id_donor,
+                'jumlah_donasi' => 50,
+                'status' => 'Dikirim',
+                'kurir' => 'JNE Trucking (JTR)',
+                'resi' => 'JTR881298412',
+                'pesan' => 'Beras pandan wangi untuk konsumsi harian.',
             ]);
         }
     }

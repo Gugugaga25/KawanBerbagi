@@ -39,6 +39,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+
+
+    Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');
+
     // ================= ROUTE DASHBOARD ADMIN =================
     Route::get('/admin/dashboard', function () {
         $pantis = \App\Models\Shelter::with('user')->get()->map(function ($panti) {
@@ -167,7 +171,7 @@ Route::middleware('auth')->group(function () {
         $donatur = \App\Models\Donor::where('id_user', auth()->id())->with('user')->first();
 
         $myDonations = [];
-        $exploreNeeds = [];
+        $needs = [];
 
         if ($donatur) {
             // 1. Riwayat donasi yang pernah dikirim oleh donatur ini
@@ -189,19 +193,24 @@ Route::middleware('auth')->group(function () {
                     ];
                 });
 
-            // 2. Daftar kebutuhan panti lain yang berstatus aktif/belum terpenuhi (bisa untuk halaman Explore)
-            $exploreNeeds = \App\Models\Need::with('shelter')
+            // 2. Daftar kebutuhan panti lain yang berstatus aktif/belum terpenuhi
+            $needs = \App\Models\Need::with('shelter')
+                ->whereHas('shelter', function ($query) {
+                    $query->where('status', 'Active');
+                })
                 ->where('terkumpul', '<', \DB::raw('jumlah'))
                 ->get()
                 ->map(function ($need) {
                     return [
                         'id' => $need->id_needs,
-                        'barang' => $need->nama_kebutuhan,
-                        'panti' => $need->shelter ? $need->shelter->nama_yayasan : '-',
-                        'target' => $need->jumlah,
-                        'terkumpul' => $need->terkumpul,
-                        'satuan' => $need->satuan,
-                        'mendesak' => $need->is_mendesak,
+                        'org' => $need->shelter ? $need->shelter->nama_yayasan : '-',
+                        'location' => $need->shelter ? $need->shelter->alamat : '-',
+                        'item' => $need->nama_kebutuhan,
+                        'category' => $need->kategori ?? 'Lainnya',
+                        'unit' => $need->satuan,
+                        'filled' => $need->terkumpul,
+                        'total' => $need->jumlah,
+                        'urgent' => (bool) $need->is_mendesak,
                     ];
                 });
         }
@@ -209,7 +218,7 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Donatur/DonaturDashboard', [
             'donaturData' => $donatur,
             'myDonations' => $myDonations,
-            'exploreNeeds' => $exploreNeeds
+            'needs' => $needs
         ]);
     })->name('donatur.dashboard');
 
