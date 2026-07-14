@@ -109,7 +109,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
   const [filter, setFilter] = useState<FilterId>('semua');
   const [query, setQuery] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [resiInput, setResiInput] = useState({ courier: 'JNE', number: '' });
+  const [resiInput, setResiInput] = useState({ courier: 'Antar Mandiri', number: '' }); // Set default sesuai kebutuhan
 
   const donationsList = useMemo(() => {
     return myDonations.map((d: any) => {
@@ -161,7 +161,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
     }, {
       onSuccess: () => {
         setEditingId(null);
-        setResiInput({ courier: 'JNE', number: '' });
+        setResiInput({ courier: 'Antar Mandiri', number: '' });
       }
     });
   };
@@ -265,34 +265,52 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                 {d.stage === 0 && (
                   <div className="px-5 py-4 md:px-6 md:py-5" style={{ backgroundColor: 'rgba(165,141,102,0.08)', borderTop: `1px solid ${COLORS.mist}` }}>
                     {editingId === d.id ? (
-                      <div className="flex flex-col md:flex-row gap-3">
+                      <div className="flex flex-col md:flex-row gap-3 w-full">
                         <select
                           value={resiInput.courier}
                           onChange={(e) => setResiInput({ ...resiInput, courier: e.target.value })}
-                          className="px-4 py-3 rounded-xl text-xs font-bold outline-none border focus:border-[#407E8C] bg-white"
+                          className="px-4 py-3 rounded-xl text-xs font-bold outline-none border focus:border-[#407E8C] bg-white w-full md:w-auto min-w-[160px]"
                           style={{ borderColor: COLORS.mist, color: COLORS.navy }}
                         >
-                          <option>JNE</option>
-                          <option>SiCepat</option>
-                          <option>J&T</option>
-                          <option>Antar Mandiri</option>
+                          <optgroup label="Kurir Instan & Mandiri">
+                            <option value="Antar Mandiri">Antar Mandiri</option>
+                            <option value="GoSend (Instant)">GoSend (Instant)</option>
+                            <option value="GrabExpress (Instant)">GrabExpress (Instant)</option>
+                            <option value="Maxim Delivery">Maxim Delivery</option>
+                            <option value="Lalamove">Lalamove</option>
+                          </optgroup>
+                          <optgroup label="Ekspedisi Reguler">
+                            <option value="JNE">JNE</option>
+                            <option value="J&T Express">J&T Express</option>
+                            <option value="SiCepat">SiCepat</option>
+                            <option value="AnterAja">AnterAja</option>
+                            <option value="Pos Indonesia">Pos Indonesia</option>
+                            <option value="Ninja Xpress">Ninja Xpress</option>
+                            <option value="Paxel">Paxel</option>
+                            <option value="Wahana">Wahana</option>
+                          </optgroup>
                         </select>
-                        {resiInput.courier !== 'Antar Mandiri' && (
+                        
+                        {resiInput.courier !== 'Antar Mandiri' ? (
                           <input
                             type="text"
-                            placeholder="Masukkan nomor resi..."
+                            placeholder="Masukkan nomor resi, url lacak, atau nama driver..."
                             value={resiInput.number}
                             onChange={(e) => setResiInput({ ...resiInput, number: e.target.value })}
-                            className="flex-1 px-4 py-3 rounded-xl text-xs font-bold outline-none border focus:border-[#407E8C] bg-white"
+                            className="flex-1 px-4 py-3 rounded-xl text-xs font-bold outline-none border focus:border-[#407E8C] bg-white w-full"
                             style={{ borderColor: COLORS.mist, color: COLORS.navy }}
                           />
+                        ) : (
+                          // Spacer kosong agar saat mode desktop, tombol tetap terdorong ke kanan
+                          <div className="hidden md:block flex-1"></div>
                         )}
+                        
                         <button
                           onClick={() => handleSubmitResi(d.id)}
-                          className="text-xs font-bold px-6 py-3 rounded-xl text-white hover:brightness-110 transition shrink-0"
+                          className="text-xs font-bold px-6 py-3 rounded-xl text-white hover:brightness-110 transition shrink-0 md:ml-auto w-full md:w-auto"
                           style={{ backgroundColor: COLORS.navy }}
                         >
-                          Simpan Resi
+                          Simpan
                         </button>
                       </div>
                     ) : (

@@ -24,7 +24,6 @@ class KebutuhanController extends Controller
             'satuan' => 'required|string|max:50',
             'is_mendesak' => 'boolean',
             'kategori' => 'required|string|max:255',
-            'target_date' => 'required|date|after_or_equal:today',
         ]);
 
         Need::create([
@@ -35,7 +34,6 @@ class KebutuhanController extends Controller
             'satuan' => $request->satuan,
             'is_mendesak' => $request->boolean('is_mendesak'),
             'kategori' => $request->kategori,
-            'target_date' => $request->target_date,
         ]);
 
         return redirect()->route('panti.dashboard', ['tab' => 'kebutuhan'])->with('success', 'Kebutuhan berhasil diterbitkan.');
@@ -55,7 +53,6 @@ class KebutuhanController extends Controller
             'satuan' => 'required|string|max:50',
             'is_mendesak' => 'boolean',
             'kategori' => 'required|string|max:255',
-            'target_date' => 'required|date',
         ]);
 
         $need->update([
@@ -64,7 +61,6 @@ class KebutuhanController extends Controller
             'satuan' => $request->satuan,
             'is_mendesak' => $request->boolean('is_mendesak'),
             'kategori' => $request->kategori,
-            'target_date' => $request->target_date,
         ]);
 
         return redirect()->route('panti.dashboard', ['tab' => 'kebutuhan'])->with('success', 'Kebutuhan berhasil diperbarui.');

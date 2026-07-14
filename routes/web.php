@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+// ================= HALAMAN UTAMA =================
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -13,6 +14,10 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/profil-panti', function () {
+    return Inertia::render('ProfilPanti'); 
+})->name('profil-panti');
 
 // Route penengah pasca-login (Auto-redirect sesuai role/tabel data)
 Route::get('/dashboard', function () {
@@ -34,14 +39,14 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+
+// ================= GRUP UTAMA (WAJIB LOGIN) =================
 Route::middleware('auth')->group(function () {
+    
+    // Default Profile Laravel Breeze
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-
-
-    Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');
 
     // ================= ROUTE DASHBOARD ADMIN =================
     Route::get('/admin/dashboard', function () {
@@ -168,14 +173,12 @@ Route::middleware('auth')->group(function () {
 
     // ================= ROUTE DASHBOARD DONATUR =================
     Route::get('/donatur/dashboard', function () {
-        // Mengambil data donatur yang sedang login saat ini
         $donatur = \App\Models\Donor::where('id_user', auth()->id())->with('user')->first();
 
         $myDonations = [];
         $needs = [];
 
         if ($donatur) {
-            // 1. Riwayat donasi yang pernah dikirim oleh donatur ini
             $allDonations = \App\Models\Donation::where('id_donor', $donatur->id_donor)
                 ->with(['need.shelter'])
                 ->latest()
@@ -196,7 +199,6 @@ Route::middleware('auth')->group(function () {
                 ];
             });
 
-            // 2. 3 donasi terbaru untuk overview (lacak donasi)
             $recentDonations = $allDonations->take(3)->map(function ($d) {
                 $stageMap = ['Diproses' => 0, 'Dikirim' => 1, 'Diterima' => 2];
                 return [
@@ -211,13 +213,11 @@ Route::middleware('auth')->group(function () {
                 ];
             });
 
-            // 3. Stats
             $totalDonasi = $allDonations->count();
             $pantiTerbantu = $allDonations->filter(function ($d) {
                 return $d->need && $d->need->shelter;
             })->pluck('need.shelter.id_shelter')->unique()->count();
 
-            // 4. Donasi yang butuh input resi (status Diproses tapi belum ada resi)
             $needsResi = $allDonations->filter(function ($d) {
                 return $d->status === 'Diproses' && (!$d->resi || $d->resi === '-');
             })->take(1)->map(function ($d) {
@@ -227,7 +227,6 @@ Route::middleware('auth')->group(function () {
                 ];
             })->values();
 
-            // 5. Daftar kebutuhan panti lain yang berstatus aktif/belum terpenuhi
             $needs = \App\Models\Need::with('shelter')
                 ->whereHas('shelter', function ($query) {
                     $query->where('status', 'Active');
@@ -248,8 +247,17 @@ Route::middleware('auth')->group(function () {
                     ];
                 });
 
-            // 6. Kebutuhan mendesak (untuk overview)
             $urgentNeeds = $needs->filter(fn($n) => $n['urgent'])->take(4)->values();
+
+            $pantis = \App\Models\Shelter::where('status', 'Active')->get()->map(function($p) {
+                return [
+                    'id' => $p->id_shelter, 
+                    'nama' => $p->nama_yayasan, 
+                    'lokasi' => $p->alamat,
+                    'deskripsi' => $p->deskripsi ?? 'Panti asuhan yang berdedikasi membantu anak-anak.',
+                    'jumlah_anak' => $p->jumlah_anak ?? 0,
+                ];
+            });
         }
 
         return Inertia::render('Donatur/DonaturDashboard', [
@@ -271,38 +279,39 @@ Route::middleware('auth')->group(function () {
                 'pantiTerbantu' => $pantiTerbantu ?? 0,
             ],
             'needsResi'       => $needsResi ?? [],
+            'pantis' => $pantis,
         ]);
     })->name('donatur.dashboard');
-
 
     // ================= ACTIONS & AKSI MANAJEMEN PANTI =================
     Route::post('/panti/kebutuhan', [App\Http\Controllers\Panti\KebutuhanController::class, 'store'])->name('panti.kebutuhan.store');
     Route::patch('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'update'])->name('panti.kebutuhan.update');
     Route::delete('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'destroy'])->name('panti.kebutuhan.destroy');
-
     Route::post('/panti/donasi/{id}/konfirmasi', [App\Http\Controllers\Panti\DonasiController::class, 'konfirmasi'])->name('panti.donasi.konfirmasi');
     Route::patch('/panti/profil', [App\Http\Controllers\Panti\ProfilController::class, 'update'])->name('panti.profil.update');
 
+
     // ================= ACTIONS & AKSI MANAJEMEN DONATUR =================
-    // Halaman checkout: pilih jumlah kuota & metode pengiriman untuk sebuah kebutuhan
-    Route::get('/kebutuhan/{id}/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'checkout'])
-        ->name('donatur.donasi.checkout');
-
-    // Halaman detail satu donasi milik donatur yang sedang login
-    Route::get('/donasi/{id}', [App\Http\Controllers\Donatur\DonasiController::class, 'show'])
-        ->name('donatur.donasi.show');
-
+    // Halaman Cari Panti & Kebutuhan Logistik (Sisi Donatur)
+    Route::get('/donatur/cari-panti', [App\Http\Controllers\Donatur\SearchController::class, 'index'])->name('donatur.cari_panti');
+    Route::get('/donatur/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'show'])->name('donatur.panti.show');
+    
+    Route::get('/kebutuhan/{id}/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'checkout'])->name('donatur.donasi.checkout');
+    Route::get('/donasi/{id}', [App\Http\Controllers\Donatur\DonasiController::class, 'show'])->name('donatur.donasi.show');
     Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');
     Route::patch('/donatur/donasi/{id}/resi', [App\Http\Controllers\Donatur\DonasiController::class, 'updateResi'])->name('donatur.donasi.updateResi');
+    
+    // Profil Donatur
     Route::post('/donatur/profil', [App\Http\Controllers\Donatur\ProfilController::class, 'update'])->name('donatur.profil.update');
     Route::patch('/donatur/profil', [App\Http\Controllers\Donatur\ProfilController::class, 'update']);
     Route::patch('/donatur/profil/email', [App\Http\Controllers\Donatur\ProfilController::class, 'updateEmail'])->name('donatur.profil.updateEmail');
     Route::patch('/donatur/profil/password', [App\Http\Controllers\Donatur\ProfilController::class, 'updatePassword'])->name('donatur.profil.updatePassword');
 
-    // Notifikasi donatur
+    // Notifikasi Donatur
     Route::get('/donatur/notifications', [App\Http\Controllers\Donatur\NotificationController::class, 'index'])->name('donatur.notifications.index');
     Route::patch('/donatur/notifications/{id}/read', [App\Http\Controllers\Donatur\NotificationController::class, 'markAsRead'])->name('donatur.notifications.read');
     Route::patch('/donatur/notifications/read-all', [App\Http\Controllers\Donatur\NotificationController::class, 'markAllRead'])->name('donatur.notifications.readAll');
+
 
     // ================= ACTIONS & AKSI MANAJEMEN ADMIN =================
     Route::post('/admin/panti', [App\Http\Controllers\Admin\PantiController::class, 'store'])->name('admin.panti.store');
@@ -319,5 +328,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/admin/kebutuhan/{id}', [App\Http\Controllers\Admin\KebutuhanController::class, 'update'])->name('admin.kebutuhan.update');
     Route::delete('/admin/kebutuhan/{id}', [App\Http\Controllers\Admin\KebutuhanController::class, 'destroy'])->name('admin.kebutuhan.destroy');
 });
+
+
+// ================= ROUTE DINAMIS (PUBLIC) DITARUH DI BAWAH =================
+// Route ini dipindahkan ke bawah agar tidak bertabrakan dengan /panti/dashboard
+Route::get('/panti/{id}', function ($id) {
+    return Inertia::render('ProfilPantiDetail', [
+        'id' => $id
+    ]);
+})->name('panti.detail.public');
+
 
 require __DIR__.'/auth.php';

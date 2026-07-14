@@ -18,6 +18,7 @@ const COLORS = {
 
 export default function DonaturDashboard({ 
   needs = [], 
+  pantis = [],
   myDonations = [],
   donaturData = null,
   recentDonations = [],
@@ -26,6 +27,7 @@ export default function DonaturDashboard({
   needsResi = [],
 }: { 
   needs?: any[]; 
+  pantis?: any[];
   myDonations?: any[];
   donaturData?: any;
   recentDonations?: any[];
@@ -66,7 +68,7 @@ export default function DonaturDashboard({
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'cari': return <CariPanti needs={needs} />;
+      case 'cari': return <CariPanti needs={needs} pantis={pantis} />;
       case 'donasi': return <DonasiSaya myDonations={myDonations} />;
       case 'profil': return <ProfilSaya donaturData={donaturData} />;
       case 'dashboard':

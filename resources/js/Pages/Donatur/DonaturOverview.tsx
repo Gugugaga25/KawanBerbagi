@@ -120,8 +120,7 @@ export default function DonaturOverview({
           </div>
           <button
             onClick={goToDonasi}
-            className="whitespace-nowrap text-xs font-bold flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-white transition-transform hover:scale-[1.02] shrink-0"
-            style={{ backgroundColor: COLORS.navy }}
+            className="whitespace-nowrap text-xs border border-red-200 font-bold flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-red-500 transition-transform hover:scale-[1.02] shrink-0"
           >
             Input Resi <ArrowRight size={14} />
           </button>

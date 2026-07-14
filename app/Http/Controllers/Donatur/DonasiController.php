@@ -69,7 +69,8 @@ class DonasiController extends Controller
 
         $request->validate([
             'kurir' => 'required|string|max:255',
-            'resi' => 'nullable|required_if:kurir,!=,Antar Mandiri|string|max:255',
+            // UBAH BAGIAN INI: Menggunakan required_unless
+            'resi' => 'required_unless:kurir,Antar Mandiri|nullable|string|max:255',
         ]);
 
         $donation->update([

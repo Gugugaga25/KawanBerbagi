@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Link, usePage } from "@inertiajs/react";
 import {
   MapPin,
@@ -131,110 +131,172 @@ function Reveal({
   );
 }
 
-/* ---------- Nav ---------- */
+// ================= KOMPONEN NAVIGASI =================
 function Nav() {
-  const [open, setOpen] = useState(false);
-  const links = [
-    { label: "Cara Kerja", href: "#cara-kerja" },
-    { label: "Untuk Siapa", href: "#untuk-siapa" },
-    { label: "Fitur", href: "#fitur" },
-  ];
-  const { auth } = usePage().props as any;
-
-  return (
-    <header
-      className="sticky top-0 z-50 backdrop-blur"
-      style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.mist}` }}
-    >
-      <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-2">
-          <span className="text-2xl sm:text-3xl font-bold" style={{ color: COLORS.navy }}>
-            KawanBerbagi
-            <span style={{ color: COLORS.teal }}>.</span>
-          </span>
-        </a>
-        <div className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="text-base font-medium hover:opacity-70 transition-opacity font-bold"
-              style={{ color: COLORS.navy }}
-            >
-              {l.label}
-            </a>
-          ))}
-        </div>
-        <div className="hidden md:flex items-center gap-3">
-          {auth?.user ? (
-            <>
-              <span className="text-sm font-medium mr-2" style={{ color: COLORS.navy }}>
-                Halo, {auth.user.name}
-              </span>
-              <Link
-                href={route("logout")}
-                method="post"
-                as="button"
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.navy }}>
-                Keluar
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href={route("login")}
-                className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
-                style={{ color: COLORS.navy }}>
-                Masuk
-              </Link>
-              <Link
-                href={route("register")}
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.teal }}>
-                Daftar
-              </Link>
-            </>
-          )}
-        </div>
-        <button
-          className="md:hidden p-2 rounded-lg"
-          style={{ color: COLORS.navy }}
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Buka menu"
-        >
-          {open ? <X size={26} /> : <Menu size={26} />}
-        </button>
-      </nav>
-      {open && (
-        <div
-          className="md:hidden px-5 pb-5 flex flex-col gap-4"
-          style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.mist}` }}
-        >
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              className="text-lg font-medium py-1"
-              style={{ color: COLORS.navy }}
-            >
-              {l.label}
-            </a>
-          ))}
-          <a
-            href="#mulai"
-            onClick={() => setOpen(false)}
-            className="text-lg font-semibold text-center px-5 py-3 rounded-full text-white mt-2"
-            style={{ backgroundColor: COLORS.teal }}
-          >
-            Mulai Donasi
+    const [open, setOpen] = useState(false);
+    const { auth } = usePage().props as any;
+    const { url } = usePage(); 
+    
+    // State baru untuk menyimpan posisi hash (#) saat ini
+    const [currentHash, setCurrentHash] = useState("");
+  
+    // Memantau perubahan hash di browser setiap kali diklik
+    useEffect(() => {
+      // Setel hash awal saat halaman pertama kali dimuat
+      setCurrentHash(window.location.hash);
+  
+      // Fungsi untuk memperbarui state saat hash berubah
+      const handleHashChange = () => setCurrentHash(window.location.hash);
+      
+      // Dengarkan event perubahan hash
+      window.addEventListener("hashchange", handleHashChange);
+      
+      // Bersihkan event listener saat komponen dilepas
+      return () => window.removeEventListener("hashchange", handleHashChange);
+    }, []);
+  
+    const links = [
+      { label: "Cara Kerja", href: "/#cara-kerja" },
+      { label: "Untuk Siapa", href: "/#untuk-siapa" },
+      { label: "Fitur", href: "/#fitur" },
+      { label: "Profil Panti", href: "/profil-panti" },
+    ];
+  
+    return (
+      <header
+        className="sticky top-0 z-50 backdrop-blur"
+        style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.mist}` }}
+      >
+        <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
+          <a href="#top" className="flex items-center gap-2">
+            <span className="text-2xl sm:text-3xl font-bold" style={{ color: COLORS.navy }}>
+              KawanBerbagi
+              <span style={{ color: COLORS.teal }}>.</span>
+            </span>
           </a>
-        </div>
-      )}
-    </header>
-  );
-}
+          
+          {/* === MENU DEKSTOP === */}
+          <div className="hidden md:flex items-center gap-8">
+            {links.map((l) => {
+              let isActive = false;
+  
+              // Logika untuk menentukan Tab mana yang aktif
+              if (l.href.includes('#')) {
+                // Jika link adalah hash (mengandung '#')
+                const hashPart = l.href.substring(l.href.indexOf('#')); // Ambil bagian "#fitur"
+                // Aktif jika kita di halaman utama (url '/') DAN hash-nya sama persis
+                isActive = (url === '/' || url.startsWith('/#')) && currentHash === hashPart;
+              } else {
+                // Jika link adalah halaman biasa (/profil-panti)
+                isActive = url === l.href || url.startsWith(l.href + '/');
+              }
+              
+              return (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className={`text-base font-bold transition-all ${
+                    isActive ? "border-b-2 pb-1" : "hover:opacity-70"
+                  }`}
+                  style={{ 
+                    color: isActive ? COLORS.teal : COLORS.navy,
+                    borderColor: isActive ? COLORS.teal : "transparent" 
+                  }}
+                >
+                  {l.label}
+                </a>
+              );
+            })}
+          </div>
+  
+          {/* === TOMBOL AUTH === */}
+          <div className="hidden md:flex items-center gap-3">
+            {auth?.user ? (
+              <>
+                <span className="text-sm font-medium mr-2" style={{ color: COLORS.navy }}>
+                  Halo, {auth.user.name}
+                </span>
+                <Link
+                  href={route("logout")}
+                  method="post"
+                  as="button"
+                  className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
+                  style={{ backgroundColor: COLORS.navy }}>
+                  Keluar
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href={route("login")}
+                  className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
+                  style={{ color: COLORS.navy }}>
+                  Masuk
+                </Link>
+                <Link
+                  href={route("register")}
+                  className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
+                  style={{ backgroundColor: COLORS.teal }}>
+                  Daftar
+                </Link>
+              </>
+            )}
+          </div>
+  
+          {/* === TOMBOL HAMBURGER MOBILE === */}
+          <button
+            className="md:hidden p-2 rounded-lg"
+            style={{ color: COLORS.navy }}
+            onClick={() => setOpen((o) => !o)}
+            aria-label="Buka menu"
+          >
+            {open ? <X size={26} /> : <Menu size={26} />}
+          </button>
+        </nav>
+  
+        {/* === MENU MOBILE === */}
+        {open && (
+          <div
+            className="md:hidden px-5 pb-5 flex flex-col gap-4 absolute w-full shadow-md"
+            style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.mist}` }}
+          >
+            {links.map((l) => {
+              let isActive = false;
+              
+              if (l.href.includes('#')) {
+                const hashPart = l.href.substring(l.href.indexOf('#'));
+                isActive = (url === '/' || url.startsWith('/#')) && currentHash === hashPart;
+              } else {
+                isActive = url === l.href || url.startsWith(l.href + '/');
+              }
+  
+              return (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className={`text-lg font-medium py-1 transition-colors ${
+                    isActive ? "font-bold" : ""
+                  }`}
+                  style={{ color: isActive ? COLORS.teal : COLORS.navy }}
+                >
+                  {l.label}
+                </a>
+              );
+            })}
+            <a
+              href="#mulai"
+              onClick={() => setOpen(false)}
+              className="text-lg font-semibold text-center px-5 py-3 rounded-full text-white mt-2"
+              style={{ backgroundColor: COLORS.teal }}
+            >
+              Mulai Donasi
+            </a>
+          </div>
+        )}
+      </header>
+    );
+  }
 
 /* ---------- Hero ---------- */
 function Hero() {

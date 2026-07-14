@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import { 
   ArrowLeft, 
   Copy, 
@@ -12,17 +13,19 @@ import {
   Phone, 
   MessageSquare, 
   Camera, 
-  X 
+  X,
+  Menu
 } from 'lucide-react';
-import { Link } from '@inertiajs/react';
+
+import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
+import DonaturHeader from '@/Components/Donatur/DonaturHeader';
 
 const COLORS = {
   navy: "#083A4F",
   gold: "#A58D66",
   mist: "#C0D5D6",
   teal: "#407E8C",
-  cream: "#F4F3EF",
-  white: "#FFFFFF",
+  cream: "#E5E1DD",
 };
 
 interface DonationDetailProps {
@@ -46,9 +49,20 @@ interface DonationDetailProps {
       telepon: string;
     };
   };
+  auth?: any;
+  donaturData?: any;
+  stats?: { totalDonasi: number; pantiTerbantu: number };
 }
 
-export default function DonationDetail({ donation }: DonationDetailProps) {
+export default function DonationDetail({ 
+  donation,
+  auth,
+  donaturData = null,
+  stats = { totalDonasi: 0, pantiTerbantu: 0 }
+}: DonationDetailProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const activeTab: DonaturTabType = 'donasi';
+
   const [copied, setCopied] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -71,7 +85,6 @@ export default function DonationDetail({ donation }: DonationDetailProps) {
     }
   };
 
-  // Normalize phone number to WhatsApp format (e.g. 0812 -> 62812)
   const getWhatsAppLink = (phone: string) => {
     if (!phone || phone === '-') return '#';
     const cleanNumber = phone.replace(/[^0-9]/g, '');
@@ -81,278 +94,323 @@ export default function DonationDetail({ donation }: DonationDetailProps) {
     return `https://wa.me/${formattedNumber}?text=Halo%20Pengurus%20${encodeURIComponent(donation.panti.nama)}%2C%20saya%20ingin%20menanyakan%20perihal%20donasi%20${encodeURIComponent(donation.barang)}%20(${donation.jumlah}%20${donation.satuan})%20dengan%20ID%20${donation.id}.`;
   };
 
+  const handleTabChange = (tab: DonaturTabType) => {
+    setIsMobileMenuOpen(false);
+    // Asumsi menggunakan ziggy-js untuk route()
+    const destinationUrl = tab === 'dashboard'
+      ? route('donatur.dashboard')
+      : `${route('donatur.dashboard')}?tab=${tab}`;
+    router.visit(destinationUrl);
+  };
+
   return (
-    <div className="min-h-screen bg-[#F4F3EF] py-8 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-5xl mx-auto space-y-6">
-        
-        {/* ================= BACK BUTTON & HEADER ================= */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <Link
-            href="/donatur/dashboard?tab=donasi"
-            className="inline-flex items-center gap-2 text-sm font-bold text-[#083A4F] hover:opacity-80 transition"
-          >
-            <ArrowLeft size={16} /> Kembali ke Rincian Donasi
-          </Link>
-          
-          <div className="bg-white px-4 py-2 rounded-full border text-xs font-black tracking-wide uppercase text-slate-500 shadow-sm self-start sm:self-auto" style={{ borderColor: COLORS.mist }}>
-            ID Transaksi: <span style={{ color: COLORS.teal }}>{donation.id}</span>
-          </div>
-        </div>
+    <div className="flex h-screen font-sans bg-[#F4F3EF] text-[#124354] overflow-hidden">
+      
+      {/* ================= OVERLAY MOBILE ================= */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" 
+          onClick={() => setIsMobileMenuOpen(false)} 
+        />
+      )}
 
-        {/* ================= MAIN TWO-COLUMN CONTENT ================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* LEFT: DONATION & TIMELINE DETAILS (2 Columns on Desktop) */}
-          <div className="lg:col-span-2 space-y-6">
-            
-            {/* 1. Item Details Card */}
-            <div className="bg-white rounded-[2rem] p-6 sm:p-8 border shadow-sm" style={{ borderColor: COLORS.mist }}>
-              <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                Rincian Barang Donasi
-              </div>
-              <h1 className="text-2xl font-black mb-1" style={{ color: COLORS.navy }}>
-                {donation.barang}
-              </h1>
-              <p className="text-lg font-bold mb-6" style={{ color: COLORS.teal }}>
-                Jumlah: {donation.jumlah} {donation.satuan}
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-6" style={{ borderColor: '#EBEAE6' }}>
-                <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Tanggal Kirim Form</p>
-                  <p className="text-sm font-bold" style={{ color: COLORS.navy }}>{donation.tanggal}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Metode Pengiriman</p>
-                  <p className="text-sm font-bold" style={{ color: COLORS.navy }}>
-                    {donation.kurir !== '-' ? donation.kurir : 'Belum diisi'}
-                  </p>
-                </div>
-              </div>
-
-              {donation.pesan && donation.pesan !== '-' && (
-                <div className="mt-6 p-4 rounded-2xl bg-[#F9F8F6] border flex items-start gap-3">
-                  <MessageSquare size={16} className="text-[#A58D66] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#A58D66] mb-1">Pesan Dukungan Anda</p>
-                    <p className="text-sm italic font-medium leading-relaxed" style={{ color: COLORS.navy }}>
-                      "{donation.pesan}"
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {donation.ucapan_terimakasih && donation.ucapan_terimakasih !== '-' && (
-                <div className="mt-4 p-4 rounded-2xl bg-[#E8F5E9] border border-[#C8E6C9] flex items-start gap-3">
-                  <CheckCircle2 size={16} className="text-[#2E7D32] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#2E7D32] mb-1">Ucapan Terima Kasih Panti</p>
-                    <p className="text-sm italic font-medium leading-relaxed text-[#1B5E20]">
-                      "{donation.ucapan_terimakasih}"
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Timeline Card */}
-            <div className="bg-white rounded-[2rem] p-6 sm:p-8 border shadow-sm" style={{ borderColor: COLORS.mist }}>
-              <h3 className="text-base font-extrabold mb-6" style={{ color: COLORS.navy }}>
-                Status Pengiriman & Penerimaan
-              </h3>
-
-              {/* Vertical Timeline */}
-              <div className="space-y-8">
-                {stages.map((stage, idx) => {
-                  const Icon = stage.icon;
-                  const isCompleted = idx <= currentStageIndex;
-                  const isCurrent = idx === currentStageIndex;
-                  const isLast = idx === stages.length - 1;
-
-                  return (
-                    <div key={stage.title} className="relative pl-12">
-                      {/* Vertical Line */}
-                      {!isLast && (
-                        <div 
-                          className="absolute left-4 top-8 bottom-0 w-0.5 -ml-[1px]" 
-                          style={{ backgroundColor: isCompleted ? COLORS.teal : COLORS.mist }}
-                        />
-                      )}
-
-                      {/* Timeline marker */}
-                      <span 
-                        className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${
-                          isCompleted 
-                            ? 'text-white border-transparent' 
-                            : 'bg-white border-slate-300 text-slate-400'
-                        }`}
-                        style={{
-                          backgroundColor: isCompleted ? COLORS.teal : undefined,
-                          borderColor: isCompleted ? COLORS.teal : undefined
-                        }}
-                      >
-                        {isCompleted && idx < currentStageIndex ? (
-                          <Check size={14} strokeWidth={3} />
-                        ) : (
-                          <Icon size={14} />
-                        )}
-                      </span>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 
-                            className={`text-sm font-extrabold uppercase tracking-wider ${
-                              isCurrent ? 'text-[#A58D66]' : isCompleted ? 'text-slate-700' : 'text-slate-400'
-                            }`}
-                          >
-                            {stage.title}
-                          </h4>
-                          {isCurrent && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#A58D66]/10 text-[#A58D66]">
-                              Status Terkini
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs font-semibold leading-relaxed text-slate-500">
-                          {stage.desc}
-                        </p>
-
-                        {/* Extra Actions for Tracking Number */}
-                        {stage.title === 'Dikirim' && isCompleted && donation.resi && donation.resi !== '-' && (
-                          <div className="mt-3 inline-flex items-center gap-2 bg-gray-50 border rounded-xl p-2 pr-3">
-                            <span className="text-xs font-mono font-bold text-slate-600">{donation.resi}</span>
-                            <button
-                              onClick={handleCopyResi}
-                              className="p-1.5 hover:bg-gray-200/50 rounded-lg text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1"
-                              title="Salin Resi"
-                              type="button"
-                            >
-                              {copied ? (
-                                <>
-                                  <Check size={12} className="text-green-600" />
-                                  <span className="text-[10px] font-bold text-green-600">Salin!</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Copy size={12} />
-                                  <span className="text-[10px] font-bold">Salin</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-          </div>
-
-          {/* RIGHT: PANTI DETAILS & BUKTI PENERIMAAN (1 Column on Desktop) */}
-          <div className="space-y-6">
-            
-            {/* 3. Panti Details Card */}
-            <div className="bg-white rounded-[2rem] p-6 border shadow-sm" style={{ borderColor: COLORS.mist }}>
-              <h3 className="text-base font-extrabold mb-5 flex items-center gap-2" style={{ color: COLORS.navy }}>
-                <MapPin size={18} className="text-[#407E8C]" /> Panti Asuhan Penerima
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Nama Yayasan</p>
-                  <p className="text-sm font-extrabold" style={{ color: COLORS.navy }}>{donation.panti.nama}</p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Penanggung Jawab</p>
-                  <p className="text-sm font-bold flex items-center gap-1.5" style={{ color: COLORS.navy }}>
-                    <User size={13} className="text-slate-400" /> {donation.panti.penanggung_jawab}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Alamat Penerima</p>
-                  <p className="text-xs font-semibold leading-relaxed text-slate-600">
-                    {donation.panti.alamat}
-                  </p>
-                </div>
-
-                {donation.panti.telepon && donation.panti.telepon !== '-' && (
-                  <div className="pt-2">
-                    <a
-                      href={getWhatsAppLink(donation.panti.telepon)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 hover:shadow-md transition-all py-3 rounded-xl"
-                    >
-                      <Phone size={14} /> Hubungi via WhatsApp
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 4. Bukti Penerimaan Card */}
-            <div className="bg-white rounded-[2rem] p-6 border shadow-sm" style={{ borderColor: COLORS.mist }}>
-              <h3 className="text-base font-extrabold mb-4 flex items-center gap-2" style={{ color: COLORS.navy }}>
-                <Camera size={18} className="text-[#407E8C]" /> Bukti Penerimaan Barang
-              </h3>
-
-              {donation.status === 'Diterima' ? (
-                donation.bukti_penerimaan ? (
-                  <div className="space-y-3">
-                    <div 
-                      onClick={() => setIsLightboxOpen(true)}
-                      className="group relative cursor-zoom-in rounded-2xl overflow-hidden aspect-video border bg-slate-50 transition-shadow hover:shadow-md"
-                    >
-                      <img 
-                        src={donation.bukti_penerimaan} 
-                        alt="Bukti Penerimaan"
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=600';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
-                        <span className="opacity-0 group-hover:opacity-100 text-white font-bold text-xs bg-black/60 px-3 py-1.5 rounded-full transition-all flex items-center gap-1">
-                          <ExternalLink size={12} /> Perbesar Foto
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-[10px] font-bold text-center text-slate-400 italic">
-                      Klik foto untuk memperbesar tampilan bukti
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl p-6 border border-dashed border-[#C0D5D6] bg-slate-50 text-center flex flex-col items-center justify-center">
-                    <Camera size={24} className="text-slate-300 mb-2" />
-                    <p className="text-xs font-semibold text-slate-500">
-                      Foto bukti belum diunggah oleh Panti.
-                    </p>
-                  </div>
-                )
-              ) : (
-                <div className="rounded-2xl p-6 border border-dashed border-[#C0D5D6] bg-slate-50 text-center flex flex-col items-center justify-center">
-                  <Clock size={24} className="text-slate-300 mb-2" />
-                  <p className="text-xs font-semibold text-slate-500 leading-relaxed">
-                    Bukti penerimaan akan tersedia setelah barang donasi dinyatakan diterima oleh pihak Panti.
-                  </p>
-                </div>
-              )}
-            </div>
-
-          </div>
-
-        </div>
-
+      {/* ================= SIDEBAR ================= */}
+      <div className={`fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:w-64 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <DonaturSidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          donaturData={donaturData} 
+          stats={stats} 
+        />
       </div>
+
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        
+        {/* Header Mobile */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30 shadow-md">
+          <div className="flex items-center gap-3 text-white">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+              <Menu size={20} />
+            </button>
+            <span className="font-extrabold tracking-wide uppercase text-sm">Rincian Donasi</span>
+          </div>
+        </div>
+
+        {/* Header Desktop */}
+        <div className="hidden lg:block bg-white border-b border-gray-100">
+          <DonaturHeader activeTab={activeTab} donaturData={donaturData} />
+        </div>
+
+        {/* Area Scroll Konten */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
+          <div className="max-w-7xl mx-auto space-y-6">
+            <Head title={`Rincian Donasi - ${donation.id}`} />
+
+            {/* BUTTON KEMBALI & BADGE ID */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <Link 
+                href={route('donatur.dashboard') + '?tab=donasi'} 
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 text-sm font-bold text-gray-600 hover:text-[#083A4F] rounded-xl shadow-sm transition-all group w-fit"
+              >
+                <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> 
+                Kembali ke Riwayat
+              </Link>
+              
+              <div className="bg-white px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-black tracking-wide uppercase text-gray-500 shadow-sm self-start sm:self-auto">
+                ID Transaksi: <span className="text-[#407E8C]">{donation.id}</span>
+              </div>
+            </div>
+
+            {/* ================= SUSUNAN LAYOUT GRID ================= */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              
+              {/* KOLOM KIRI (Spesifikasi Barang & Timeline) */}
+              <div className="lg:col-span-2 space-y-6">
+                
+                {/* 1. Item Details Card */}
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                    Rincian Barang Donasi
+                  </div>
+                  <h1 className="text-2xl font-black mb-1 text-[#124354]">
+                    {donation.barang}
+                  </h1>
+                  <p className="text-lg font-bold mb-6 text-[#407E8C]">
+                    Jumlah: {donation.jumlah} {donation.satuan}
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-6">
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Tanggal Kirim Form</p>
+                      <p className="text-sm font-bold text-[#124354]">{donation.tanggal}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Metode Pengiriman</p>
+                      <p className="text-sm font-bold text-[#124354]">
+                        {donation.kurir !== '-' ? donation.kurir : 'Belum diisi'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {donation.pesan && donation.pesan !== '-' && (
+                    <div className="mt-6 p-4 rounded-xl bg-[#F4F3EF] border border-gray-200 flex items-start gap-3">
+                      <MessageSquare size={16} className="text-[#A58D66] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#A58D66] mb-1">Pesan Dukungan Anda</p>
+                        <p className="text-sm italic font-medium leading-relaxed text-[#124354]">
+                          "{donation.pesan}"
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {donation.ucapan_terimakasih && donation.ucapan_terimakasih !== '-' && (
+                    <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
+                      <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 mb-1">Ucapan Terima Kasih Panti</p>
+                        <p className="text-sm italic font-medium leading-relaxed text-emerald-800">
+                          "{donation.ucapan_terimakasih}"
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Timeline Card */}
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
+                  <h3 className="text-base font-extrabold mb-6 text-[#124354]">
+                    Status Pengiriman & Penerimaan
+                  </h3>
+
+                  <div className="space-y-8">
+                    {stages.map((stage, idx) => {
+                      const Icon = stage.icon;
+                      const isCompleted = idx <= currentStageIndex;
+                      const isCurrent = idx === currentStageIndex;
+                      const isLast = idx === stages.length - 1;
+
+                      return (
+                        <div key={stage.title} className="relative pl-12">
+                          {!isLast && (
+                            <div 
+                              className="absolute left-4 top-8 bottom-0 w-0.5 -ml-[1px]" 
+                              style={{ backgroundColor: isCompleted ? COLORS.teal : COLORS.mist }}
+                            />
+                          )}
+
+                          <span 
+                            className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${
+                              isCompleted 
+                                ? 'text-white border-transparent' 
+                                : 'bg-white border-gray-200 text-gray-400'
+                            }`}
+                            style={{
+                              backgroundColor: isCompleted ? COLORS.teal : undefined,
+                              borderColor: isCompleted ? COLORS.teal : undefined
+                            }}
+                          >
+                            {isCompleted && idx < currentStageIndex ? (
+                              <Check size={14} strokeWidth={3} />
+                            ) : (
+                              <Icon size={14} />
+                            )}
+                          </span>
+
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h4 
+                                className={`text-sm font-extrabold uppercase tracking-wider ${
+                                  isCurrent ? 'text-[#A58D66]' : isCompleted ? 'text-gray-700' : 'text-gray-400'
+                                }`}
+                              >
+                                {stage.title}
+                              </h4>
+                              {isCurrent && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#A58D66]/10 text-[#A58D66] border border-[#A58D66]/20">
+                                  Status Terkini
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs font-semibold leading-relaxed text-gray-500">
+                              {stage.desc}
+                            </p>
+
+                            {stage.title === 'Dikirim' && isCompleted && donation.resi && donation.resi !== '-' && (
+                              <div className="mt-3 inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2 pr-3">
+                                <span className="text-xs font-mono font-bold text-gray-600">{donation.resi}</span>
+                                <button
+                                  onClick={handleCopyResi}
+                                  className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
+                                  title="Salin Resi"
+                                  type="button"
+                                >
+                                  {copied ? (
+                                    <>
+                                      <Check size={12} className="text-emerald-600" />
+                                      <span className="text-[10px] font-bold text-emerald-600">Salin!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy size={12} />
+                                      <span className="text-[10px] font-bold">Salin</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* KOLOM KANAN (Info Panti & Bukti Penerimaan) */}
+              <div className="space-y-6">
+                
+                {/* 3. Panti Details Card */}
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
+                  <h3 className="text-base font-extrabold mb-5 flex items-center gap-2 text-[#124354] border-b border-gray-50 pb-3">
+                    <MapPin size={18} className="text-[#407E8C]" /> Panti Penerima
+                  </h3>
+
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Nama Yayasan</p>
+                    <p className="text-sm font-extrabold text-[#124354]">{donation.panti.nama}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Penanggung Jawab</p>
+                    <p className="text-sm font-bold flex items-center gap-1.5 text-[#124354]">
+                      <User size={13} className="text-[#407E8C]" /> {donation.panti.penanggung_jawab}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Alamat Penerima</p>
+                    <p className="text-xs font-semibold leading-relaxed text-gray-600">
+                      {donation.panti.alamat}
+                    </p>
+                  </div>
+
+                  {donation.panti.telepon && donation.panti.telepon !== '-' && (
+                    <div className="pt-3">
+                      <a
+                        href={getWhatsAppLink(donation.panti.telepon)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-[#407E8C] hover:bg-[#124354] shadow-sm transition-all py-3 rounded-xl"
+                      >
+                        <Phone size={14} /> Hubungi via WhatsApp
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Bukti Penerimaan Card */}
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                  <h3 className="text-base font-extrabold mb-4 flex items-center gap-2 text-[#124354]">
+                    <Camera size={18} className="text-[#407E8C]" /> Bukti Barang
+                  </h3>
+
+                  {donation.status === 'Diterima' ? (
+                    donation.bukti_penerimaan ? (
+                      <div className="space-y-3">
+                        <div 
+                          onClick={() => setIsLightboxOpen(true)}
+                          className="group relative cursor-zoom-in rounded-xl overflow-hidden aspect-video border border-gray-200 bg-gray-50 transition-shadow hover:shadow-md"
+                        >
+                          <img 
+                            src={donation.bukti_penerimaan} 
+                            alt="Bukti Penerimaan"
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=600';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
+                            <span className="opacity-0 group-hover:opacity-100 text-white font-bold text-xs bg-black/60 px-3 py-1.5 rounded-full transition-all flex items-center gap-1">
+                              <ExternalLink size={12} /> Perbesar
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-[10px] font-bold text-center text-gray-400 italic">
+                          Klik foto untuk memperbesar
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl p-6 border border-dashed border-gray-200 bg-gray-50 text-center flex flex-col items-center justify-center">
+                        <Camera size={24} className="text-gray-300 mb-2" />
+                        <p className="text-xs font-semibold text-gray-500">
+                          Foto belum diunggah Panti.
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="rounded-xl p-6 border border-dashed border-gray-200 bg-gray-50 text-center flex flex-col items-center justify-center">
+                      <Clock size={24} className="text-gray-300 mb-2" />
+                      <p className="text-xs font-semibold text-gray-500 leading-relaxed">
+                        Bukti akan tersedia setelah barang diterima Panti.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </main>
 
       {/* ================= LIGHTBOX MODAL FOR IMAGE ZOOM ================= */}
       {isLightboxOpen && donation.bukti_penerimaan && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          
+        <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <button 
             onClick={() => setIsLightboxOpen(false)}
             className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 text-white hover:text-red-500 rounded-full transition duration-150"
@@ -374,7 +432,7 @@ export default function DonationDetail({ donation }: DonationDetailProps) {
 
           <div className="mt-4 text-center max-w-lg">
             <h4 className="text-white font-extrabold text-sm">{donation.panti.nama}</h4>
-            <p className="text-slate-400 text-xs mt-1">Bukti Penerimaan untuk: {donation.barang} ({donation.jumlah} {donation.satuan})</p>
+            <p className="text-gray-400 text-xs mt-1">Bukti untuk: {donation.barang} ({donation.jumlah} {donation.satuan})</p>
           </div>
         </div>
       )}
