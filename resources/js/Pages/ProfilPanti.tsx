@@ -158,7 +158,7 @@ function Nav() {
               <Link
                 href={route("register")}
                 className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.teal }}>
+                style={{ backgroundColor: COLORS.navy }}>
                 Daftar
               </Link>
             </>

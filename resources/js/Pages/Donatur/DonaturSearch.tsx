@@ -1,5 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Search, MapPin, Package, SlidersHorizontal, X, Building2, UserCheck, Truck, MapPinOff, Minus, Plus, Home, ShieldCheck, Clock, Phone } from 'lucide-react';
+import { 
+  Search, MapPin, Package, SlidersHorizontal, X, Building2, 
+  UserCheck, Truck, MapPinOff, Minus, Plus, Home, 
+  ShieldCheck, Clock, Phone, Filter 
+} from 'lucide-react';
 import { useForm, Link, router } from '@inertiajs/react';
 
 const COLORS = {
@@ -28,14 +32,32 @@ interface Panti {
   lokasi: string;
   deskripsi: string;
   jumlah_anak: number;
+  logo?: string; 
+  banner?: string; 
 }
 
 const CATEGORIES = ["Semua", "Pangan", "Sandang", "Pendidikan", "Kesehatan"];
 
+// === FUNGSI UNTUK MENDAPATKAN 2 HURUF INISIAL ===
+const getInitials = (name: string) => {
+  if (!name) return 'PA';
+  
+  // Pisahkan nama berdasarkan spasi
+  const words = name.trim().split(/\s+/);
+  
+  // Jika lebih dari 1 kata, ambil huruf pertama dari kata ke-1 dan ke-2
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  
+  // Jika hanya 1 kata, ambil 2 huruf pertama dari kata tersebut
+  return name.substring(0, 2).toUpperCase();
+};
+
 export default function CariPanti({ 
   needs = [], 
   pantis = [], 
-  userCity = "" // Prop baru untuk menangkap kota asal donatur
+  userCity = "" 
 }: { 
   needs?: any[], 
   pantis?: any[], 
@@ -43,16 +65,14 @@ export default function CariPanti({
 }) {
   // === STATE PEMILIHAN MODE ===
   const urlParams = new URLSearchParams(window.location.search);
-const initialMode = urlParams.get('mode') === 'panti' ? 'panti' : 'kebutuhan';
+  const initialMode = urlParams.get('mode') === 'panti' ? 'panti' : 'kebutuhan';
 
-// 2. Gunakan sebagai default state
-const [searchMode, setSearchMode] = useState(initialMode);
+  const [searchMode, setSearchMode] = useState(initialMode);
 
   // === STATE PENCARIAN & FILTER ===
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Semua");
-  
-  // Set default state menggunakan userCity (jika ada), kalau kosong default ke "Semua"
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(userCity || "Semua");
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
@@ -73,7 +93,6 @@ const [searchMode, setSearchMode] = useState(initialMode);
       }
     });
 
-    // Pastikan kota user tetap ada di dropdown meskipun belum ada campaign di kota tsb
     if (userCity && userCity !== "Semua") {
       list.add(userCity);
     }
@@ -99,9 +118,7 @@ const [searchMode, setSearchMode] = useState(initialMode);
       const parts = c.location.split(',');
       const city = parts[parts.length - 1]?.trim() || c.location;
       
-      // Logika pencocokan lokasi (cek apakah string lokasi mengandung kata yang dicari)
       const matchLocation = selectedLocation === "Semua" || city.toLowerCase().includes(selectedLocation.toLowerCase());
-      
       const matchQuery = query.trim() === "" || c.item.toLowerCase().includes(query.toLowerCase()) || c.org.toLowerCase().includes(query.toLowerCase()) || c.location.toLowerCase().includes(query.toLowerCase());
       
       return matchCategory && matchLocation && matchQuery;
@@ -150,6 +167,7 @@ const [searchMode, setSearchMode] = useState(initialMode);
   const handleSubmitBarang = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formBarang.data.metode_pengiriman) return;
+    // Asumsi ada validasi global, router juga tersedia di sini.
     formBarang.post(route('donatur.donasi.store'), {
       onSuccess: () => {
         handleCloseModalBarang();
@@ -163,7 +181,7 @@ const [searchMode, setSearchMode] = useState(initialMode);
       {/* TABS PEMILIH MODE */}
       <div className="flex p-1.5 rounded-2xl w-max border shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: COLORS.mist }}>
         <button
-          onClick={() => { setSearchMode('kebutuhan'); setQuery(''); setSelectedLocation(userCity || 'Semua'); }}
+          onClick={() => { setSearchMode('kebutuhan'); setQuery(''); setSelectedLocation(userCity || 'Semua'); setCategory('Semua'); }}
           className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'kebutuhan' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
           style={{ backgroundColor: searchMode === 'kebutuhan' ? COLORS.navy : 'transparent', color: searchMode === 'kebutuhan' ? '#fff' : COLORS.navy }}
         >
@@ -180,6 +198,7 @@ const [searchMode, setSearchMode] = useState(initialMode);
 
       {/* SEARCH & FILTER AREA */}
       <div className="flex flex-col sm:flex-row gap-3">
+        {/* PENCARIAN */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={16} style={{ color: COLORS.navy, opacity: 0.4 }} />
           <input
@@ -192,12 +211,50 @@ const [searchMode, setSearchMode] = useState(initialMode);
           />
         </div>
         
+        {/* DROPDOWN FILTER KATEGORI (Hanya di mode Kebutuhan) */}
+        {searchMode === 'kebutuhan' && (
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+              className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-3 rounded-xl border shrink-0 hover:bg-gray-50 transition w-full sm:w-auto justify-center"
+              style={{ 
+                borderColor: category !== "Semua" ? COLORS.teal : COLORS.mist, 
+                color: category !== "Semua" ? COLORS.teal : COLORS.navy, 
+                backgroundColor: category !== "Semua" ? '#F2F8F9' : '#ffffff' 
+              }}
+            >
+              <Filter size={15} /> 
+              {category === "Semua" ? "Kategori" : category}
+            </button>
+            
+            {isCategoryDropdownOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setIsCategoryDropdownOpen(false)} />
+                <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-48 rounded-xl shadow-lg bg-white border z-20 py-1 animate-in fade-in" style={{ borderColor: COLORS.mist }}>
+                  {CATEGORIES.map((cat) => (
+                    <button 
+                      key={cat} 
+                      onClick={() => { setCategory(cat); setIsCategoryDropdownOpen(false); }} 
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${cat === category ? 'font-bold' : 'font-medium'}`} 
+                      style={{ color: cat === category ? COLORS.teal : COLORS.navy }}
+                    >
+                      <span>{cat}</span>
+                      {category === cat && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.teal }} />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* DROPDOWN FILTER LOKASI */}
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-            className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-3 rounded-xl border shrink-0 hover:bg-gray-50 transition"
+            className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-3 rounded-xl border shrink-0 hover:bg-gray-50 transition w-full sm:w-auto justify-center"
             style={{ 
               borderColor: selectedLocation === userCity && userCity ? COLORS.teal : COLORS.mist, 
               color: selectedLocation === userCity && userCity ? COLORS.teal : COLORS.navy, 
@@ -235,23 +292,12 @@ const [searchMode, setSearchMode] = useState(initialMode);
         </div>
       </div>
 
-      {/* CATEGORY CHIPS */}
-      {searchMode === 'kebutuhan' && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {CATEGORIES.map((cat) => (
-            <button key={cat} onClick={() => setCategory(cat)} className="text-sm font-semibold border px-4 py-2 rounded-full transition shrink-0" style={{ backgroundColor: category === cat ? COLORS.navy : "#fff", color: category === cat ? COLORS.cream : COLORS.navy, borderColor: COLORS.mist }}>
-              {cat}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* ================= RENDER KONTEN BERDASARKAN MODE ================= */}
       
       {/* MODE 1: GRID KEBUTUHAN BARANG */}
       {searchMode === 'kebutuhan' && (
         filteredNeeds.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
             {filteredNeeds.map((c) => {
               const pct = Math.round((c.filled / c.total) * 100);
               const remaining = c.total - c.filled;
@@ -286,36 +332,90 @@ const [searchMode, setSearchMode] = useState(initialMode);
               );
             })}
           </div>
-        ) : <EmptyState message={`Tidak ada kebutuhan barang di ${selectedLocation}`} />
+        ) : <EmptyState message={`Tidak ada kebutuhan barang untuk filter saat ini`} />
       )}
 
       {/* MODE 2: GRID PROFIL PANTI */}
       {searchMode === 'panti' && (
         filteredPantis.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
             {filteredPantis.map((p) => (
-              <Link 
-                href={route('donatur.panti.show', p.id)} 
+              <div 
                 key={p.id} 
-                className="rounded-2xl p-5 flex flex-col justify-between hover:shadow-lg transition-all cursor-pointer group" 
+                className="rounded-2xl flex flex-col hover:shadow-lg transition-all group overflow-hidden relative h-full" 
                 style={{ backgroundColor: '#ffffff', border: `1px solid ${COLORS.mist}` }}
               >
-                <div>
-                  <div className="w-12 h-12 rounded-full mb-4 flex items-center justify-center border-2 group-hover:scale-105 transition-transform" style={{ borderColor: COLORS.teal, backgroundColor: COLORS.mist }}>
-                    <Building2 size={20} color={COLORS.navy} />
+                {/* --- Banner Area --- */}
+                <div 
+                  className="h-28 w-full bg-cover bg-center relative"
+                  style={{
+                    backgroundImage: p.banner ? `url(${p.banner})` : 'none',
+                    backgroundColor: p.banner ? 'transparent' : COLORS.teal
+                  }}
+                >
+                  {!p.banner && (
+                    <div 
+                      className="absolute inset-0 opacity-20" 
+                      style={{ 
+                        backgroundImage: 'radial-gradient(#ffffff 1.5px, transparent 1.5px)', 
+                        backgroundSize: '12px 12px' 
+                      }} 
+                    />
+                  )}
+                </div>
+
+                {/* --- Konten Bawah Banner --- */}
+                <div className="p-5 flex flex-col flex-1 relative">
+                  
+                  {/* Foto Profil (Logo) / Inisial 2 Huruf */}
+                  <div className="absolute -top-10 left-5">
+                    {p.logo ? (
+                      <img 
+                        src={p.logo} 
+                        alt={`Logo ${p.nama}`} 
+                        className="w-16 h-16 rounded-full border-4 object-cover group-hover:scale-105 transition-transform bg-white"
+                        style={{ borderColor: '#ffffff' }}
+                      />
+                    ) : (
+                      <div 
+                        className="w-16 h-16 rounded-full border-4 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform tracking-wider"
+                        style={{ 
+                          borderColor: '#ffffff', 
+                          backgroundColor: COLORS.navy,
+                          color: '#ffffff'
+                        }}
+                      >
+                        {getInitials(p.nama)}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-lg font-bold mb-1" style={{ color: COLORS.navy }}>{p.nama}</p>
-                  <p className="text-xs flex items-center gap-1 mb-3" style={{ color: COLORS.navy, opacity: 0.55 }}>
-                    <MapPin size={12} /> {p.lokasi}
-                  </p>
-                  <p className="text-sm line-clamp-3 mb-5" style={{ color: COLORS.navy, opacity: 0.75 }}>
-                    {p.deskripsi || "Yayasan panti asuhan yang berdedikasi untuk membantu anak-anak."}
-                  </p>
+
+                  {/* Spacer */}
+                  <div className="h-3"></div>
+
+                  <div className="flex-1">
+                    <p className="text-lg font-bold mb-1" style={{ color: COLORS.navy }}>{p.nama}</p>
+                    <p className="text-xs flex items-center gap-1 mb-3" style={{ color: COLORS.navy, opacity: 0.55 }}>
+                      <MapPin size={12} /> {p.lokasi}
+                    </p>
+                    <p className="text-sm line-clamp-2 mb-5" style={{ color: COLORS.navy, opacity: 0.75 }}>
+                      {p.deskripsi || "Yayasan panti asuhan yang berdedikasi untuk membantu anak-anak."}
+                    </p>
+                  </div>
+                  
+                  {/* Tombol Lihat Profil */}
+                  <div className="mt-auto">
+                    <Link 
+                      href={route('donatur.panti.show', p.id)}
+                      className="block text-sm text-center text-white font-semibold w-full py-2.5 rounded-full transition shadow-sm hover:brightness-110" 
+                      style={{backgroundColor: COLORS.navy}}
+                    >
+                      Lihat Profil
+                    </Link>
+                  </div>
+
                 </div>
-                <div className="text-sm text-center text-white font-semibold w-full py-2.5 rounded-full transition shadow-sm" style={{backgroundColor: COLORS.navy}}>
-                  Lihat Profil
-                </div>
-              </Link>
+              </div>
             ))}
           </div>
         ) : <EmptyState message={`Tidak ada panti asuhan di ${selectedLocation}`} />
@@ -603,7 +703,7 @@ const [searchMode, setSearchMode] = useState(initialMode);
 }
 
 const EmptyState = ({ message }: { message: string }) => (
-  <div className="rounded-2xl p-14 flex flex-col items-center justify-center text-center" style={{ backgroundColor: '#ffffff', border: `1px dashed ${COLORS.mist}` }}>
+  <div className="rounded-2xl p-14 flex flex-col items-center justify-center text-center mt-4" style={{ backgroundColor: '#ffffff', border: `1px dashed ${COLORS.mist}` }}>
     <MapPinOff size={26} color={COLORS.navy} style={{ opacity: 0.3 }} className="mb-3" />
     <p className="text-sm font-semibold" style={{ color: COLORS.navy }}>{message}</p>
   </div>

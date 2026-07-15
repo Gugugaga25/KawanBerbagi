@@ -5,7 +5,8 @@ import {
   Calendar, FileText, CheckCircle2, MessageCircle, 
   Repeat2, Heart, Share, BarChart3, Users2, ExternalLink,
   Clock, CalendarDays, ChevronRight, Phone, Mail, Map, Briefcase, User, Send,
-  X
+  X,
+  Flag
 } from 'lucide-react';
 
 const COLORS = {
@@ -220,7 +221,14 @@ export default function ProfilPantiDetail({
     }
   };
 
-  const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'Y';
+  const getInitials = (name: string) => {
+    if (!name) return 'YA';
+    const words = name.trim().split(/\s+/);
+    if (words.length >= 2) {
+      return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   const nominalDonasi = parseInt(formUang.data.nominal_donasi) || 0;
   const totalPembayaran = nominalDonasi + formUang.data.donasi_developer;
@@ -228,12 +236,9 @@ export default function ProfilPantiDetail({
   const profileTabs = [
     { id: 'postingan', label: 'Postingan' },
     { id: 'kebutuhan', label: 'Kebutuhan Barang' },
-    { id: 'donasi', label: 'Donasi Uang' },
-    { id: 'volunteer', label: 'Volunteer' },
-    { id: 'pengurus', label: 'Pengurus' },
-    { id: 'kontak', label: 'Kontak' },
+    // { id: 'volunteer', label: 'Volunteer' },
+    { id: 'kontak', label: 'Kontak & Pengurus' },
     { id: 'audit', label: 'Audit Keuangan' },
-    { id: 'dokumen', label: 'Dokumen Resmi' },
   ];
 
   // --- DATA DUMMY (Diubah jadi State agar bisa di-like) ---
@@ -304,27 +309,39 @@ export default function ProfilPantiDetail({
 
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-white">
 
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
             <Head title={`Profil Panti - ${panti?.nama_yayasan || panti?.nama}`} />
 
-            <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-20 flex items-center gap-4 shadow-md">
-                <Link 
-                    href={route('profil-panti')} 
-                    className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
+                <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-16 flex items-center gap-4 shadow-md">
+                    <Link 
+                        href={route('profil-panti')}  
+                        className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
+                        >
+                        <ArrowLeft size={18} className="text-white" />
+                    </Link>
+                    <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
+                        <h2 className="font-bold text-[16px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
+                        <p className="text-[12px] text-[#C0D5D6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
+                    </div>
+                    <button 
+                        onClick={() => alert('Laporkan Akun Panti Ini')} 
+                        className="p-1.5 ml-1 rounded-full transition-colors border border-white"
                     >
-                    <ArrowLeft size={18} className="text-white" />
-                </Link>
-              <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
-                 <h2 className="font-bold text-[18px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
-                 <p className="text-[14px] text-[#C0D5D6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
-              </div>
-            </div>
+                        <Flag size={16} />
+                    </button>
+                </div>
 
             <div className="max-w-7xl mx-auto bg-white min-h-screen shadow-sm">
               
               <div className="relative">
-                <div className="h-40 md:h-64 w-full bg-gray-200">
-                  <img src={panti?.foto_banner || panti?.cover || "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1600&auto=format&fit=crop"} alt="Cover" className="w-full h-full object-cover" />
+                {/* Cover Image */}
+                <div className="h-40 md:h-60 w-full relative overflow-hidden" style={{backgroundColor: COLORS.teal}}>
+                  
+                  {/* Gambar hanya akan dirender JIKA panti memiliki foto_banner atau cover dari database */}
+                  {(panti?.foto_banner || panti?.cover) && (
+                    <img src={panti.foto_banner || panti.cover} alt="Cover" className="w-full h-full object-cover" />
+                  )}
+                  
                 </div>
                 
                 <div className="px-5 md:px-8 pb-4">
@@ -335,6 +352,16 @@ export default function ProfilPantiDetail({
                       ) : (
                         <span>{getInitials(panti?.nama_yayasan || panti?.nama || 'Yayasan')}</span>
                       )}
+                    </div>
+                    {/* BUTTON DONASI UANG */}
+                    <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
+                      <Link 
+                        href={`/donasi/${panti?.id_shelter || panti?.id || 1}`} 
+                        className="px-5 py-2 md:px-6 md:py-2.5 hover:bg-[#2b5660] text-white rounded-full font-bold shadow-md transition-colors flex items-center gap-2 text-sm md:text-base"
+                        style={{backgroundColor: COLORS.navy}}
+                      >
+                        <Wallet size={18} /> Donasi Tunai
+                      </Link>
                     </div>
                   </div>
 
@@ -350,6 +377,28 @@ export default function ProfilPantiDetail({
                     {panti?.deskripsi || `Panti Asuhan berdedikasi memberikan tempat tinggal dan pendidikan bagi anak-anak yatim piatu. Bersama membangun generasi mandiri dan berakhlak mulia untuk menyongsong masa depan yang cerah.`}
                   </div>
 
+                  {/* DOKUMEN RESMI (BADGES) */}
+                  <div className="mt-3 flex flex-wrap gap-3 mb-2">
+                     <button 
+                       onClick={() => alert(`Membuka PDF Akta Pendirian: ${panti?.no_akta || 'No. 12 / 04 Agustus 2010'}`)} 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
+                     >
+                        <FileText size={14} /> Akta Pendirian
+                     </button>
+                     <button 
+                       onClick={() => alert(`Membuka PDF SK Kemenkumham: ${panti?.no_sk || 'AHU-12345.AH.01.04.Tahun 2010'}`)} 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
+                     >
+                        <FileText size={14} /> SK Kemenkumham
+                     </button>
+                     <button 
+                       onClick={() => alert('Membuka PDF Tanda Daftar (TDY)')} 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
+                     >
+                        <FileText size={14} /> Tanda Daftar Yayasan
+                     </button>
+                  </div>
+
                   <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-medium text-gray-500">
                     <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#407E8C]" /> {panti?.alamat || panti?.lokasi || 'Kota Bandung, Jawa Barat'}</span>
                     <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#407E8C]" /> <a href="#" className="text-blue-500 hover:underline">{panti?.website || 'linktr.ee/panti'}</a></span>
@@ -358,8 +407,8 @@ export default function ProfilPantiDetail({
                 </div>
               </div>
 
-              {/* TAB NAVIGATION - DIUBAH MENJADI JUSTIFY-CENTER AGAR IMBANG TENGAH */}
-              <div className="flex overflow-x-auto no-scrollbar border-y border-gray-200 sticky gap-10 top-14 z-20 bg-white/95 backdrop-blur-md px-2 justify-start sm:justify-center">
+              {/* TAB NAVIGATION */}
+              <div className="flex overflow-x-auto no-scrollbar border-y border-gray-200 gap-36 sticky top-16 z-30 bg-white/95 backdrop-blur-md px-2 justify-start sm:justify-center">
                 {profileTabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -393,18 +442,27 @@ export default function ProfilPantiDetail({
                                 <span className="text-gray-500 text-xs md:text-sm truncate">@panti_resmi · {post.time}</span>
                               </div>
                               
-                              {/* TOMBOL LIKE BARU (DI KANAN ATAS DAN INTERAKTIF) */}
-                              <button 
-                                onClick={() => toggleLike(post.id)}
-                                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-sm ${
-                                  post.isLiked 
-                                    ? 'bg-red-50 border-red-200 text-red-500' 
-                                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-red-500 hover:border-red-200'
-                                }`}
-                              >
-                                <Heart size={14} className={post.isLiked ? 'fill-red-500' : ''} />
-                                {post.likes}
-                              </button>
+                              {/* TOMBOL LIKE DAN REPORT POSTINGAN */}
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button 
+                                  onClick={() => toggleLike(post.id)}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-sm ${
+                                    post.isLiked 
+                                      ? 'bg-red-50 border-red-200 text-red-500' 
+                                      : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-red-500 hover:border-red-200'
+                                  }`}
+                                >
+                                  <Heart size={14} className={post.isLiked ? 'fill-red-500' : ''} />
+                                  {post.likes}
+                                </button>
+                                <button 
+                                  onClick={() => alert(`Laporkan Postingan #${post.id}`)}
+                                  className="p-1.5 ml-1 text-red-500 bg-red-50 rounded-full transition-colors border border-red-200"
+                                  title="Laporkan Postingan"
+                                >
+                                  <Flag size={14} />
+                                </button>
+                              </div>
                             </div>
                             <p className="text-sm mt-1 text-gray-800 leading-relaxed whitespace-pre-line">
                               {post.content}
@@ -475,117 +533,15 @@ export default function ProfilPantiDetail({
                   </div>
                 )}
 
-                {/* TAB 3: DONASI UANG */}
-                {activeProfileTab === 'donasi' && (
-                  <div className="p-5 md:p-8 max-w-6xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                      {/* Form Kiri */}
-                      <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                        <h2 className="text-[16px] font-black text-[#124354] mb-5 flex items-center gap-2">
-                          <Wallet size={18} className="text-[#A58D66]" /> Form Donasi Tunai
-                        </h2>
-                        <form onSubmit={submitDonasiUang} className="space-y-4">
-                          <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nominal (Rp)</label>
-                            <div className="relative">
-                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[14px] font-bold text-gray-400">Rp</span>
-                              <input type="number" min="5000" required value={formUang.data.nominal_donasi} onChange={e => formUang.setData('nominal_donasi', e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] font-bold text-[14px] text-[#124354]" placeholder="100.000" />
-                            </div>
-                          </div>
+                {/* TAB 3: VOLUNTEER (Dikomenn/Disembunyikan Sementara) */}
+                {/* {activeProfileTab === 'volunteer' && (
+                  ...
+                )} */}
 
-                          <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Pesan / Doa (Opsional)</label>
-                            <textarea value={formUang.data.pesan} onChange={e => formUang.setData('pesan', e.target.value)} className="w-full p-3 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] h-20 resize-none text-sm" placeholder="Semoga berkah untuk adik-adip panti..." />
-                          </div>
-
-                          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-blue-100 bg-blue-50/50 cursor-pointer hover:bg-blue-50 transition-colors mt-2">
-                              <input 
-                                  type="checkbox" 
-                                  checked={formUang.data.donasi_developer > 0}
-                                  onChange={(e) => formUang.setData('donasi_developer', e.target.checked ? 2000 : 0)}
-                                  className="mt-0.5 shrink-0 w-4 h-4 text-[#083A4F] bg-white border-gray-300 rounded focus:ring-[#083A4F] accent-[#083A4F] cursor-pointer"
-                              />
-                              <div>
-                                  <p className="text-[13px] font-bold text-[#124354] leading-tight">Dukung Platform Kami</p>
-                                  <p className="text-[12px] text-gray-500 mt-1">Tambahkan Rp 2.000 untuk mendukung tim developer KawanBerbagi agar terus berkembang.</p>
-                              </div>
-                          </label>
-
-                          <div className="pt-4 mt-2 border-t border-gray-100 space-y-2">
-                            <div className="flex justify-between text-[13px] text-gray-600 font-medium">
-                              <span>Nominal Donasi</span><span>Rp {nominalDonasi.toLocaleString('id-ID')}</span>
-                            </div>
-                            {formUang.data.donasi_developer > 0 && (
-                              <div className="flex justify-between text-[13px] text-gray-600 font-medium">
-                                <span>Dukungan Developer</span><span>Rp {formUang.data.donasi_developer.toLocaleString('id-ID')}</span>
-                              </div>
-                            )}
-                            <div className="flex justify-between text-base font-black text-[#124354] pt-2">
-                              <span>Total Pembayaran</span><span>Rp {totalPembayaran.toLocaleString('id-ID')}</span>
-                            </div>
-                          </div>
-
-                          <button type="submit" disabled={formUang.processing} className="w-full py-3.5 mt-2 bg-[#083A4F] text-white font-bold text-sm uppercase tracking-wide rounded-xl hover:bg-[#124354] transition-all shadow-sm disabled:opacity-50">
-                            {formUang.processing ? 'Memproses...' : 'Lanjutkan ke Pembayaran'}
-                          </button>
-                          
-                          <div className="flex items-center justify-center gap-2 mt-4 opacity-50">
-                             <span className="text-[10px] font-bold uppercase text-gray-500">Mendukung:</span>
-                             <span className="text-xs font-black">QRIS</span>
-                             <span className="text-[10px]">&bull;</span>
-                             <span className="text-xs font-black">Transfer Bank</span>
-                             <span className="text-[10px]">&bull;</span>
-                             <span className="text-xs font-black">E-Wallet</span>
-                          </div>
-                        </form>
-                      </div>
-
-                      {/* Info Kanan */}
-                      <div className="lg:col-span-2 space-y-5">
-                        <div className="bg-[#083A4F] rounded-2xl p-6 text-white shadow-sm relative overflow-hidden">
-                          <div className="absolute -right-6 -bottom-6 opacity-10"><Heart size={100} /></div>
-                          <div className="relative z-10">
-                            <h3 className="font-bold text-[15px] mb-3 flex items-center gap-2"><CheckCircle2 size={16} className="text-[#A58D66]" /> Dampak Donasi Anda</h3>
-                            <ul className="space-y-3 text-xs text-blue-50 leading-relaxed">
-                              <li className="flex items-start gap-2"><div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#A58D66] shrink-0" /> Pemenuhan gizi, vitamin, & sembako harian anak asuh</li>
-                              <li className="flex items-start gap-2"><div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#A58D66] shrink-0" /> Biaya SPP, buku, & perlengkapan sekolah</li>
-                              <li className="flex items-start gap-2"><div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#A58D66] shrink-0" /> Perawatan medis darurat & obat-obatan</li>
-                              <li className="flex items-start gap-2"><div className="mt-1 w-1.5 h-1.5 rounded-full bg-[#A58D66] shrink-0" /> Operasional yayasan (listrik, air, kebersihan)</li>
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 shadow-sm">
-                          <h3 className="font-bold text-[16px] text-[#124354] mb-4 flex items-center gap-1.5">
-                            <Heart size={16} className="text-red-500 fill-red-100" /> Donatur Terbaru
-                          </h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                              <div>
-                                 <p className="font-bold text-[13px] text-[#124354]">Hamba Allah</p>
-                                 <p className="text-[12px] text-gray-500 italic mt-0.5">"Semoga berkah untuk semua"</p>
-                              </div>
-                              <span className="text-[13px] font-black text-[#407E8C]">Rp 500.000</span>
-                            </div>
-                            <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                              <div><p className="font-bold text-[13px] text-[#124354]">Budi Santoso</p></div>
-                              <span className="text-[13px] font-black text-[#407E8C]">Rp 150.000</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <div><p className="font-bold text-[13px] text-[#124354]">Anonim</p></div>
-                              <span className="text-[13px] font-black text-[#407E8C]">Rp 300.000</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 6: KONTAK */}
+                {/* TAB 4: KONTAK & PENGURUS (Digabung) */}
                 {activeProfileTab === 'kontak' && (
-                  <div className="p-5 md:p-8 max-w-5xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="p-5 md:p-8 max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       {/* Info Kontak & Map */}
                       <div className="space-y-6">
                          <h3 className="text-lg font-black text-[#124354] flex items-center gap-2">
@@ -624,32 +580,28 @@ export default function ProfilPantiDetail({
                          </div>
                       </div>
 
-                      {/* Form Pesan Cepat */}
-                      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-                         <h3 className="text-lg font-black text-[#124354] mb-4 flex items-center gap-2">
-                           <Send size={18} className="text-[#A58D66]" /> Kirim Pesan Cepat
-                         </h3>
-                         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Pesan terkirim ke panti!'); }}>
-                            <div>
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">Nama Anda</label>
-                              <input type="text" required className="w-full p-2.5 text-sm rounded-xl border border-gray-300 outline-none focus:border-[#124354]" placeholder="Nama Lengkap" />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">No. WhatsApp</label>
-                              <input type="text" required className="w-full p-2.5 text-sm rounded-xl border border-gray-300 outline-none focus:border-[#124354]" placeholder="08..." />
-                            </div>
-                            <div>
-                              <label className="block text-xs font-bold text-gray-500 mb-1.5">Isi Pesan</label>
-                              <textarea required className="w-full p-3 rounded-xl border border-gray-300 outline-none focus:border-[#124354] h-24 resize-none text-sm" placeholder="Tuliskan pertanyaan atau pesan Anda untuk pengurus panti..." />
-                            </div>
-                            <button type="submit" className="w-full py-3 bg-[#124354] text-white font-bold text-sm rounded-xl hover:bg-[#083A4F] transition-all">Kirim Pesan</button>
-                         </form>
-                      </div>
+                      {/* Info Pengurus Panti (Menggantikan Form Kirim Pesan) */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 h-fit self-start">
+                        <h3 className="text-lg font-black text-[#124354] mb-4 flex items-center gap-2">
+                            <Briefcase size={18} className="text-[#A58D66]" /> Susunan Pengurus
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                            {dummyPengurus.map((p) => (
+                                <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#407E8C] transition-colors">
+                                <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-gray-100">
+                                    <img src={p.image} alt={p.nama} className="w-full h-full object-cover" />
+                                </div>
+                                <h4 className="font-bold text-[12px] md:text-xs text-[#124354] mb-0.5">{p.nama}</h4>
+                                <p className="text-[10px] text-gray-500 font-medium">{p.jabatan}</p>
+                                </div>
+                            ))}
+                        </div>
+                        </div>
                     </div>
                   </div>
                 )}
 
-                {/* TAB 7: AUDIT KEUANGAN */}
+                {/* TAB 5: AUDIT KEUANGAN */}
                 {activeProfileTab === 'audit' && (
                   <div className="p-5 md:p-8 max-w-4xl mx-auto">
                     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -662,61 +614,20 @@ export default function ProfilPantiDetail({
                           <p className="text-xs text-gray-500 mt-0.5">Dipublikasi otomatis pada 1 Okt 2026</p>
                         </div>
                       </div>
-                      <button className="w-full md:w-auto text-xs font-bold text-[#124354] border border-gray-200 bg-gray-50 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5">
-                        Lihat Rincian Data <ChevronRight size={14} />
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
+                        <button className="w-full sm:w-auto text-xs font-bold text-[#124354] border border-gray-200 bg-gray-50 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5">
+                          Lihat Rincian Data <ChevronRight size={14} />
+                        </button>
+                        {/* TOMBOL REPORT LAPORAN KEUANGAN */}
+                        <button 
+                          onClick={() => alert('Laporkan Laporan Keuangan ini jika Anda menemukan kejanggalan.')}
+                          className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <Flag size={14} /> Laporkan
+                        </button>
+                      </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-4 flex items-center gap-1.5"><CheckCircle2 size={14} /> Sistem Transparansi: Audit diperbarui secara otomatis dari sistem keuangan KawanBerbagi setiap pergantian kuartal.</p>
-                  </div>
-                )}
-
-                {/* TAB 8: DOKUMEN RESMI */}
-                {activeProfileTab === 'dokumen' && (
-                  <div className="p-5 md:p-8 max-w-5xl mx-auto">
-                    <h3 className="font-black text-lg mb-5 text-[#124354] flex items-center gap-2">
-                      <FileText size={20} className="text-[#407E8C]" /> Arsip Legalitas Yayasan
-                    </h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col h-full hover:border-[#407E8C] transition-colors group">
-                        <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 text-gray-400 group-hover:text-[#407E8C] rounded-xl flex items-center justify-center mb-4 transition-colors">
-                          <FileText size={24} />
-                        </div>
-                        <h4 className="font-bold text-[15px] text-[#124354] mb-1">Akta Pendirian</h4>
-                        <p className="text-xs text-gray-500 font-mono mb-5 bg-gray-50 p-2.5 rounded border border-gray-100 break-all">
-                          {panti?.no_akta || 'No. 12 / 04 Agustus 2010'}
-                        </p>
-                        <button className="w-full mt-auto py-2.5 bg-white hover:bg-[#083A4F] hover:text-white text-[#124354] border border-gray-200 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1.5">
-                          <ExternalLink size={14} /> Buka PDF Dokumen
-                        </button>
-                      </div>
-
-                      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col h-full hover:border-[#407E8C] transition-colors group">
-                        <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 text-gray-400 group-hover:text-[#407E8C] rounded-xl flex items-center justify-center mb-4 transition-colors">
-                          <FileText size={24} />
-                        </div>
-                        <h4 className="font-bold text-[15px] text-[#124354] mb-1">SK Kemenkumham</h4>
-                        <p className="text-xs text-gray-500 font-mono mb-5 bg-gray-50 p-2.5 rounded border border-gray-100 break-all">
-                          {panti?.no_sk || 'AHU-12345.AH.01.04.Tahun 2010'}
-                        </p>
-                        <button className="w-full mt-auto py-2.5 bg-white hover:bg-[#083A4F] hover:text-white text-[#124354] border border-gray-200 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1.5">
-                          <ExternalLink size={14} /> Buka PDF Dokumen
-                        </button>
-                      </div>
-
-                      <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col h-full hover:border-[#407E8C] transition-colors group">
-                        <div className="w-12 h-12 bg-gray-50 group-hover:bg-blue-50 text-gray-400 group-hover:text-[#407E8C] rounded-xl flex items-center justify-center mb-4 transition-colors">
-                          <FileText size={24} />
-                        </div>
-                        <h4 className="font-bold text-[15px] text-[#124354] mb-1">Tanda Daftar (TDY)</h4>
-                        <p className="text-xs text-gray-500 font-mono mb-5 bg-gray-50 p-2.5 rounded border border-gray-100 break-all">
-                          466.4/123/Dinsos/2010
-                        </p>
-                        <button className="w-full mt-auto py-2.5 bg-white hover:bg-[#083A4F] hover:text-white text-[#124354] border border-gray-200 font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-1.5">
-                          <ExternalLink size={14} /> Buka PDF Dokumen
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 )}
 
@@ -752,40 +663,6 @@ export default function ProfilPantiDetail({
                     <div className="pt-3 flex gap-3">
                       <button type="button" onClick={() => setIsNeedModalOpen(false)} className="px-5 py-3 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors">Batal</button>
                       <button type="submit" disabled={formBarang.processing} className="flex-1 py-3 bg-[#083A4F] text-white text-sm font-bold rounded-xl hover:bg-[#124354] transition-colors shadow-sm">Booking Slot Sekarang</button>
-                    </div>
-                </form>
-              </div>
-          </div>
-        )}
-
-        {/* ================= MODAL PENDAFTARAN VOLUNTEER ================= */}
-        {isVolunteerModalOpen && selectedVolunteer && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-opacity">
-              <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-black text-[#124354] flex items-center gap-2"><User size={20} className="text-[#A58D66]" /> Daftar Relawan</h3>
-                    <button onClick={() => setIsVolunteerModalOpen(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-full">✕</button>
-                </div>
-                <div className="mb-5 pb-5 border-b border-gray-100">
-                   <p className="text-sm font-black text-[#124354] mb-1">{selectedVolunteer.title}</p>
-                   <p className="text-xs text-gray-500 flex items-center gap-1.5"><CalendarDays size={14} className="text-[#407E8C]" /> {selectedVolunteer.date} &bull; <Clock size={14} className="text-[#407E8C]" /> {selectedVolunteer.time}</p>
-                </div>
-                <form onSubmit={submitVolunteer} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1.5">Nama Lengkap</label>
-                      <input type="text" required value={formVolunteer.data.nama} onChange={e => formVolunteer.setData('nama', e.target.value)} className="w-full p-2.5 text-sm rounded-xl border border-gray-300 outline-none focus:border-[#124354]" placeholder="Masukkan nama..." />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1.5">Nomor WhatsApp Aktif</label>
-                      <input type="text" required value={formVolunteer.data.telepon} onChange={e => formVolunteer.setData('telepon', e.target.value)} className="w-full p-2.5 text-sm rounded-xl border border-gray-300 outline-none focus:border-[#124354]" placeholder="08..." />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1.5">Motivasi Bergabung</label>
-                      <textarea required value={formVolunteer.data.motivasi} onChange={e => formVolunteer.setData('motivasi', e.target.value)} className="w-full p-3 rounded-xl border border-gray-300 outline-none focus:border-[#124354] h-20 resize-none text-sm" placeholder="Mengapa Anda tertarik mengikuti kegiatan ini?" />
-                    </div>
-                    <div className="pt-2 flex gap-3">
-                      <button type="button" onClick={() => setIsVolunteerModalOpen(false)} className="px-5 py-3 bg-white border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50">Batal</button>
-                      <button type="submit" disabled={formVolunteer.processing} className="flex-1 py-3 bg-[#407E8C] text-white text-sm font-bold rounded-xl hover:bg-[#2b5660] shadow-sm">Kirim Pendaftaran</button>
                     </div>
                 </form>
               </div>

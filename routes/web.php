@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\DonasiController;
 
 // ================= HALAMAN UTAMA =================
 Route::get('/', function () {
@@ -47,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
 
     // ================= ROUTE DASHBOARD ADMIN =================
     Route::get('/admin/dashboard', function () {
@@ -120,6 +122,7 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('admin.dashboard');
 
+
     // ================= ROUTE DASHBOARD PANTI =================
     Route::get('/panti/dashboard', function () {
         \App\Models\Donation::cancelExpiredDonations();
@@ -171,6 +174,7 @@ Route::middleware('auth')->group(function () {
             'donations' => $donations
         ]);
     })->name('panti.dashboard');
+
 
     // ================= ROUTE DASHBOARD DONATUR =================
     Route::get('/donatur/dashboard', function () {
@@ -294,6 +298,7 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('donatur.dashboard');
 
+
     // ================= ACTIONS & AKSI MANAJEMEN PANTI =================
     Route::post('/panti/kebutuhan', [App\Http\Controllers\Panti\KebutuhanController::class, 'store'])->name('panti.kebutuhan.store');
     Route::patch('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'update'])->name('panti.kebutuhan.update');
@@ -304,10 +309,16 @@ Route::middleware('auth')->group(function () {
 
 
     // ================= ACTIONS & AKSI MANAJEMEN DONATUR =================
-    // Halaman Cari Panti & Kebutuhan Logistik (Sisi Donatur)
+    
+    // Pencarian Panti & Detail Panti
     Route::get('/donatur/cari-panti', [App\Http\Controllers\Donatur\SearchController::class, 'index'])->name('donatur.cari_panti');
     Route::get('/donatur/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'show'])->name('donatur.panti.show');
     
+    // Donasi Uang (Sekarang dipindah ke sini dengan URL yang tidak bentrok)
+    Route::get('/donatur/donasi-uang/{id}', [DonasiController::class, 'create'])->name('donasi.create');
+    Route::post('/donatur/donasi-uang', [DonasiController::class, 'store'])->name('donasi.store');
+    
+    // Donasi Barang / Kebutuhan
     Route::get('/kebutuhan/{id}/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'checkout'])->name('donatur.donasi.checkout');
     Route::get('/donasi/{id}', [App\Http\Controllers\Donatur\DonasiController::class, 'show'])->name('donatur.donasi.show');
     Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');

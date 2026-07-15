@@ -113,11 +113,15 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
           <PantiHeader activeTab={activeTab} />
         </div>
 
-        {/* Konten */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
+        {/* ================= AREA KONTEN YANG DIPERBARUI ================= */}
+        {/* Jika tab aktif adalah profil, hilangkan padding (p-0). Jika bukan, pakai padding bawaan */}
+        <div className={`flex-1 overflow-y-auto ${activeTab === 'profil' ? 'p-0' : 'p-4 md:p-8'}`}>
+          
+          {/* Jika tab aktif adalah profil, gunakan w-full agar melebar penuh. Jika bukan, batasi lebar maksimalnya */}
+          <div className={`${activeTab === 'profil' ? 'w-full' : 'max-w-7xl mx-auto space-y-6'}`}>
             {renderContent()}
           </div>
+
         </div>
       </main>
     </div>
