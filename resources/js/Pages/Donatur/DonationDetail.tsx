@@ -28,6 +28,41 @@ const COLORS = {
   cream: "#E5E1DD",
 };
 
+function CountdownTimer({ createdAt }: { createdAt: string }) {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  React.useEffect(() => {
+    const calculateTimeLeft = () => {
+      const created = new Date(createdAt).getTime();
+      const limit = created + 24 * 60 * 60 * 1000;
+      const difference = limit - Date.now();
+
+      if (difference <= 0) {
+        return 'Waktu Habis';
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      return `${hours}j ${minutes}m ${seconds}d lagi`;
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  return (
+    <span className="font-bold text-red-500 text-xs px-2.5 py-1 rounded bg-red-50 border border-red-100 flex items-center gap-1 shrink-0 self-start sm:self-auto">
+      {timeLeft}
+    </span>
+  );
+}
+
 interface DonationDetailProps {
   donation: {
     id: string;
@@ -42,6 +77,7 @@ interface DonationDetailProps {
     tanggal: string;
     bukti_penerimaan: string | null;
     ucapan_terimakasih: string;
+    created_at?: string | null;
     panti: {
       nama: string;
       penanggung_jawab: string;
@@ -68,13 +104,25 @@ export default function DonationDetail({
 
   // Status index mapping
   let currentStageIndex = 0;
-  if (donation.status === 'Dikirim') currentStageIndex = 1;
+  if (donation.status === 'Dikirim' || donation.status === 'Akan Dijemput') currentStageIndex = 1;
   else if (donation.status === 'Diterima') currentStageIndex = 2;
 
   const stages = [
-    { title: 'Diproses', desc: 'Donasi sedang dipersiapkan oleh Donatur', icon: Clock },
-    { title: 'Dikirim', desc: donation.kurir !== '-' ? `${donation.kurir} (${donation.resi})` : 'Dalam perjalanan kurir', icon: Truck },
-    { title: 'Diterima', desc: 'Barang donasi telah diterima dan diverifikasi oleh Panti', icon: CheckCircle2 },
+    { 
+      title: donation.status === 'Menunggu Konfirmasi Jemput' ? 'Menunggu Konfirmasi' : 'Diproses', 
+      desc: donation.status === 'Menunggu Konfirmasi Jemput' ? 'Menunggu pihak panti menyetujui penjemputan' : 'Donasi sedang dipersiapkan oleh Donatur', 
+      icon: Clock 
+    },
+    { 
+      title: donation.status === 'Akan Dijemput' ? 'Akan Dijemput' : 'Dikirim', 
+      desc: donation.status === 'Akan Dijemput' ? 'Panti telah mengonfirmasi akan menjemput barang' : (donation.kurir !== '-' ? `${donation.kurir} (${donation.resi})` : 'Dalam perjalanan kurir'), 
+      icon: Truck 
+    },
+    { 
+      title: 'Diterima', 
+      desc: 'Barang donasi telah diterima dan diverifikasi oleh Panti', 
+      icon: CheckCircle2 
+    },
   ];
 
   const handleCopyResi = () => {
@@ -162,6 +210,49 @@ export default function DonationDetail({
               </div>
             </div>
 
+            {/* BANNER STATUS KHUSUS */}
+            {donation.status === 'Diproses' && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-[#124354] flex items-center gap-2">
+                    <Clock size={16} className="text-[#A58D66]" />
+                    Lengkapi Informasi Pengiriman
+                  </h4>
+                  <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                    Kuota donasi Anda sudah dikunci. Silakan masukkan nomor resi kurir (atau konfirmasi jalan untuk Antar Mandiri) sebelum waktu habis agar slot tidak dibatalkan otomatis.
+                  </p>
+                </div>
+                {donation.created_at && <CountdownTimer createdAt={donation.created_at} />}
+              </div>
+            )}
+
+            {donation.status === 'Menunggu Konfirmasi Jemput' && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-[#124354] flex items-center gap-2">
+                    <Clock size={16} className="text-[#A58D66]" />
+                    Menunggu Konfirmasi Panti
+                  </h4>
+                  <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                    Pihak panti sedang dihubungi untuk mengonfirmasi penjemputan barang ini. Batas waktu bagi panti untuk mengonfirmasi:
+                  </p>
+                </div>
+                {donation.created_at && <CountdownTimer createdAt={donation.created_at} />}
+              </div>
+            )}
+
+            {donation.status === 'Batal' && (
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-5 flex items-start gap-3 shadow-sm">
+                <X size={20} className="text-red-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-red-700">Donasi Dibatalkan Otomatis</h4>
+                  <p className="text-xs text-red-600 font-semibold leading-relaxed">
+                    Donasi ini telah dibatalkan otomatis oleh sistem karena batas waktu konfirmasi / kelengkapan data pengiriman 24 jam telah habis. Kuota barang telah dilepas kembali untuk donatur lain.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* ================= SUSUNAN LAYOUT GRID ================= */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               
@@ -224,87 +315,97 @@ export default function DonationDetail({
                     Status Pengiriman & Penerimaan
                   </h3>
 
-                  <div className="space-y-8">
-                    {stages.map((stage, idx) => {
-                      const Icon = stage.icon;
-                      const isCompleted = idx <= currentStageIndex;
-                      const isCurrent = idx === currentStageIndex;
-                      const isLast = idx === stages.length - 1;
+                  {donation.status === 'Batal' ? (
+                    <div className="rounded-xl p-5 border border-dashed border-red-200 bg-red-50/50 text-center flex flex-col items-center justify-center">
+                      <X size={28} className="text-red-500 mb-2" />
+                      <p className="text-sm font-extrabold text-red-700">Donasi Dibatalkan</p>
+                      <p className="text-xs text-red-600 mt-1 font-semibold leading-normal">
+                        Masa tenggang 24 jam terlampaui tanpa kelengkapan data pengiriman / konfirmasi panti.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-8">
+                      {stages.map((stage, idx) => {
+                        const Icon = stage.icon;
+                        const isCompleted = idx <= currentStageIndex;
+                        const isCurrent = idx === currentStageIndex;
+                        const isLast = idx === stages.length - 1;
 
-                      return (
-                        <div key={stage.title} className="relative pl-12">
-                          {!isLast && (
-                            <div 
-                              className="absolute left-4 top-8 bottom-0 w-0.5 -ml-[1px]" 
-                              style={{ backgroundColor: isCompleted ? COLORS.teal : COLORS.mist }}
-                            />
-                          )}
-
-                          <span 
-                            className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${
-                              isCompleted 
-                                ? 'text-white border-transparent' 
-                                : 'bg-white border-gray-200 text-gray-400'
-                            }`}
-                            style={{
-                              backgroundColor: isCompleted ? COLORS.teal : undefined,
-                              borderColor: isCompleted ? COLORS.teal : undefined
-                            }}
-                          >
-                            {isCompleted && idx < currentStageIndex ? (
-                              <Check size={14} strokeWidth={3} />
-                            ) : (
-                              <Icon size={14} />
+                        return (
+                          <div key={stage.title} className="relative pl-12">
+                            {!isLast && (
+                              <div 
+                                className="absolute left-4 top-8 bottom-0 w-0.5 -ml-[1px]" 
+                                style={{ backgroundColor: isCompleted ? COLORS.teal : COLORS.mist }}
+                              />
                             )}
-                          </span>
 
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h4 
-                                className={`text-sm font-extrabold uppercase tracking-wider ${
-                                  isCurrent ? 'text-[#A58D66]' : isCompleted ? 'text-gray-700' : 'text-gray-400'
-                                }`}
-                              >
-                                {stage.title}
-                              </h4>
-                              {isCurrent && (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#A58D66]/10 text-[#A58D66] border border-[#A58D66]/20">
-                                  Status Terkini
-                                </span>
+                            <span 
+                              className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${
+                                isCompleted 
+                                  ? 'text-white border-transparent' 
+                                  : 'bg-white border-gray-200 text-gray-400'
+                              }`}
+                              style={{
+                                backgroundColor: isCompleted ? COLORS.teal : undefined,
+                                borderColor: isCompleted ? COLORS.teal : undefined
+                              }}
+                            >
+                              {isCompleted && idx < currentStageIndex ? (
+                                <Check size={14} strokeWidth={3} />
+                              ) : (
+                                <Icon size={14} />
+                              )}
+                            </span>
+
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 
+                                  className={`text-sm font-extrabold uppercase tracking-wider ${
+                                    isCurrent ? 'text-[#A58D66]' : isCompleted ? 'text-gray-700' : 'text-gray-400'
+                                  }`}
+                                >
+                                  {stage.title}
+                                </h4>
+                                {isCurrent && (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#A58D66]/10 text-[#A58D66] border border-[#A58D66]/20">
+                                    Status Terkini
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs font-semibold leading-relaxed text-gray-500">
+                                {stage.desc}
+                              </p>
+
+                              {stage.title === 'Dikirim' && isCompleted && donation.resi && donation.resi !== '-' && (
+                                <div className="mt-3 inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2 pr-3">
+                                  <span className="text-xs font-mono font-bold text-gray-600">{donation.resi}</span>
+                                  <button
+                                    onClick={handleCopyResi}
+                                    className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
+                                    title="Salin Resi"
+                                    type="button"
+                                  >
+                                    {copied ? (
+                                      <>
+                                        <Check size={12} className="text-emerald-600" />
+                                        <span className="text-[10px] font-bold text-emerald-600">Salin!</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Copy size={12} />
+                                        <span className="text-[10px] font-bold">Salin</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
                               )}
                             </div>
-                            <p className="text-xs font-semibold leading-relaxed text-gray-500">
-                              {stage.desc}
-                            </p>
-
-                            {stage.title === 'Dikirim' && isCompleted && donation.resi && donation.resi !== '-' && (
-                              <div className="mt-3 inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2 pr-3">
-                                <span className="text-xs font-mono font-bold text-gray-600">{donation.resi}</span>
-                                <button
-                                  onClick={handleCopyResi}
-                                  className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
-                                  title="Salin Resi"
-                                  type="button"
-                                >
-                                  {copied ? (
-                                    <>
-                                      <Check size={12} className="text-emerald-600" />
-                                      <span className="text-[10px] font-bold text-emerald-600">Salin!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy size={12} />
-                                      <span className="text-[10px] font-bold">Salin</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
               </div>

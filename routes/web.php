@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
 
     // ================= ROUTE DASHBOARD PANTI =================
     Route::get('/panti/dashboard', function () {
+        \App\Models\Donation::cancelExpiredDonations();
         $panti = \App\Models\Shelter::where('id_user', auth()->id())->with('user')->first();
 
         $needs = [];
@@ -173,6 +174,7 @@ Route::middleware('auth')->group(function () {
 
     // ================= ROUTE DASHBOARD DONATUR =================
     Route::get('/donatur/dashboard', function () {
+        \App\Models\Donation::cancelExpiredDonations();
         $donatur = \App\Models\Donor::where('id_user', auth()->id())->with('user')->first();
 
         $myDonations = [];
@@ -189,6 +191,7 @@ Route::middleware('auth')->group(function () {
                     'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
                     'id_raw' => $d->id_donation,
                     'tanggal' => $d->created_at ? $d->created_at->format('d M Y') : '-',
+                    'created_at' => $d->created_at ? $d->created_at->toIso8601String() : null,
                     'barang' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
                     'panti' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
                     'jumlah' => $d->jumlah_donasi,
@@ -234,15 +237,23 @@ Route::middleware('auth')->group(function () {
                 ->where('terkumpul', '<', \DB::raw('jumlah'))
                 ->get()
                 ->map(function ($need) {
+                    $reserved = \App\Models\Donation::where('id_needs', $need->id_needs)
+                        ->whereIn('status', ['Diproses', 'Menunggu Konfirmasi Jemput', 'Akan Dijemput', 'Dikirim'])
+                        ->sum('jumlah_donasi');
+                    $remaining = max(0, $need->jumlah - ($need->terkumpul + $reserved));
+
                     return [
                         'id' => $need->id_needs,
                         'org' => $need->shelter ? $need->shelter->nama_yayasan : '-',
                         'location' => $need->shelter ? $need->shelter->alamat : '-',
+                        'address' => $need->shelter ? $need->shelter->alamat : '-',
+                        'phone' => $need->shelter ? $need->shelter->no_telepon : '-',
                         'item' => $need->nama_kebutuhan,
                         'category' => $need->kategori ?? 'Lainnya',
                         'unit' => $need->satuan,
                         'filled' => $need->terkumpul,
                         'total' => $need->jumlah,
+                        'remaining' => $remaining,
                         'urgent' => (bool) $need->is_mendesak,
                     ];
                 });
@@ -288,6 +299,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'update'])->name('panti.kebutuhan.update');
     Route::delete('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'destroy'])->name('panti.kebutuhan.destroy');
     Route::post('/panti/donasi/{id}/konfirmasi', [App\Http\Controllers\Panti\DonasiController::class, 'konfirmasi'])->name('panti.donasi.konfirmasi');
+    Route::post('/panti/donasi/{id}/konfirmasi-jemput', [App\Http\Controllers\Panti\DonasiController::class, 'konfirmasiJemput'])->name('panti.donasi.konfirmasi_jemput');
     Route::patch('/panti/profil', [App\Http\Controllers\Panti\ProfilController::class, 'update'])->name('panti.profil.update');
 
 

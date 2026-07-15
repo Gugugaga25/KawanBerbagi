@@ -75,4 +75,43 @@ class DonasiController extends Controller
 
         return redirect()->route('panti.dashboard', ['tab' => 'donasi'])->with('success', 'Donasi berhasil dikonfirmasi dan diterima.');
     }
+
+    /**
+     * Konfirmasi kesediaan penjemputan barang donasi.
+     */
+    public function konfirmasiJemput($id)
+    {
+        // Ambil shelter yang terhubung dengan user yang sedang login
+        $shelter = Shelter::where('id_user', Auth::id())->firstOrFail();
+
+        // Temukan donasi yang termasuk dalam kebutuhan milik panti ini
+        $donation = Donation::where('id_donation', $id)
+            ->whereIn('id_needs', function ($query) use ($shelter) {
+                $query->select('id_needs')->from('needs')->where('id_shelter', $shelter->id_shelter);
+            })
+            ->firstOrFail();
+
+        if ($donation->status !== 'Menunggu Konfirmasi Jemput') {
+            return back()->withErrors(['status' => 'Status donasi tidak sesuai.']);
+        }
+
+        $donation->update([
+            'status' => 'Akan Dijemput',
+        ]);
+
+        // Kirim notifikasi ke donatur
+        $donaturUserId = $donation->donor?->id_user ?? null;
+        if ($donaturUserId) {
+            DonaturNotification::kirim(
+                $donaturUserId,
+                'status_update',
+                'Penjemputan Dikonfirmasi Panti 🚚',
+                'Pihak Panti ' . $shelter->nama_yayasan . ' telah mengonfirmasi akan menjemput donasi Anda. Harap persiapkan barang donasi Anda.',
+                ['id_donation' => $donation->id_donation]
+            );
+        }
+
+        return redirect()->route('panti.dashboard', ['tab' => 'donasi'])->with('success', 'Penjemputan donasi berhasil dikonfirmasi.');
+    }
 }
+

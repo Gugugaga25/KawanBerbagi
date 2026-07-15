@@ -27,7 +27,10 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
     switch (status) {
       case 'Diterima': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
       case 'Dikirim': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'Akan Dijemput': return 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'Menunggu Konfirmasi Jemput': return 'bg-orange-50 text-orange-600 border-orange-100';
       case 'Diproses': return 'bg-gray-100 text-gray-600 border-gray-200';
+      case 'Batal': return 'bg-red-50 text-red-600 border-red-100';
       default: return 'bg-gray-50 text-gray-600 border-gray-200';
     }
   };
@@ -161,7 +164,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {row.status === 'Dikirim' ? (
+                      {(row.status === 'Dikirim' || row.status === 'Menunggu Konfirmasi Jemput' || row.status === 'Akan Dijemput') ? (
                         <button 
                           onClick={() => { reset(); setSelectedTx(row); }}
                           className="relative inline-flex items-center justify-center px-4 py-2 bg-[#407E8C] text-white hover:bg-[#083A4F] rounded-xl text-xs font-bold transition-all shadow-sm"
@@ -251,11 +254,15 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
               {/* Area Bukti Terima & Aksi */}
               <div className="pt-4 border-t border-gray-100">
                 
-                {/* 1. Kondisi Jika Status "Dikirim" (Butuh Konfirmasi) */}
-                {selectedTx.status === 'Dikirim' && (
+                {/* 1. Kondisi Jika Status "Dikirim" atau "Akan Dijemput" (Butuh Konfirmasi Penerimaan) */}
+                {(selectedTx.status === 'Dikirim' || selectedTx.status === 'Akan Dijemput') && (
                   <form onSubmit={handleConfirmSubmit} className="space-y-4">
                     <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 mb-4">
-                      <p className="text-sm text-amber-800 font-medium">Barang sedang dalam pengiriman. Mohon unggah foto barang saat tiba sebagai bukti penerimaan.</p>
+                      <p className="text-xs text-amber-800 font-medium leading-normal">
+                        {selectedTx.status === 'Akan Dijemput' 
+                          ? 'Barang akan dijemput panti. Mohon unggah foto barang setelah tiba di panti sebagai bukti penerimaan.' 
+                          : 'Barang sedang dalam pengiriman. Mohon unggah foto barang saat tiba sebagai bukti penerimaan.'}
+                      </p>
                     </div>
                     
                     {/* Kotak Upload Foto */}
@@ -319,6 +326,37 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                       </button>
                     </div>
                   </form>
+                )}
+
+                {/* 1b. Kondisi Jika Status "Menunggu Konfirmasi Jemput" (Butuh Konfirmasi Jemput) */}
+                {selectedTx.status === 'Menunggu Konfirmasi Jemput' && (
+                  <div className="space-y-4">
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                      <p className="text-xs text-amber-800 font-semibold leading-relaxed">
+                        Donatur meminta barang donasi ini untuk dijemput oleh pihak panti. Silakan konfirmasi penjemputan di bawah ini. Anda memiliki waktu 24 jam sejak donasi dibuat agar tidak batal otomatis.
+                      </p>
+                    </div>
+                    
+                    <div className="flex gap-3 pt-2">
+                      <button type="button" onClick={() => setSelectedTx(null)} className="px-6 py-3 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all">
+                        Kembali
+                      </button>
+                      <button
+                        type="button"
+                        disabled={processing}
+                        onClick={() => {
+                          post(route('panti.donasi.konfirmasi_jemput', selectedTx.id_raw), {
+                            onSuccess: () => {
+                              setSelectedTx(null);
+                            }
+                          });
+                        }}
+                        className="flex-1 py-3 bg-[#083A4F] text-white font-bold rounded-xl hover:bg-[#124354] transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                      >
+                        Konfirmasi Penjemputan
+                      </button>
+                    </div>
+                  </div>
                 )}
 
                 {/* 2. Kondisi Jika Status "Diterima" (Lihat Bukti) */}

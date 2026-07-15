@@ -15,11 +15,16 @@ class PantiController extends Controller
         // 1. Ambil data Panti (sesuaikan nama primary key 'id_shelter' jika di DB Anda berbeda)
         $panti = Shelter::findOrFail($id);
 
-        // 2. Ambil daftar kebutuhan (barang) panti ini yang belum terpenuhi
-        // Asumsi: foreign key di tabel needs adalah 'id_shelter'
         $needs = Need::where('id_shelter', $id)
             ->where('terkumpul', '<', \DB::raw('jumlah'))
-            ->get();
+            ->get()
+            ->map(function ($need) {
+                $reserved = \App\Models\Donation::where('id_needs', $need->id_needs)
+                    ->whereIn('status', ['Diproses', 'Menunggu Konfirmasi Jemput', 'Akan Dijemput', 'Dikirim'])
+                    ->sum('jumlah_donasi');
+                $need->remaining = max(0, $need->jumlah - ($need->terkumpul + $reserved));
+                return $need;
+            });
 
         // 3. Render ke React (Inertia)
         return Inertia::render('Donatur/ProfilPantiDetail', [

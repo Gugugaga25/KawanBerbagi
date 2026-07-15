@@ -127,9 +127,17 @@ function Nav() {
         <div className="hidden md:flex items-center gap-3">
           {auth?.user ? (
             <>
-              <span className="text-sm font-medium mr-2" style={{ color: COLORS.navy }}>
+              <Link
+                href={
+                  auth.user.id_role_user === 'RL01ADM' ? route('admin.dashboard') :
+                  auth.user.id_role_user === 'RL02PAN' ? route('panti.dashboard') :
+                  route('donatur.dashboard')
+                }
+                className="text-sm font-bold mr-2 hover:underline transition-all"
+                style={{ color: COLORS.navy }}
+              >
                 Halo, {auth.user.name}
-              </span>
+              </Link>
               <Link
                 href={route("logout")}
                 method="post"

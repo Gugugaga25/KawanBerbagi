@@ -9,6 +9,7 @@ import {
   MapPin,
   Calendar,
   Search,
+  X,
 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 
@@ -19,6 +20,41 @@ const COLORS = {
   teal: "#407E8C",
   cream: "#E5E1DD",
 };
+
+function CountdownTimer({ createdAt }: { createdAt: string }) {
+  const [timeLeft, setTimeLeft] = React.useState('');
+
+  React.useEffect(() => {
+    const calculateTimeLeft = () => {
+      const created = new Date(createdAt).getTime();
+      const limit = created + 24 * 60 * 60 * 1000;
+      const difference = limit - Date.now();
+
+      if (difference <= 0) {
+        return 'Waktu Habis';
+      }
+
+      const hours = Math.floor(difference / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      return `${hours}j ${minutes}m ${seconds}d lagi`;
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [createdAt]);
+
+  return (
+    <span className="font-bold text-red-500 text-xs px-2 py-0.5 rounded bg-red-50 border border-red-100 flex items-center gap-1 self-start sm:self-auto shrink-0">
+      {timeLeft}
+    </span>
+  );
+}
 
 // 3 tahap: Diproses -> Dikirim -> Diterima
 type Stage = 0 | 1 | 2;
@@ -114,7 +150,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
   const donationsList = useMemo(() => {
     return myDonations.map((d: any) => {
       let stage: Stage = 0;
-      if (d.status === 'Dikirim') stage = 1;
+      if (d.status === 'Dikirim' || d.status === 'Akan Dijemput') stage = 1;
       else if (d.status === 'Diterima') stage = 2;
 
       let method = '';
@@ -131,6 +167,10 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
         item: `${d.barang} (${d.jumlah} ${d.satuan})`,
         org: d.panti,
         date: d.tanggal,
+        created_at: d.created_at,
+        status: d.status,
+        kurir: d.kurir,
+        resi: d.resi,
         stage: stage,
         method: method || undefined
       };
@@ -239,7 +279,13 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
 
                   {/* Stepper (Tengah di mobile) */}
                   <div className="flex-1 w-full flex justify-center py-2 lg:py-0">
-                    <Stepper stage={d.stage} />
+                    {d.status === 'Batal' ? (
+                      <span className="text-red-500 font-extrabold uppercase tracking-wider text-[10px] bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 shadow-xs">
+                        Donasi Batal (Expired)
+                      </span>
+                    ) : (
+                      <Stepper stage={d.stage} />
+                    )}
                   </div>
 
                   {/* Resi & Detail - Disetel justify-between di mobile */}
@@ -261,8 +307,8 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                   </div>
                 </div>
 
-                {/* Input resi — hanya stage 0 */}
-                {d.stage === 0 && (
+                {/* Status-specific footer blocks */}
+                {d.status === 'Diproses' && (
                   <div className="px-5 py-4 md:px-6 md:py-5" style={{ backgroundColor: 'rgba(165,141,102,0.08)', borderTop: `1px solid ${COLORS.mist}` }}>
                     {editingId === d.id ? (
                       <div className="flex flex-col md:flex-row gap-3 w-full">
@@ -315,19 +361,56 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                       </div>
                     ) : (
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                        <p className="text-[13px] font-semibold flex items-center gap-1.5" style={{ color: COLORS.navy, opacity: 0.7 }}>
-                          <Clock size={13} style={{ color: COLORS.gold }} />
-                          Input resi atau pilih kurir mandiri sebelum kuota otomatis dilepas.
-                        </p>
+                        <div className="text-[13px] font-semibold flex flex-col sm:flex-row sm:items-center gap-1.5" style={{ color: COLORS.navy, opacity: 0.7 }}>
+                          <span className="flex items-center gap-1.5">
+                            <Clock size={13} style={{ color: COLORS.gold }} />
+                            {d.kurir === 'Antar Mandiri'
+                              ? 'Konfirmasi keberangkatan Anda sebelum kuota otomatis dilepas:'
+                              : 'Input resi atau pilih kurir mandiri sebelum kuota otomatis dilepas:'}
+                          </span>
+                          {d.created_at && <CountdownTimer createdAt={d.created_at} />}
+                        </div>
                         <button
                           onClick={() => setEditingId(d.id)}
                           className="w-full md:w-auto flex items-center justify-center gap-2 text-xs font-bold px-6 py-2.5 rounded-xl text-white hover:brightness-110 transition shrink-0"
                           style={{ backgroundColor: COLORS.teal }}
                         >
-                          <Truck size={14} /> Input Data Pengiriman
+                          <Truck size={14} /> {d.kurir === 'Antar Mandiri' ? 'Konfirmasi Kirim' : 'Input Data Pengiriman'}
                         </button>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {d.status === 'Menunggu Konfirmasi Jemput' && (
+                  <div className="px-5 py-4 md:px-6 md:py-5" style={{ backgroundColor: 'rgba(165,141,102,0.08)', borderTop: `1px solid ${COLORS.mist}` }}>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                      <div className="text-[13px] font-semibold flex flex-col sm:flex-row sm:items-center gap-1.5" style={{ color: COLORS.navy, opacity: 0.7 }}>
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={13} style={{ color: COLORS.gold }} />
+                          Menunggu pihak panti mengonfirmasi penjemputan barang:
+                        </span>
+                        {d.created_at && <CountdownTimer createdAt={d.created_at} />}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {d.status === 'Akan Dijemput' && (
+                  <div className="px-5 py-4 md:px-6 md:py-5" style={{ backgroundColor: 'rgba(64,126,140,0.08)', borderTop: `1px solid ${COLORS.mist}` }}>
+                    <p className="text-[13px] font-semibold flex items-center gap-1.5 text-emerald-700">
+                      <Truck size={13} />
+                      Pihak panti telah mengonfirmasi penjemputan. Silakan tunggu panti mengambil barang di lokasi Anda.
+                    </p>
+                  </div>
+                )}
+
+                {d.status === 'Batal' && (
+                  <div className="px-5 py-4 md:px-6 md:py-5" style={{ backgroundColor: 'rgba(239,68,68,0.08)', borderTop: `1px solid ${COLORS.mist}` }}>
+                    <p className="text-[13px] font-semibold flex items-center gap-1.5 text-red-600">
+                      <X size={13} />
+                      Donasi dibatalkan otomatis karena batas waktu 24 jam telah terlampaui.
+                    </p>
                   </div>
                 )}
               </div>

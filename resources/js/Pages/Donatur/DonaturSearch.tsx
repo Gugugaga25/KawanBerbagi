@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, MapPin, Package, SlidersHorizontal, X, Building2, UserCheck, Truck, MapPinOff } from 'lucide-react';
-import { useForm, Link } from '@inertiajs/react';
+import { Search, MapPin, Package, SlidersHorizontal, X, Building2, UserCheck, Truck, MapPinOff, Minus, Plus, Home, ShieldCheck, Clock, Phone } from 'lucide-react';
+import { useForm, Link, router } from '@inertiajs/react';
 
 const COLORS = {
   navy: "#083A4F",
@@ -84,9 +84,12 @@ const [searchMode, setSearchMode] = useState(initialMode);
   // Form untuk Donasi Barang
   const formBarang = useForm({
     id_needs: '',
-    jumlah_donasi: '',
-    metode_pengiriman: 'antar_sendiri',
+    jumlah_donasi: 1,
+    metode_pengiriman: '' as 'ekspedisi' | 'mandiri' | 'jemput' | '',
+    kurir: 'JNE',
+    resi: '',
     pesan: '',
+    konfirmasi_langsung: false,
   });
 
   // Filter Data
@@ -121,7 +124,15 @@ const [searchMode, setSearchMode] = useState(initialMode);
   const handleOpenModalBarang = (campaign: any) => {
     formBarang.clearErrors();
     setSelectedCampaign(campaign);
-    formBarang.setData({ id_needs: campaign.id.toString(), jumlah_donasi: '', pesan: '' });
+    formBarang.setData({
+      id_needs: campaign.id.toString(),
+      jumlah_donasi: 1,
+      metode_pengiriman: 'ekspedisi',
+      kurir: 'JNE',
+      resi: '',
+      pesan: '',
+      konfirmasi_langsung: false,
+    });
   };
 
   const handleCloseModalBarang = () => {
@@ -130,10 +141,19 @@ const [searchMode, setSearchMode] = useState(initialMode);
     formBarang.clearErrors();
   };
 
+  const adjustAmount = (delta: number) => {
+    if (!selectedCampaign) return;
+    const maxVal = selectedCampaign.remaining !== undefined ? selectedCampaign.remaining : Math.max(0, selectedCampaign.total - selectedCampaign.filled);
+    formBarang.setData('jumlah_donasi', Math.min(maxVal, Math.max(1, formBarang.data.jumlah_donasi + delta)));
+  };
+
   const handleSubmitBarang = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formBarang.data.metode_pengiriman) return;
     formBarang.post(route('donatur.donasi.store'), {
-      onSuccess: () => handleCloseModalBarang()
+      onSuccess: () => {
+        handleCloseModalBarang();
+      }
     });
   };
 
@@ -303,80 +323,274 @@ const [searchMode, setSearchMode] = useState(initialMode);
 
       {/* ================= MODAL BOOKING BARANG ================= */}
       {selectedCampaign && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-opacity">
-          <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-xs transition-opacity">
+          <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
             {/* Header */}
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-black text-[#124354] flex items-center gap-2">
-                <Package size={20} className="text-[#407E8C]" /> Donasi Barang
+            <div className="flex justify-between items-center mb-5 shrink-0">
+              <h3 className="text-lg font-black text-[#124354] flex items-center gap-2">
+                <Package size={20} className="text-[#407E8C]" /> Donasi Sekarang
               </h3>
               <button onClick={handleCloseModalBarang} className="p-2 text-gray-400 hover:text-[#124354] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
-            
-            {/* Info Box */}
-            <div className="bg-[#F4F3EF] p-4 rounded-2xl mb-6 border border-gray-200">
-              <h4 className="text-base font-extrabold text-[#124354]">{selectedCampaign.org}</h4>
-              <p className="text-xs text-gray-500 mt-1">{selectedCampaign.location}</p>
-              <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center text-xs text-[#124354]">
-                <span>Kebutuhan: <strong>{selectedCampaign.item}</strong></span>
-                <span>Tersisa: <strong>{selectedCampaign.total - selectedCampaign.filled} {selectedCampaign.unit}</strong></span>
-              </div>
-            </div>
 
-            <form onSubmit={handleSubmitBarang} className="space-y-5">
-              {/* Input Jumlah */}
-              <div>
-                <label className="block text-[10px] font-bold text-[#124354] uppercase tracking-wider mb-2">Jumlah Donasi ({selectedCampaign.unit})</label>
-                <input 
-                  type="number" 
-                  min="1" 
-                  max={selectedCampaign.total - selectedCampaign.filled} 
-                  required 
-                  value={formBarang.data.jumlah_donasi} 
-                  onChange={e => formBarang.setData('jumlah_donasi', e.target.value)} 
-                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354]" 
-                  placeholder={`Max: ${selectedCampaign.total - selectedCampaign.filled}`} 
-                />
-              </div>
-
-              {/* Metode Pengiriman */}
-              <div>
-                <label className="block text-[10px] font-bold text-[#124354] uppercase tracking-wider mb-2">Metode Pengiriman</label>
-                <div className="flex gap-3">
-                  <label className={`flex-1 p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${formBarang.data.metode_pengiriman === 'antar_sendiri' ? 'border-[#083A4F] bg-[#083A4F]/5 text-[#083A4F]' : 'border-gray-100 bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
-                    <input type="radio" name="metode" value="antar_sendiri" className="hidden" checked={formBarang.data.metode_pengiriman === 'antar_sendiri'} onChange={(e) => formBarang.setData('metode_pengiriman', e.target.value)} />
-                    <UserCheck size={18} />
-                    <span className="font-bold text-xs text-center">Antar Sendiri</span>
-                  </label>
-                  
-                  <label className={`flex-1 p-3.5 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${formBarang.data.metode_pengiriman === 'jasa_logistik' ? 'border-[#083A4F] bg-[#083A4F]/5 text-[#083A4F]' : 'border-gray-100 bg-gray-50 text-gray-400 hover:bg-gray-100'}`}>
-                    <input type="radio" name="metode" value="jasa_logistik" className="hidden" checked={formBarang.data.metode_pengiriman === 'jasa_logistik'} onChange={(e) => formBarang.setData('metode_pengiriman', e.target.value)} />
-                    <Truck size={18} />
-                    <span className="font-bold text-xs text-center">Jasa Logistik<br/><span className="text-[9px] font-normal opacity-70">(GoSend, dll)</span></span>
-                  </label>
+            <form onSubmit={handleSubmitBarang} className="space-y-5 flex-1">
+              {/* Info Campaign */}
+              <div className="rounded-2xl p-4 bg-[#F4F3EF] border border-gray-200">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#C0D5D6]">
+                    <Package size={20} color="#407E8C" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#124354]">{selectedCampaign.item}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {selectedCampaign.category} · {selectedCampaign.org}
+                    </p>
+                  </div>
                 </div>
+                <div className="flex justify-between text-xs mb-2 font-semibold text-[#124354]/70">
+                  <span>Terpenuhi</span>
+                  <span>{selectedCampaign.filled}/{selectedCampaign.total} {selectedCampaign.unit}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden bg-[#C0D5D6]">
+                  <div 
+                    className="h-full rounded-full bg-[#407E8C]" 
+                    style={{ width: `${(selectedCampaign.filled / selectedCampaign.total) * 100}%` }} 
+                  />
+                </div>
+                <p className="text-[11px] mt-2 text-[#124354]/60 font-semibold">
+                  Sisa kuota tersedia: <strong>{selectedCampaign.remaining !== undefined ? selectedCampaign.remaining : (selectedCampaign.total - selectedCampaign.filled)} {selectedCampaign.unit}</strong>
+                </p>
+              </div>
+
+              {/* Jumlah Donasi */}
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                  Berapa banyak yang ingin Anda donasikan?
+                </h4>
+                <div className="flex items-center justify-center gap-5 py-2">
+                  <button
+                    type="button"
+                    onClick={() => adjustAmount(-1)}
+                    disabled={formBarang.data.jumlah_donasi <= 1}
+                    className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#C0D5D6] text-[#083A4F]"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <div className="text-center min-w-[80px]">
+                    <p className="text-2xl font-bold tabular-nums text-[#083A4F]">{formBarang.data.jumlah_donasi}</p>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{selectedCampaign.unit}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => adjustAmount(1)}
+                    disabled={formBarang.data.jumlah_donasi >= (selectedCampaign.remaining !== undefined ? selectedCampaign.remaining : (selectedCampaign.total - selectedCampaign.filled))}
+                    className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#C0D5D6] text-[#083A4F]"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                {formBarang.errors.jumlah_donasi && (
+                  <p className="text-xs text-red-500 mt-1 text-center">{formBarang.errors.jumlah_donasi}</p>
+                )}
               </div>
 
               {/* Catatan / Pesan */}
-              <div>
-                <label className="block text-[10px] font-bold text-[#124354] uppercase tracking-wider mb-2">Pesan (Opsional)</label>
-                <textarea 
-                  value={formBarang.data.pesan} 
-                  onChange={e => formBarang.setData('pesan', e.target.value)} 
-                  className="w-full p-3.5 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] h-20 resize-none" 
-                  placeholder="Pesan dukungan atau info pengiriman..." 
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+                  Catatan untuk Panti (Opsional)
+                </h4>
+                <textarea
+                  value={formBarang.data.pesan}
+                  onChange={(e) => formBarang.setData('pesan', e.target.value)}
+                  placeholder="Tulis pesan atau info tambahan mengenai barang donasi Anda..."
+                  className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:border-[#407E8C] outline-none h-20 resize-none text-[#083A4F] font-semibold"
                 />
+                {formBarang.errors.pesan && (
+                  <p className="text-xs text-red-500 mt-1">{formBarang.errors.pesan}</p>
+                )}
               </div>
 
-              {/* Buttons */}
-              <div className="pt-2 flex gap-3">
-                <button type="button" onClick={handleCloseModalBarang} className="px-6 py-3.5 rounded-xl text-sm font-bold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors w-full md:w-auto">
+              {/* Metode Pengiriman */}
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                  Metode Pengiriman
+                </h4>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      formBarang.setData(prev => ({
+                        ...prev,
+                        metode_pengiriman: 'ekspedisi',
+                        kurir: 'JNE',
+                        resi: '',
+                        konfirmasi_langsung: false
+                      }));
+                    }}
+                    className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
+                    style={{
+                      borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#407E8C' : '#C0D5D6',
+                      backgroundColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? 'rgba(64,126,140,0.06)' : '#ffffff',
+                    }}
+                  >
+                    <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#407E8C' : '#083A4F'} className="mb-2" />
+                    <p className="text-[10px] font-extrabold text-[#083A4F]">Kirim Ekspedisi</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      formBarang.setData(prev => ({
+                        ...prev,
+                        metode_pengiriman: 'mandiri',
+                        kurir: 'Antar Mandiri',
+                        resi: '',
+                        konfirmasi_langsung: false
+                      }));
+                    }}
+                    className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
+                    style={{
+                      borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#407E8C' : '#C0D5D6',
+                      backgroundColor: formBarang.data.metode_pengiriman === 'mandiri' ? 'rgba(64,126,140,0.06)' : '#ffffff',
+                    }}
+                  >
+                    <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#407E8C' : '#083A4F'} className="mb-2" />
+                    <p className="text-[10px] font-extrabold text-[#083A4F]">Antar Mandiri</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      formBarang.setData(prev => ({
+                        ...prev,
+                        metode_pengiriman: 'jemput',
+                        kurir: 'Jemput oleh Panti',
+                        resi: '',
+                        konfirmasi_langsung: false
+                      }));
+                    }}
+                    className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
+                    style={{
+                      borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#407E8C' : '#C0D5D6',
+                      backgroundColor: formBarang.data.metode_pengiriman === 'jemput' ? 'rgba(64,126,140,0.06)' : '#ffffff',
+                    }}
+                  >
+                    <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#407E8C' : '#083A4F'} className="mb-2" />
+                    <p className="text-[10px] font-extrabold text-[#083A4F]">Jemput Panti</p>
+                  </button>
+                </div>
+
+                {/* Sub-form Pengiriman */}
+                {formBarang.data.metode_pengiriman === 'ekspedisi' && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="flex gap-2 mb-2">
+                      <select
+                        value={formBarang.data.kurir}
+                        onChange={(e) => formBarang.setData('kurir', e.target.value)}
+                        className="px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#407E8C] bg-white text-[#083A4F]"
+                        style={{ borderColor: '#C0D5D6' }}
+                      >
+                        <option>JNE</option>
+                        <option>SiCepat</option>
+                        <option>J&T</option>
+                        <option>AnterAja</option>
+                        <option>Pos Indonesia</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Nomor resi (bisa dikosongkan dahulu)"
+                        value={formBarang.data.resi}
+                        onChange={(e) => formBarang.setData('resi', e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#407E8C] text-[#083A4F]"
+                        style={{ borderColor: '#C0D5D6' }}
+                      />
+                    </div>
+                    
+                    <label className="flex items-center gap-2 cursor-pointer mt-1">
+                      <input
+                        type="checkbox"
+                        checked={formBarang.data.konfirmasi_langsung}
+                        onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
+                        className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
+                      />
+                      <span className="text-[10px] font-extrabold text-[#083A4F]/85">
+                        Barang sudah diserahkan ke ekspedisi sekarang
+                      </span>
+                    </label>
+                    
+                    <p className="text-[9px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
+                      <Clock size={11} className="shrink-0 mt-0.5" /> 
+                      Belum punya resinya? Jangan khawatir - Anda punya waktu 24 jam untuk melengkapinya dari menu Riwayat Donasi agar tidak batal otomatis.
+                    </p>
+                  </div>
+                )}
+
+                {formBarang.data.metode_pengiriman === 'mandiri' && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formBarang.data.konfirmasi_langsung}
+                        onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
+                        className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
+                      />
+                      <span className="text-[10px] font-extrabold text-[#083A4F]/85">
+                        Barang sudah mulai saya antar ke lokasi panti sekarang
+                      </span>
+                    </label>
+                    <p className="text-[9px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
+                      <Clock size={11} className="shrink-0 mt-0.5" /> 
+                      Jika Anda belum berangkat sekarang, lakukan konfirmasi jalan dalam waktu 24 jam atau kuota akan otomatis dilepas.
+                    </p>
+                  </div>
+                )}
+
+                {formBarang.data.metode_pengiriman === 'jemput' && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="rounded-xl p-3 bg-amber-50 border border-amber-100 flex items-start gap-2">
+                      <Clock size={13} className="text-[#A58D66] shrink-0 mt-0.5" />
+                      <p className="text-[9px] leading-normal text-amber-800 font-semibold">
+                        Penjemputan memerlukan konfirmasi pihak panti. Panti memiliki waktu 24 jam untuk menyetujui request penjemputan ini sebelum booking otomatis dibatalkan.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Alamat Tujuan */}
+              <div className="rounded-2xl p-4 bg-[#C0D5D6] text-[#083A4F]">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <MapPin size={14} color="#083A4F" />
+                  <span className="text-[10px] font-black uppercase tracking-wider opacity-75">
+                    Alamat Penerima
+                  </span>
+                </div>
+                <p className="text-xs font-extrabold mb-1">{selectedCampaign.org}</p>
+                <p className="text-[11px] leading-relaxed mb-2 opacity-85 font-medium">
+                  {selectedCampaign.address || selectedCampaign.location}
+                </p>
+                <p className="text-[10px] flex items-center gap-1 opacity-75 font-semibold">
+                  <Phone size={10} /> {selectedCampaign.phone || '-'}
+                </p>
+              </div>
+
+              {/* Ringkasan & Submit */}
+              <div className="pt-3 flex gap-3 sticky bottom-0 bg-white py-2 border-t border-gray-50">
+                <button 
+                  type="button" 
+                  onClick={handleCloseModalBarang} 
+                  className="px-5 py-3.5 bg-white border border-gray-200 text-gray-500 text-xs font-extrabold rounded-xl hover:bg-gray-50 transition-colors"
+                >
                   Batal
                 </button>
-                <button type="submit" disabled={formBarang.processing} className="flex-1 py-3.5 bg-[#124354] text-white text-sm font-bold rounded-xl hover:bg-[#0E3544] shadow-sm disabled:opacity-50 transition-colors">
-                  {formBarang.processing ? 'Memproses...' : 'Booking Slot'}
+                <button 
+                  type="submit" 
+                  disabled={!formBarang.data.metode_pengiriman || formBarang.processing} 
+                  className="flex-1 py-3.5 bg-[#083A4F] text-white text-xs font-extrabold rounded-xl hover:bg-[#124354] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                >
+                  <ShieldCheck size={14} /> {formBarang.processing ? 'Memproses...' : 'Kunci Donasi Ini'}
                 </button>
               </div>
             </form>
