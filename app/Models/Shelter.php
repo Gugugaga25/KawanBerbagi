@@ -24,6 +24,21 @@ class Shelter extends Model
         'izin_operasional',
         'npwp_yayasan',
         'dokumentasi_panti',
+        'foto_banner',
+        'foto_profil',
+        'deskripsi',
+        'website',
+        'tahun_berdiri',
+        'posts',
+        'pengurus',
+        'laporan_audits',
+        'username',
+    ];
+
+    protected $casts = [
+        'posts' => 'array',
+        'pengurus' => 'array',
+        'laporan_audits' => 'array',
     ];
 
     public function user()

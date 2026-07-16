@@ -12,8 +12,8 @@ class PantiController extends Controller
 {
     public function show($id)
     {
-        // 1. Ambil data Panti (sesuaikan nama primary key 'id_shelter' jika di DB Anda berbeda)
-        $panti = Shelter::findOrFail($id);
+        // 1. Ambil data Panti
+        $panti = Shelter::with('user')->findOrFail($id);
 
         $needs = Need::where('id_shelter', $id)
             ->where('terkumpul', '<', \DB::raw('jumlah'))

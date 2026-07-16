@@ -65,7 +65,7 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
     switch (activeTab) {
       case 'kebutuhan': return <PantiWishlist needs={needs} />;
       case 'donasi': return <PantiDonasiMasuk donations={donations} />;
-      case 'profil': return <PantiProfile pantiData={pantiData} />;
+      case 'profil': return <PantiProfile pantiData={pantiData} needs={needs} />;
       case 'pengaturan': return <PantiSettings auth={auth} />;
       case 'dashboard':
       default:

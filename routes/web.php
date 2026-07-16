@@ -305,7 +305,15 @@ Route::middleware('auth')->group(function () {
     Route::delete('/panti/kebutuhan/{id}', [App\Http\Controllers\Panti\KebutuhanController::class, 'destroy'])->name('panti.kebutuhan.destroy');
     Route::post('/panti/donasi/{id}/konfirmasi', [App\Http\Controllers\Panti\DonasiController::class, 'konfirmasi'])->name('panti.donasi.konfirmasi');
     Route::post('/panti/donasi/{id}/konfirmasi-jemput', [App\Http\Controllers\Panti\DonasiController::class, 'konfirmasiJemput'])->name('panti.donasi.konfirmasi_jemput');
-    Route::patch('/panti/profil', [App\Http\Controllers\Panti\ProfilController::class, 'update'])->name('panti.profil.update');
+    Route::post('/panti/profil', [App\Http\Controllers\Panti\ProfilController::class, 'update'])->name('panti.profil.update');
+    Route::post('/panti/profil/foto', [App\Http\Controllers\Panti\ProfilController::class, 'updateFoto'])->name('panti.profil.foto');
+    Route::post('/panti/profil/banner', [App\Http\Controllers\Panti\ProfilController::class, 'updateBanner'])->name('panti.profil.banner');
+    Route::post('/panti/posts', [App\Http\Controllers\Panti\ProfilController::class, 'storePost'])->name('panti.posts.store');
+    Route::delete('/panti/posts/{id}', [App\Http\Controllers\Panti\ProfilController::class, 'destroyPost'])->name('panti.posts.destroy');
+    Route::post('/panti/pengurus', [App\Http\Controllers\Panti\ProfilController::class, 'storePengurus'])->name('panti.pengurus.store');
+    Route::delete('/panti/pengurus/{id}', [App\Http\Controllers\Panti\ProfilController::class, 'destroyPengurus'])->name('panti.pengurus.destroy');
+    Route::post('/panti/audits', [App\Http\Controllers\Panti\ProfilController::class, 'storeAudit'])->name('panti.audits.store');
+    Route::delete('/panti/audits/{id}', [App\Http\Controllers\Panti\ProfilController::class, 'destroyAudit'])->name('panti.audits.destroy');
 
 
     // ================= ACTIONS & AKSI MANAJEMEN DONATUR =================
@@ -355,11 +363,7 @@ Route::middleware('auth')->group(function () {
 
 // ================= ROUTE DINAMIS (PUBLIC) DITARUH DI BAWAH =================
 // Route ini dipindahkan ke bawah agar tidak bertabrakan dengan /panti/dashboard
-Route::get('/panti/{id}', function ($id) {
-    return Inertia::render('ProfilPantiDetail', [
-        'id' => $id
-    ]);
-})->name('panti.detail.public');
+Route::get('/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'show'])->name('panti.detail.public');
 
 
 require __DIR__.'/auth.php';

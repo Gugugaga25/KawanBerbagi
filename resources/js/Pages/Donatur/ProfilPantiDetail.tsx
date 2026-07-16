@@ -251,34 +251,13 @@ export default function ProfilPantiDetail({
     // { id: 'dokumen', label: 'Dokumen Resmi' }, // Dipindah ke section badge di bawah bio
   ];
 
-  // --- DATA DUMMY ---
-  const [posts, setPosts] = useState([
-    {
-      id: 1, time: '2j', likes: 148, isLiked: false,
-      content: 'Alhamdulillah, donasi sembako minggu ini sudah disalurkan ke dapur panti. Terima kasih #OrangBaik atas rezekinya! Anak-anak sangat senang hari ini bisa makan enak. 🙏✨',
-      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      id: 2, time: '5j', likes: 89, isLiked: false,
-      content: 'Adik-adik sedang fokus belajar matematika bersama Kak relawan. Terima kasih Kak Budi dan Kak Ani sudah meluangkan waktunya di akhir pekan ini! Kalau ada yang mau gabung mengajar, cek tab Volunteer ya 📚✏️',
-      image: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      id: 3, time: '1h', likes: 56, isLiked: false,
-      content: 'Pengingat: Kami masih membuka donasi untuk perbaikan atap asrama putra yang bocor. Bantuan bisa disalurkan melalui tab Donasi Uang. Berapapun nominalnya, sangat berarti bagi kami. Semoga menjadi amal jariyah.',
-      image: null,
-    },
-    {
-      id: 4, time: '2h', likes: 210, isLiked: false,
-      content: 'Keceriaan sore ini di halaman panti. Bermain bola bersama setelah sholat Ashar. Sehat-sehat terus ya nak! ⚽🏃‍♂️',
-      image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=800&auto=format&fit=crop',
-    },
-    {
-      id: 5, time: '1h', likes: 120, isLiked: false,
-      content: 'Terima kasih kepada rombongan mahasiswa yang telah membagikan 50 paket alat tulis untuk anak-anak panti. Semoga studinya dilancarkan! 🎓✨',
-      image: null,
+  const [posts, setPosts] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (panti?.posts) {
+      setPosts(panti.posts.map((p: any) => ({...p, isLiked: false, likes: p.likes || 0})));
     }
-  ]);
+  }, [panti]);
 
   // Fungsi untuk Like Postingan
   const toggleLike = (postId: number) => {
@@ -300,12 +279,8 @@ export default function ProfilPantiDetail({
     { id: 3, title: "Workshop Melukis & Kerajinan Tangan", date: "Sabtu, 25 Jul 2026", time: "10:00 - 12:00", quota: 3, filled: 1, status: "open", desc: "Mengajak anak-anak berkreasi dengan cat air dan barang bekas." },
   ];
 
-  const dummyPengurus = [
-    { id: 1, nama: "H. Ahmad Fauzi", jabatan: "Ketua Yayasan", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop" },
-    { id: 2, nama: "Hj. Siti Aminah", jabatan: "Bendahara & Operasional", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop" },
-    { id: 3, nama: "Budi Santoso, S.Pd", jabatan: "Koordinator Pendidikan", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop" },
-    { id: 4, nama: "Rini Wulandari", jabatan: "Humas & Kemitraan", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop" },
-  ];
+  const pengurusList = panti?.pengurus || [];
+  const auditList = panti?.laporan_audits || [];
 
   // Cek status apakah user sudah login atau belum
   const isLoggedIn = !!auth?.user;
@@ -376,7 +351,7 @@ export default function ProfilPantiDetail({
                 
                 {/* Gambar hanya akan dirender JIKA panti memiliki foto_banner atau cover dari database */}
                 {(panti?.foto_banner || panti?.cover) && (
-                    <img src={panti.foto_banner || panti.cover} alt="Cover" className="w-full h-full object-cover" />
+                    <img src={panti.foto_banner ? '/storage/' + panti.foto_banner : panti.cover} alt="Cover" className="w-full h-full object-cover" />
                 )}
                 
                 </div>
@@ -384,8 +359,8 @@ export default function ProfilPantiDetail({
                 <div className="px-5 md:px-8 pb-4">
                   <div className="flex justify-between items-start">
                     <div className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#083A4F] text-white font-black text-5xl overflow-hidden relative z-10">
-                      {panti?.logo_url || panti?.foto ? (
-                        <img src={panti.logo_url || panti.foto} alt="Logo" className="w-full h-full object-cover" />
+                      {panti?.logo_url || panti?.foto || panti?.foto_profil ? (
+                        <img src={panti.foto_profil ? '/storage/' + panti.foto_profil : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover" />
                       ) : (
                         <span>{getInitials(panti?.nama_yayasan || panti?.nama || 'Yayasan')}</span>
                       )}
@@ -407,7 +382,7 @@ export default function ProfilPantiDetail({
                       {panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'} 
                       <CheckCircle2 size={18} className="text-blue-500 fill-blue-50" />
                     </h1>
-                    <p className="text-gray-500 text-sm">@{panti?.username || 'panti_resmi'}</p>
+                    <p className="text-gray-500 text-sm">@{panti?.username || panti?.user?.name || 'panti_resmi'}</p>
                   </div>
 
                   <div className="mt-3 text-[15px] text-gray-700 leading-relaxed max-w-4xl whitespace-pre-line">
@@ -465,7 +440,7 @@ export default function ProfilPantiDetail({
                 {/* TAB 1: POSTINGAN */}
                 {activeProfileTab === 'postingan' && (
                   <div className="divide-y divide-gray-100 w-full">
-                    {posts.map((post) => (
+                    {posts.length > 0 ? posts.map((post) => (
                       <div key={post.id} className="p-4 md:p-6 hover:bg-gray-50 transition cursor-default">
                         <div className="max-w-4xl mx-auto flex gap-3 md:gap-4">
                           <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#083A4F] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
@@ -476,7 +451,7 @@ export default function ProfilPantiDetail({
                               <div className="flex items-center gap-1.5 flex-wrap pr-2">
                                 <span className="font-bold text-sm md:text-base truncate">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</span>
                                 <CheckCircle2 size={14} className="text-blue-500 fill-blue-50 shrink-0" />
-                                <span className="text-gray-500 text-xs md:text-sm truncate">@panti_resmi · {post.time}</span>
+                                <span className="text-gray-500 text-xs md:text-sm truncate">@{panti?.user?.name || 'panti_resmi'} · {new Date(post.time || Date.now()).toLocaleDateString()}</span>
                               </div>
                               
                               {/* TOMBOL LIKE DAN REPORT POSTINGAN */}
@@ -506,13 +481,17 @@ export default function ProfilPantiDetail({
                             </p>
                             {post.image && (
                               <div className="mt-3 rounded-xl overflow-hidden border border-gray-200 aspect-video max-w-xl bg-gray-100">
-                                <img src={post.image} className="w-full h-full object-cover" alt="Post" />
+                                <img src={'/storage/' + post.image} className="w-full h-full object-cover" alt="Post" />
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-sm m-4">
+                        Belum ada aktivitas postingan dari panti ini.
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -619,7 +598,7 @@ export default function ProfilPantiDetail({
                                <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Mail size={16} className="text-[#124354]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Email Yayasan</p>
-                                  <p className="text-sm font-medium text-[#124354]">halo@yayasankasihibu.or.id</p>
+                                  <p className="text-sm font-medium text-[#124354]">{panti?.user?.email || 'halo@yayasankasihibu.or.id'}</p>
                                </div>
                             </div>
                          </div>
@@ -631,15 +610,21 @@ export default function ProfilPantiDetail({
                             <Briefcase size={18} className="text-[#A58D66]" /> Susunan Pengurus
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
-                            {dummyPengurus.map((p) => (
+                            {pengurusList.length > 0 ? pengurusList.map((p: any) => (
                                 <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#407E8C] transition-colors">
-                                <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-gray-100">
-                                    <img src={p.image} alt={p.nama} className="w-full h-full object-cover" />
+                                <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-gray-100 bg-gray-50">
+                                    {p.image ? (
+                                      <img src={'/storage/' + p.image} alt={p.nama} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-gray-400"><Briefcase size={20}/></div>
+                                    )}
                                 </div>
                                 <h4 className="font-bold text-[12px] md:text-xs text-[#124354] mb-0.5">{p.nama}</h4>
                                 <p className="text-[10px] text-gray-500 font-medium">{p.jabatan}</p>
                                 </div>
-                            ))}
+                            )) : (
+                                <div className="col-span-2 text-center text-sm text-gray-500 py-4">Belum ada data pengurus.</div>
+                            )}
                         </div>
                         </div>
                     </div>
@@ -649,30 +634,36 @@ export default function ProfilPantiDetail({
                 {/* TAB 5: AUDIT KEUANGAN */}
                 {activeProfileTab === 'audit' && (
                   <div className="p-5 md:p-8 max-w-4xl mx-auto">
-                    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-                          <BarChart3 size={24} />
+                    {auditList.length > 0 ? auditList.map((audit: any) => (
+                      <div key={audit.id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                            <BarChart3 size={24} />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-base text-[#124354]">{audit.judul}</h4>
+                            <p className="text-xs text-gray-500 mt-0.5">Dipublikasi pada {audit.tanggal}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-bold text-base text-[#124354]">Laporan Transparansi Q3 2026</h4>
-                          <p className="text-xs text-gray-500 mt-0.5">Dipublikasi otomatis pada 1 Okt 2026</p>
+                        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
+                          <a href={'/storage/' + audit.file_pdf} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-xs font-bold text-[#124354] border border-gray-200 bg-gray-50 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5">
+                            Lihat Dokumen <ChevronRight size={14} />
+                          </a>
+                          {/* TOMBOL REPORT LAPORAN KEUANGAN */}
+                          <button 
+                            onClick={() => alert('Laporkan Laporan Keuangan ini jika Anda menemukan kejanggalan.')}
+                            className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
+                          >
+                            <Flag size={14} /> Laporkan
+                          </button>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
-                        <button className="w-full sm:w-auto text-xs font-bold text-[#124354] border border-gray-200 bg-gray-50 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5">
-                          Lihat Rincian Data <ChevronRight size={14} />
-                        </button>
-                        {/* TOMBOL REPORT LAPORAN KEUANGAN */}
-                        <button 
-                          onClick={() => alert('Laporkan Laporan Keuangan ini jika Anda menemukan kejanggalan.')}
-                          className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
-                        >
-                          <Flag size={14} /> Laporkan
-                        </button>
+                    )) : (
+                      <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-gray-500 text-sm">
+                        Belum ada laporan audit keuangan.
                       </div>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-4 flex items-center gap-1.5"><CheckCircle2 size={14} /> Sistem Transparansi: Audit diperbarui secara otomatis dari sistem keuangan KawanBerbagi setiap pergantian kuartal.</p>
+                    )}
+                    <p className="text-xs text-gray-400 mt-4 flex items-center gap-1.5"><CheckCircle2 size={14} /> Sistem Transparansi: Audit diperbarui oleh panti secara berkala untuk transparansi donasi.</p>
                   </div>
                 )}
 
