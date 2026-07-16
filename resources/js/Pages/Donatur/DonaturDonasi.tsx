@@ -10,6 +10,7 @@ import {
   Calendar,
   Search,
   X,
+  Wallet
 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 
@@ -151,7 +152,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
     return myDonations.map((d: any) => {
       let stage: Stage = 0;
       if (d.status === 'Dikirim' || d.status === 'Akan Dijemput') stage = 1;
-      else if (d.status === 'Diterima') stage = 2;
+      else if (d.status === 'Diterima' || d.status === 'Sukses') stage = 2;
 
       let method = '';
       if (d.kurir && d.kurir !== '-') {
@@ -161,10 +162,14 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
         }
       }
 
+      const item = d.type === 'Dana' 
+        ? `Donasi Tunai ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(d.jumlah)}` 
+        : `${d.barang} (${d.jumlah} ${d.satuan})`;
+
       return {
         id: d.id_raw,
         trx_id: d.id,
-        item: `${d.barang} (${d.jumlah} ${d.satuan})`,
+        item: item,
         org: d.panti,
         date: d.tanggal,
         created_at: d.created_at,
@@ -172,7 +177,8 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
         kurir: d.kurir,
         resi: d.resi,
         stage: stage,
-        method: method || undefined
+        method: method || undefined,
+        type: d.type
       };
     });
   }, [myDonations]);
@@ -255,14 +261,12 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
               <div key={d.id} className="bg-white rounded-[1.5rem] border overflow-hidden transition-shadow hover:shadow-sm" style={{ borderColor: COLORS.mist }}>
 
                 <div className="p-5 md:p-6 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
-
-                  {/* Info barang & panti */}
                   <div className="flex items-start gap-4 lg:w-[280px] shrink-0">
                     <div
                       className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
                       style={{ backgroundColor: COLORS.mist }}
                     >
-                      <Package size={20} color={COLORS.teal} />
+                      {d.type === 'Dana' ? <Wallet size={20} color={COLORS.teal} /> : <Package size={20} color={COLORS.teal} />}
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-sm font-bold mb-1 truncate" style={{ color: COLORS.navy }}>{d.item}</h4>
@@ -283,6 +287,14 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                       <span className="text-red-500 font-extrabold uppercase tracking-wider text-[10px] bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 shadow-xs">
                         Donasi Batal (Expired)
                       </span>
+                    ) : d.type === 'Dana' ? (
+                      <div className="flex items-center gap-2">
+                        <span className={`px-4 py-2 rounded-full text-xs font-bold border ${
+                          d.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                        }`}>
+                          {d.status === 'Pending' ? 'Menunggu Pembayaran' : 'Pembayaran Sukses'}
+                        </span>
+                      </div>
                     ) : (
                       <Stepper stage={d.stage} />
                     )}
@@ -297,13 +309,28 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                         </span>
                       )}
                     </div>
-                    <Link
+                    {d.type === 'Dana' ? (
+                      d.status === 'Pending' ? (
+                        <Link
+                          href={`/donatur/donasi-uang/bayar/${d.id}`}
+                          className="flex items-center justify-center text-white gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold border transition-all shrink-0 bg-[#A58D66]"
+                        >
+                          Bayar
+                        </Link>
+                      ) : (
+                        <span className="text-[13px] font-bold text-emerald-600">
+                          Selesai
+                        </span>
+                      )
+                    ) : (
+                      <Link
                         href={`/donasi/${d.id}`}
                         className="flex items-center justify-center text-white gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold border transition-colors hover:bg-black/[0.02] group shrink-0"
                         style={{ backgroundColor: COLORS.navy }}
-                        >
+                      >
                         Detail
-                    </Link>
+                      </Link>
+                    )}
                   </div>
                 </div>
 

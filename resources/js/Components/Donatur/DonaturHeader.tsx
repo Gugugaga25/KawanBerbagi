@@ -5,6 +5,7 @@ import NotificationBell from '@/Components/Donatur/NotificationBell';
 const TAB_LABEL: Record<string, string> = {
   dashboard: 'Ringkasan Donasi',
   cari: 'Cari Panti',
+  chat: 'Pesan Chat',
   donasi: 'Donasi Saya',
   dampak: 'Riwayat Dampak',
   profil: 'Profil Saya',

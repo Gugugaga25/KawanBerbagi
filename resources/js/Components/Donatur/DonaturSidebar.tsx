@@ -1,11 +1,12 @@
 import React from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import {
   LayoutDashboard,
   Search,
   PackageCheck,
   UserCircle2,
   LogOut,
+  MessageCircle,
 } from 'lucide-react';
 
 const COLORS = {
@@ -14,7 +15,7 @@ const COLORS = {
   mist: '#C0D5D6',
 };
 
-export type DonaturTabType = 'dashboard' | 'cari' | 'donasi' | 'dampak' | 'profil' | 'pengaturan';
+export type DonaturTabType = 'dashboard' | 'cari' | 'donasi' | 'dampak' | 'profil' | 'pengaturan' | 'chat';
 
 const SidebarItem = ({
   icon: Icon,
@@ -22,24 +23,32 @@ const SidebarItem = ({
   tabId,
   activeTab,
   onClick,
+  unreadCount = 0,
 }: {
   icon: any;
   label: string;
   tabId: DonaturTabType;
   activeTab: string;
   onClick: (id: DonaturTabType) => void;
+  unreadCount?: number;
 }) => {
   const active = activeTab === tabId;
+
   return (
     <button
       onClick={() => onClick(tabId)}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${active
+      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${active
         ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10'
         : 'text-[#5A7C85] font-medium hover:bg-[#EAE8E3] hover:text-[#124354]'
         }`}
     >
-      <Icon size={20} />
-      <span>{label}</span>
+      <div className="flex items-center gap-3">
+        <Icon size={20} />
+        <span>{label}</span>
+      </div>
+      {tabId === 'chat' && unreadCount > 0 && (
+        <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-xs animate-pulse" />
+      )}
     </button>
   );
 };
@@ -61,6 +70,42 @@ export default function DonaturSidebar({
   donaturData = null,
   stats = { totalDonasi: 0, pantiTerbantu: 0 },
 }: DonaturSidebarProps) {
+  const { auth } = usePage().props as any;
+  const [unreadCount, setUnreadCount] = React.useState(auth?.unread_chat_count ?? 0);
+
+  React.useEffect(() => {
+    setUnreadCount(auth?.unread_chat_count ?? 0);
+  }, [auth?.unread_chat_count]);
+
+  React.useEffect(() => {
+    const checkUnread = async () => {
+      try {
+        const res = await fetch('/chat/unread-count', {
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.unread_chat_count);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 10000);
+
+    const handleUpdate = (e: CustomEvent) => {
+      setUnreadCount(e.detail.unread_chat_count);
+    };
+    window.addEventListener('unread-chat-count-updated', handleUpdate as any);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('unread-chat-count-updated', handleUpdate as any);
+    };
+  }, []);
+
   const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     router.post('/logout');
@@ -88,10 +133,11 @@ export default function DonaturSidebar({
         <p className="text-[10px] font-bold uppercase tracking-widest text-[#5A7C85]/50 pl-4 mb-2">
           Menu Utama
         </p>
-        <SidebarItem icon={LayoutDashboard} label="Dashboard" tabId="dashboard" activeTab={activeTab} onClick={onTabChange} />
-        <SidebarItem icon={Search} label="Cari Panti" tabId="cari" activeTab={activeTab} onClick={onTabChange} />
-        <SidebarItem icon={PackageCheck} label="Donasi Saya" tabId="donasi" activeTab={activeTab} onClick={onTabChange} />
-        <SidebarItem icon={UserCircle2} label="Profil Saya" tabId="profil" activeTab={activeTab} onClick={onTabChange} />
+        <SidebarItem icon={LayoutDashboard} label="Dashboard" tabId="dashboard" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
+        <SidebarItem icon={Search} label="Cari Panti" tabId="cari" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
+        <SidebarItem icon={MessageCircle} label="Pesan Chat" tabId="chat" activeTab={activeTab} onClick={onTabChange} unreadCount={unreadCount} />
+        <SidebarItem icon={PackageCheck} label="Donasi Saya" tabId="donasi" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
+        <SidebarItem icon={UserCircle2} label="Profil Saya" tabId="profil" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
       </nav>
 
       {/* Footer Navigasi */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
+import { router } from '@inertiajs/react';
 
 import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
 import DonaturHeader from '@/Components/Donatur/DonaturHeader';
@@ -57,6 +58,10 @@ export default function DonaturDashboard({
   }, []);
 
   const handleTabChange = (tab: DonaturTabType) => {
+    if (tab === 'chat') {
+      router.visit(route('donatur.chat'));
+      return;
+    }
     setActiveTab(tab);
     setIsMobileMenuOpen(false); // Tutup menu mobile setelah klik
     

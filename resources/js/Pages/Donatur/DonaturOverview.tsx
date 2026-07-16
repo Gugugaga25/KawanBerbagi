@@ -12,7 +12,8 @@ import {
   Truck,
   Activity,
   CheckCircle2,
-  Box
+  Box,
+  Wallet
 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
 
@@ -170,7 +171,7 @@ export default function DonaturOverview({
                   {/* Info Item */}
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full border bg-white flex items-center justify-center shadow-sm shrink-0" style={{ borderColor: COLORS.mist, color: COLORS.teal }}>
-                      <Box size={18} />
+                      {d.type === 'Dana' ? <Wallet size={18} /> : <Box size={18} />}
                     </div>
                     <div>
                       <h4 className="text-sm font-extrabold" style={{ color: COLORS.navy }}>{d.item}</h4>
@@ -195,13 +196,28 @@ export default function DonaturOverview({
                       </span>
                       
                       {/* Tombol Detail */}
-                      <Link
-                        href={`/donasi/${d.id_raw}`}
-                        className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border hover:bg-gray-50 transition-colors"
-                        style={{ borderColor: COLORS.mist, color: COLORS.navy }}
-                      >
-                        Detail
-                      </Link>
+                      {d.type === 'Dana' ? (
+                        d.status === 'Pending' ? (
+                          <Link
+                            href={`/donatur/donasi-uang/bayar/${d.id_raw}`}
+                            className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors bg-amber-50 text-amber-600 border-amber-200 hover:bg-amber-100"
+                          >
+                            Bayar
+                          </Link>
+                        ) : (
+                          <span className="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full">
+                            Selesai
+                          </span>
+                        )
+                      ) : (
+                        <Link
+                          href={`/donasi/${d.id_raw}`}
+                          className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border hover:bg-gray-50 transition-colors"
+                          style={{ borderColor: COLORS.mist, color: COLORS.navy }}
+                        >
+                          Detail
+                        </Link>
+                      )}
                     </div>
                     
                     {/* Mini Progress Bar */}

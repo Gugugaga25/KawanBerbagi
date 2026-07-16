@@ -365,8 +365,17 @@ export default function ProfilPantiDetail({
                         <span>{getInitials(panti?.nama_yayasan || panti?.nama || 'Yayasan')}</span>
                       )}
                     </div>
-                    {/* BUTTON DONASI UANG */}
+                    {/* BUTTON DONASI UANG & CHAT */}
                     <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
+                    {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
+                      <Link 
+                      href={route('donatur.chat.init', panti?.id_shelter)} 
+                      className="px-5 py-2 md:px-6 md:py-2.5 text-white rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base"
+                      style={{ backgroundColor: '#407E8C' }}
+                      >
+                      <MessageCircle size={18} /> Hubungi Panti
+                      </Link>
+                    )}
                     <Link 
                     href={`/donatur/donasi-uang/${panti?.id_shelter}`} 
                     className="px-5 py-2 md:px-6 md:py-2.5 hover:bg-[#2b5660] text-white rounded-full font-bold shadow-md transition-colors flex items-center gap-2 text-sm md:text-base"

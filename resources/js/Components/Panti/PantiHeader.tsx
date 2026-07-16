@@ -4,6 +4,7 @@ import { Search, Bell } from 'lucide-react';
 const TAB_LABEL: Record<string, string> = {
   dashboard: 'Dashboard Panti',
   kebutuhan: 'Kebutuhan & Wishlist',
+  chat: 'Pesan Chat',
   donasi: 'Donasi Masuk',
   profil: 'Profil & Legalitas',
 };

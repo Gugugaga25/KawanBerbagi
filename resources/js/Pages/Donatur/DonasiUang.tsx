@@ -28,15 +28,9 @@ const formatRupiah = (angka: number) => {
   }).format(angka);
 };
 
-// Data dummy donatur terbaru (Nanti bisa diganti dari props database)
-const recentDonors = [
-  { id: 1, name: 'Hamba Allah', amount: 500000, time: '10 menit yang lalu' },
-  { id: 2, name: 'Budi Santoso', amount: 150000, time: '1 jam yang lalu' },
-  { id: 3, name: 'Anonim', amount: 50000, time: '3 jam yang lalu' },
-  { id: 4, name: 'Siti Aminah', amount: 100000, time: 'Kemarin' },
-];
 
-export default function DonasiUang({ auth, panti }: { auth: any, panti: any }) {
+
+export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: any, panti: any, recentDonors?: any[] }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -428,21 +422,27 @@ export default function DonasiUang({ auth, panti }: { auth: any, panti: any }) {
                   </div>
                   
                   <div className="space-y-4">
-                    {recentDonors.map((donor) => (
-                      <div key={donor.id} className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-xs font-bold shrink-0" style={{ color: COLORS.teal }}>
-                          {donor.name.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold truncate" style={{ color: COLORS.navy }}>{donor.name}</p>
-                          <div className="flex items-center gap-2 text-xs">
-                            <span className="font-semibold text-gray-600">Berdonasi {formatRupiah(donor.amount)}</span>
-                            <span className="text-gray-300">•</span>
-                            <span className="text-gray-400">{donor.time}</span>
+                    {recentDonors.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic text-center py-4">Belum ada donatur terbaru</p>
+                    ) : (
+                      recentDonors.map((donor) => (
+                        <div key={donor.id} className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-xs font-bold shrink-0" style={{ color: COLORS.teal }}>
+                            {donor.name.charAt(0)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold truncate" style={{ color: COLORS.navy }}>{donor.name}</p>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="font-semibold text-gray-600">
+                                Berdonasi {typeof donor.amount === 'number' ? formatRupiah(donor.amount) : donor.amount}
+                              </span>
+                              <span className="text-gray-300">•</span>
+                              <span className="text-gray-400">{donor.time}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
 

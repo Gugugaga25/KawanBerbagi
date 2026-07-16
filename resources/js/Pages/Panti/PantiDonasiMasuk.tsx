@@ -359,21 +359,23 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                   </div>
                 )}
 
-                {/* 2. Kondisi Jika Status "Diterima" (Lihat Bukti) */}
-                {selectedTx.status === 'Diterima' && (
+                {/* 2. Kondisi Jika Status "Diterima" atau "Sukses" (Lihat Bukti) */}
+                {(selectedTx.status === 'Diterima' || selectedTx.status === 'Sukses') && (
                   <div className="space-y-4">
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Foto Bukti Penerimaan</p>
-                      {selectedTx.bukti ? (
-                        <div className="w-full h-40 rounded-xl overflow-hidden border border-gray-200">
-                          <img src={selectedTx.bukti} alt="Bukti Penerimaan" className="w-full h-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400 gap-2">
-                          <ImageIcon size={20} /> <span className="text-sm font-medium">Tidak ada foto</span>
-                        </div>
-                      )}
-                    </div>
+                    {selectedTx.status !== 'Sukses' && (
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Foto Bukti Penerimaan</p>
+                        {selectedTx.bukti ? (
+                          <div className="w-full h-40 rounded-xl overflow-hidden border border-gray-200">
+                            <img src={selectedTx.bukti} alt="Bukti Penerimaan" className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="w-full h-24 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400 gap-2">
+                            <ImageIcon size={20} /> <span className="text-sm font-medium">Tidak ada foto</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     {selectedTx.detail && selectedTx.detail.thanks_msg && (
                       <div>
@@ -390,8 +392,8 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                   </div>
                 )}
 
-                {/* 3. Kondisi Jika Status "Diproses" */}
-                {selectedTx.status === 'Diproses' && (
+                {/* 3. Kondisi Jika Status "Diproses" atau "Pending" */}
+                {(selectedTx.status === 'Diproses' || selectedTx.status === 'Pending') && (
                   <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#124354] text-white font-bold rounded-xl transition-all hover:bg-[#083A4F]">
                     Tutup
                   </button>

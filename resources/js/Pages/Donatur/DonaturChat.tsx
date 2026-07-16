@@ -1,0 +1,422 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { 
+  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Clock, User2
+} from 'lucide-react';
+import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
+import DonaturHeader from '@/Components/Donatur/DonaturHeader';
+
+interface Message {
+  id_message: number;
+  id_chat: number;
+  id_sender: number;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+interface ChatItem {
+  id_chat: number;
+  shelter: {
+    id_shelter: number;
+    nama_yayasan: string;
+    foto_profil: string | null;
+    username: string;
+  };
+  last_message: string | null;
+  last_message_time: string | null;
+  unread_count: number;
+}
+
+interface DonaturChatProps {
+  chats: ChatItem[];
+  activeChatId: number | null;
+  donaturData: {
+    id_donor: number;
+    nama_lengkap: string;
+    foto_profil: string | null;
+  };
+  auth: any;
+}
+
+const COLORS = {
+  navy: '#083A4F',
+  gold: '#A58D66',
+  mist: '#C0D5D6',
+  teal: '#407E8C',
+  cream: '#E5E1DD',
+};
+
+export default function DonaturChat({ chats: initialChats, activeChatId: initialActiveChatId, donaturData, auth }: DonaturChatProps) {
+  const [chats, setChats] = useState<ChatItem[]>(initialChats);
+  const [activeChatId, setActiveChatId] = useState<number | null>(initialActiveChatId);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pollingIntervalRef = useRef<number | null>(null);
+
+  const activeChat = chats.find(c => c.id_chat === activeChatId);
+
+  // Auto scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Fetch messages function
+  const fetchMessages = async (chatId: number, silent = false) => {
+    if (!silent) setLoadingMessages(true);
+    try {
+      const response = await fetch(`/chat/${chatId}/messages`, {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages);
+        
+        // Reset unread count for active chat in client-side state
+        setChats(prevChats => {
+          const updatedChats = prevChats.map(c => 
+            c.id_chat === chatId ? { ...c, unread_count: 0 } : c
+          );
+          const totalUnread = updatedChats.reduce((sum, c) => sum + c.unread_count, 0);
+          window.dispatchEvent(new CustomEvent('unread-chat-count-updated', {
+            detail: { unread_chat_count: totalUnread }
+          }));
+          return updatedChats;
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    } finally {
+      if (!silent) setLoadingMessages(false);
+    }
+  };
+
+  // Start polling
+  const startPolling = (chatId: number) => {
+    if (pollingIntervalRef.current) {
+      window.clearInterval(pollingIntervalRef.current);
+    }
+    pollingIntervalRef.current = window.setInterval(() => {
+      fetchMessages(chatId, true);
+    }, 3000); // Poll every 3 seconds
+  };
+
+  useEffect(() => {
+    if (activeChatId) {
+      fetchMessages(activeChatId);
+      startPolling(activeChatId);
+    } else {
+      setMessages([]);
+      if (pollingIntervalRef.current) {
+        window.clearInterval(pollingIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        window.clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [activeChatId]);
+
+  const handleSelectChat = (chatId: number) => {
+    setActiveChatId(chatId);
+    // Update URL to make it bookmarkable
+    const newUrl = `${window.location.pathname}?active_chat=${chatId}`;
+    window.history.pushState({ path: newUrl }, '', newUrl);
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || !activeChatId) return;
+
+    const messageText = inputMessage;
+    setInputMessage('');
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const response = await fetch(`/chat/${activeChatId}/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ message: messageText }),
+      });
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        // Append sent message
+        setMessages(prev => [...prev, data.message]);
+        
+        // Update last message in the chat list
+        setChats(prevChats => 
+          prevChats.map(c => 
+            c.id_chat === activeChatId 
+              ? { ...c, last_message: messageText, last_message_time: new Date().toISOString() } 
+              : c
+          ).sort((a, b) => {
+            const timeA = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
+            const timeB = b.last_message_time ? new Date(b.last_message_time).getTime() : 0;
+            return timeB - timeA;
+          })
+        );
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  };
+
+  const handleTabChange = (tab: DonaturTabType) => {
+    setIsMobileMenuOpen(false);
+    if (tab === 'chat') return;
+    router.visit(tab === 'dashboard' ? route('donatur.dashboard') : `${route('donatur.dashboard')}?tab=${tab}`);
+  };
+
+  const formatTime = (timeStr: string | null) => {
+    if (!timeStr) return '';
+    const date = new Date(timeStr);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  return (
+    <div className="flex h-screen font-sans bg-white text-[#124354] overflow-hidden">
+      <Head title="Pesan Chat - KawanBerbagi" />
+
+      {/* ================= OVERLAY MOBILE ================= */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ================= SIDEBAR ================= */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:w-64 lg:relative lg:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <DonaturSidebar
+          activeTab="chat"
+          onTabChange={handleTabChange}
+          donaturData={donaturData}
+        />
+      </div>
+
+      {/* ================= MAIN CONTENT ================= */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F4F3EF]">
+        
+        {/* Header Mobile */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30 text-white shadow-md">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <span className="font-extrabold tracking-wide uppercase text-sm">Pesan Chat</span>
+          </div>
+        </div>
+
+        {/* Header Desktop */}
+        <div className="hidden lg:block">
+          <DonaturHeader activeTab="chat" donaturData={donaturData} />
+        </div>
+
+        {/* Chat UI Body Container */}
+        <div className="flex-1 flex overflow-hidden p-4 md:p-6">
+          <div className="flex-1 flex bg-white rounded-3xl border border-gray-200/80 shadow-sm overflow-hidden h-full">
+            
+            {/* Left Column: Chat List */}
+            <div className={`w-full md:w-80 flex flex-col border-r border-gray-100 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
+              <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-[#F4F3EF]/30">
+                <h3 className="font-extrabold text-sm text-[#124354]">Daftar Percakapan</h3>
+                <span className="text-[10px] bg-[#083A4F] text-white px-2 py-0.5 rounded-full font-bold">
+                  {chats.length} Panti
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+                {chats.length > 0 ? (
+                  chats.map((chat) => {
+                    const isSelected = chat.id_chat === activeChatId;
+                    return (
+                      <button
+                        key={chat.id_chat}
+                        onClick={() => handleSelectChat(chat.id_chat)}
+                        className={`w-full p-4 flex items-start gap-3 text-left transition-all ${
+                          isSelected 
+                            ? 'bg-[#407E8C]/10 border-l-4 border-[#407E8C]' 
+                            : 'hover:bg-gray-50 border-l-4 border-transparent'
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
+                          {chat.shelter.foto_profil ? (
+                            <img src={chat.shelter.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
+                          ) : (
+                            <span>{chat.shelter.nama_yayasan.charAt(0)}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-baseline mb-0.5">
+                            <h4 className="font-bold text-xs text-[#124354] truncate">{chat.shelter.nama_yayasan}</h4>
+                            <span className="text-[9px] text-gray-400 font-medium">
+                              {formatTime(chat.last_message_time)}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 truncate pr-4">
+                            {chat.last_message || 'Belum ada pesan.'}
+                          </p>
+                        </div>
+                        {chat.unread_count > 0 && (
+                          <div className="bg-red-500 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shrink-0 self-center shadow-xs">
+                            {chat.unread_count}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12 px-4 text-gray-400">
+                    <MessageSquare size={32} className="mx-auto mb-2 opacity-40 text-[#124354]" />
+                    <p className="text-xs font-bold">Belum ada obrolan.</p>
+                    <p className="text-[10px] mt-1 text-gray-500">Mulai chat dengan panti melalui halaman "Cari Panti".</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column: Active Chat Pane */}
+            <div className={`flex-1 flex flex-col bg-[#F9F8F6] ${!activeChatId ? 'hidden md:flex items-center justify-center text-center p-8' : 'flex'}`}>
+              {activeChat ? (
+                <>
+                  {/* Chat Pane Header */}
+                  <div className="h-16 px-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
+                    <button 
+                      onClick={() => setActiveChatId(null)}
+                      className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-[#124354]"
+                    >
+                      <ArrowLeft size={20} />
+                    </button>
+                    
+                    <div className="w-9 h-9 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold">
+                      {activeChat.shelter.foto_profil ? (
+                        <img src={activeChat.shelter.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
+                      ) : (
+                        <span>{activeChat.shelter.nama_yayasan.charAt(0)}</span>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-extrabold text-xs text-[#124354] truncate">{activeChat.shelter.nama_yayasan}</h4>
+                      <p className="text-[9px] text-gray-400 font-medium">@{activeChat.shelter.username}</p>
+                    </div>
+                  </div>
+
+                  {/* Chat Messages List */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
+                    {loadingMessages ? (
+                      <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+                        Memuat riwayat chat...
+                      </div>
+                    ) : messages.length > 0 ? (
+                      messages.map((msg) => {
+                        const isMe = msg.id_sender === auth.user.id_user;
+                        return (
+                          <div 
+                            key={msg.id_message} 
+                            className={`flex flex-col max-w-[75%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
+                          >
+                            <div 
+                              className={`p-3 rounded-2xl text-xs font-semibold shadow-xs ${
+                                isMe 
+                                  ? 'bg-[#083A4F] text-white rounded-tr-none' 
+                                  : 'bg-white text-[#124354] border border-gray-100 rounded-tl-none'
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>
+                            </div>
+                            <div className="flex items-center gap-1 mt-1 px-1">
+                              <span className="text-[8px] text-gray-400">
+                                {formatTime(msg.created_at)}
+                              </span>
+                              {isMe && (
+                                msg.is_read ? (
+                                  <CheckCheck size={11} className="text-blue-500" />
+                                ) : (
+                                  <Check size={11} className="text-gray-400" />
+                                )
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
+                        <MessageSquare size={36} className="mb-2 opacity-30 text-[#124354]" />
+                        <p className="text-xs font-bold">Kirim pesan pertama Anda</p>
+                        <p className="text-[10px] mt-1">Mulailah obrolan hangat dengan {activeChat.shelter.nama_yayasan}.</p>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  {/* Chat Input Bar */}
+                  <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100 flex gap-2 shrink-0">
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      placeholder="Tulis pesan..."
+                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-xs outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!inputMessage.trim()}
+                      className="w-10 h-10 rounded-xl bg-[#083A4F] hover:bg-[#124354] text-white flex items-center justify-center transition shadow-sm disabled:opacity-50"
+                    >
+                      <Send size={16} />
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-8 text-gray-400 h-full">
+                  <div className="w-16 h-16 rounded-full bg-[#407E8C]/10 flex items-center justify-center text-[#407E8C] mb-4">
+                    <MessageSquare size={32} />
+                  </div>
+                  <h3 className="font-extrabold text-sm text-[#124354]">Pesan Obrolan Anda</h3>
+                  <p className="text-xs text-gray-500 mt-1 max-w-sm">
+                    Pilih salah satu panti di daftar sebelah kiri untuk mulai membaca dan mengirimkan pesan.
+                  </p>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  );
+}

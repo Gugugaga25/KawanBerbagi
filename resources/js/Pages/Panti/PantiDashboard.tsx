@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react';
+import { router } from '@inertiajs/react';
 
 import PantiSidebar, { PantiTabType } from '@/Components/Panti/PantiSidebar';
 import PantiHeader from '@/Components/Panti/PantiHeader';
@@ -52,6 +53,10 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
   }, []);
 
   const handleTabChange = (tab: PantiTabType) => {
+    if (tab === 'chat') {
+      router.visit(route('panti.chat'));
+      return;
+    }
     setActiveTab(tab);
     setIsMobileMenuOpen(false);
     

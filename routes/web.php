@@ -146,14 +146,15 @@ Route::middleware('auth')->group(function () {
                 ];
             });
 
-            $donations = \App\Models\Donation::whereIn('id_needs', function ($query) use ($panti) {
+            $goodsDonations = \App\Models\Donation::whereIn('id_needs', function ($query) use ($panti) {
                 $query->select('id_needs')->from('needs')->where('id_shelter', $panti->id_shelter);
             })->with(['need', 'donor'])->get()->map(function ($donation) {
                 return [
                     'id' => 'TRX-' . str_pad($donation->id_donation, 3, '0', STR_PAD_LEFT),
                     'id_raw' => $donation->id_donation,
                     'date' => $donation->created_at ? $donation->created_at->format('d M Y') : '-',
-                    'name' => $donation->donor ? $donation->donor->nama_lengkap : 'Anonim',
+                    'created_at_raw' => $donation->created_at,
+                    'name' => $donation->is_anonim ? 'Anonim' : ($donation->donor ? $donation->donor->nama_lengkap : 'Anonim'),
                     'type' => 'Barang',
                     'val' => $donation->jumlah_donasi . ' ' . ($donation->need ? $donation->need->satuan : 'Pcs'),
                     'status' => $donation->status,
@@ -166,6 +167,31 @@ Route::middleware('auth')->group(function () {
                     ]
                 ];
             });
+
+            $cashDonations = \App\Models\CashDonation::where('id_shelter', $panti->id_shelter)
+                ->with(['donor'])
+                ->get()
+                ->map(function ($cash) {
+                    return [
+                        'id' => 'TRX-C' . str_pad($cash->id_cash_donation, 3, '0', STR_PAD_LEFT),
+                        'id_raw' => $cash->id_cash_donation,
+                        'date' => $cash->created_at ? $cash->created_at->format('d M Y') : '-',
+                        'created_at_raw' => $cash->created_at,
+                        'name' => $cash->is_anonim ? 'Anonim' : ($cash->donor ? $cash->donor->nama_lengkap : 'Anonim'),
+                        'type' => 'Dana',
+                        'val' => 'Rp ' . number_format($cash->nominal),
+                        'status' => $cash->status,
+                        'bukti' => null,
+                        'detail' => [
+                            'kurir' => '-',
+                            'resi' => '-',
+                            'msg' => $cash->pesan ?? 'Tidak ada pesan.',
+                            'thanks_msg' => '',
+                        ]
+                    ];
+                });
+
+            $donations = $goodsDonations->concat($cashDonations)->sortByDesc('created_at_raw')->values()->all();
         }
 
         return Inertia::render('Panti/PantiDashboard', [
@@ -185,48 +211,76 @@ Route::middleware('auth')->group(function () {
         $needs = [];
 
         if ($donatur) {
-            $allDonations = \App\Models\Donation::where('id_donor', $donatur->id_donor)
+            $goodsDonations = \App\Models\Donation::where('id_donor', $donatur->id_donor)
                 ->with(['need.shelter'])
-                ->latest()
-                ->get();
+                ->get()
+                ->map(function ($d) {
+                    return [
+                        'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
+                        'id_raw' => $d->id_donation,
+                        'tanggal' => $d->created_at ? $d->created_at->format('d M Y') : '-',
+                        'created_at' => $d->created_at ? $d->created_at->toIso8601String() : null,
+                        'created_at_raw' => $d->created_at,
+                        'barang' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
+                        'panti' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
+                        'jumlah' => $d->jumlah_donasi,
+                        'satuan' => $d->need ? $d->need->satuan : 'Pcs',
+                        'status' => $d->status,
+                        'kurir' => $d->kurir ?? '-',
+                        'resi' => $d->resi ?? '-',
+                        'type' => 'Barang',
+                    ];
+                });
 
-            $myDonations = $allDonations->map(function ($d) {
+            $cashDonations = \App\Models\CashDonation::where('id_donor', $donatur->id_donor)
+                ->with(['shelter'])
+                ->get()
+                ->map(function ($c) {
+                    return [
+                        'id' => 'TRX-C' . str_pad($c->id_cash_donation, 3, '0', STR_PAD_LEFT),
+                        'id_raw' => $c->id_cash_donation,
+                        'tanggal' => $c->created_at ? $c->created_at->format('d M Y') : '-',
+                        'created_at' => $c->created_at ? $c->created_at->toIso8601String() : null,
+                        'created_at_raw' => $c->created_at,
+                        'barang' => 'Donasi Tunai ' . ($c->developer_tip ? '(Dukung Platform)' : ''),
+                        'panti' => $c->shelter ? $c->shelter->nama_yayasan : '-',
+                        'jumlah' => $c->nominal,
+                        'satuan' => 'Rupiah',
+                        'status' => $c->status,
+                        'kurir' => '-',
+                        'resi' => '-',
+                        'type' => 'Dana',
+                    ];
+                });
+
+            $myDonations = $goodsDonations->concat($cashDonations)->sortByDesc('created_at_raw')->values();
+
+            $recentDonations = $myDonations->take(3)->map(function ($d) {
+                $stageMap = ['Diproses' => 0, 'Dikirim' => 1, 'Diterima' => 2, 'Pending' => 0, 'Sukses' => 2];
                 return [
-                    'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
-                    'id_raw' => $d->id_donation,
-                    'tanggal' => $d->created_at ? $d->created_at->format('d M Y') : '-',
-                    'created_at' => $d->created_at ? $d->created_at->toIso8601String() : null,
-                    'barang' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
-                    'panti' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
-                    'jumlah' => $d->jumlah_donasi,
-                    'satuan' => $d->need ? $d->need->satuan : 'Pcs',
-                    'status' => $d->status,
-                    'kurir' => $d->kurir ?? '-',
-                    'resi' => $d->resi ?? '-',
+                    'id_raw' => $d['id_raw'],
+                    'id' => $d['id'],
+                    'item' => $d['barang'],
+                    'org' => $d['panti'],
+                    'status' => $d['status'],
+                    'stage' => $stageMap[$d['status']] ?? 0,
+                    'kurir' => $d['kurir'],
+                    'resi' => $d['resi'],
+                    'type' => $d['type'],
                 ];
             });
 
-            $recentDonations = $allDonations->take(3)->map(function ($d) {
-                $stageMap = ['Diproses' => 0, 'Dikirim' => 1, 'Diterima' => 2];
-                return [
-                    'id_raw' => $d->id_donation,
-                    'id' => 'TRX-' . str_pad($d->id_donation, 3, '0', STR_PAD_LEFT),
-                    'item' => $d->need ? $d->need->nama_kebutuhan : 'Kebutuhan Dihapus',
-                    'org' => $d->need && $d->need->shelter ? $d->need->shelter->nama_yayasan : '-',
-                    'status' => $d->status,
-                    'stage' => $stageMap[$d->status] ?? 0,
-                    'kurir' => $d->kurir ?? '-',
-                    'resi' => $d->resi ?? '-',
-                ];
-            });
+            $totalDonasi = $goodsDonations->count() + $cashDonations->count();
+            $pantiTerbantu = $goodsDonations->filter(function ($d) {
+                return $d['panti'] !== '-';
+            })->pluck('panti')->concat(
+                $cashDonations->filter(function ($c) {
+                    return $c['panti'] !== '-';
+                })->pluck('panti')
+            )->unique()->count();
 
-            $totalDonasi = $allDonations->count();
-            $pantiTerbantu = $allDonations->filter(function ($d) {
-                return $d->need && $d->need->shelter;
-            })->pluck('need.shelter.id_shelter')->unique()->count();
-
-            $needsResi = $allDonations->filter(function ($d) {
-                return $d->status === 'Diproses' && (!$d->resi || $d->resi === '-');
+            $needsResi = $goodsDonations->filter(function ($d) {
+                return $d['status'] === 'Diproses' && (!$d['resi'] || $d['resi'] === '-');
             })->take(1)->map(function ($d) {
                 return [
                     'id_raw' => $d->id_donation,
@@ -318,6 +372,14 @@ Route::middleware('auth')->group(function () {
 
     // ================= ACTIONS & AKSI MANAJEMEN DONATUR =================
     
+    // Fitur Chat
+    Route::get('/donatur/chat', [App\Http\Controllers\ChatController::class, 'donorIndex'])->name('donatur.chat');
+    Route::get('/donatur/chat/init/{id_shelter}', [App\Http\Controllers\ChatController::class, 'initChat'])->name('donatur.chat.init');
+    Route::get('/panti/chat', [App\Http\Controllers\ChatController::class, 'shelterIndex'])->name('panti.chat');
+    Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread_count');
+    Route::get('/chat/{id_chat}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::post('/chat/{id_chat}/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
+
     // Pencarian Panti & Detail Panti
     Route::get('/donatur/cari-panti', [App\Http\Controllers\Donatur\SearchController::class, 'index'])->name('donatur.cari_panti');
     Route::get('/donatur/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'show'])->name('donatur.panti.show');
@@ -325,6 +387,8 @@ Route::middleware('auth')->group(function () {
     // Donasi Uang (Sekarang dipindah ke sini dengan URL yang tidak bentrok)
     Route::get('/donatur/donasi-uang/{id}', [DonasiController::class, 'create'])->name('donasi.create');
     Route::post('/donatur/donasi-uang', [DonasiController::class, 'store'])->name('donasi.store');
+    Route::get('/donatur/donasi-uang/bayar/{id}', [DonasiController::class, 'checkoutSimulasi'])->name('donasi.checkout_simulasi');
+    Route::post('/donatur/donasi-uang/bayar/{id}', [DonasiController::class, 'bayarSimulasi'])->name('donasi.bayar_simulasi');
     
     // Donasi Barang / Kebutuhan
     Route::get('/kebutuhan/{id}/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'checkout'])->name('donatur.donasi.checkout');
