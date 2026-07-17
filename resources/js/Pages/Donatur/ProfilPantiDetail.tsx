@@ -326,7 +326,7 @@ export default function ProfilPantiDetail({
 
                 <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-16 flex items-center gap-4 shadow-md">
                     <Link 
-                        href={route('donatur.dashboard') + '?tab=cari&mode=panti'} 
+                        href={route('profil-panti')} 
                         className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
                         >
                         <ArrowLeft size={18} className="text-white" />
@@ -395,35 +395,45 @@ export default function ProfilPantiDetail({
                   </div>
 
                   <div className="mt-3 text-[15px] text-gray-700 leading-relaxed max-w-4xl whitespace-pre-line">
-                    {panti?.deskripsi || `Panti Asuhan berdedikasi memberikan tempat tinggal dan pendidikan bagi anak-anak yatim piatu. Bersama membangun generasi mandiri dan berakhlak mulia untuk menyongsong masa depan yang cerah.`}
+                    {panti?.deskripsi || 'Panti asuhan ini belum menambahkan deskripsi profil mereka.'}
                   </div>
 
                   {/* DOKUMEN RESMI (BADGES) */}
                   <div className="mt-3 flex flex-wrap gap-3 mb-2">
+                     {panti?.akta_yayasan && (
                      <button 
-                       onClick={() => alert(`Membuka PDF Akta Pendirian: ${panti?.no_akta || 'No. 12 / 04 Agustus 2010'}`)} 
+                       onClick={() => alert(`Membuka PDF Akta Pendirian: ${panti.akta_yayasan}`)} 
                        className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
                      >
                         <FileText size={14} /> Akta Pendirian
                      </button>
+                     )}
+                     {panti?.sk_kemenkumham && (
                      <button 
-                       onClick={() => alert(`Membuka PDF SK Kemenkumham: ${panti?.no_sk || 'AHU-12345.AH.01.04.Tahun 2010'}`)} 
+                       onClick={() => alert(`Membuka PDF SK Kemenkumham: ${panti.sk_kemenkumham}`)} 
                        className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
                      >
                         <FileText size={14} /> SK Kemenkumham
                      </button>
+                     )}
+                     {panti?.izin_operasional && (
                      <button 
-                       onClick={() => alert('Membuka PDF Tanda Daftar (TDY)')} 
+                       onClick={() => alert(`Membuka PDF Tanda Daftar Yayasan: ${panti.izin_operasional}`)} 
                        className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
                      >
                         <FileText size={14} /> Tanda Daftar Yayasan
                      </button>
+                     )}
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-medium text-gray-500">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#407E8C]" /> {panti?.alamat || panti?.lokasi || 'Kota Bandung, Jawa Barat'}</span>
-                    <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#407E8C]" /> <a href="#" className="text-blue-500 hover:underline">{panti?.website || 'linktr.ee/panti'}</a></span>
-                    <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#407E8C]" /> Berdiri {panti?.tahun_berdiri || '2010'}</span>
+                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#407E8C]" /> {panti?.alamat || 'Alamat belum diatur'}</span>
+                    {panti?.website && (
+                      <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#407E8C]" /> <a href={panti.website.startsWith('http') ? panti.website : `https://${panti.website}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">{panti.website}</a></span>
+                    )}
+                    {panti?.tahun_berdiri && (
+                      <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#407E8C]" /> Berdiri {panti.tahun_berdiri}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -593,21 +603,21 @@ export default function ProfilPantiDetail({
                                <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><MapPin size={16} className="text-[#124354]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Alamat Lengkap</p>
-                                  <p className="text-sm font-medium text-[#124354] leading-relaxed">{panti?.alamat || 'Jl. Kasih Ibu No. 123, Kel. Sukaasih, Kec. Bojongloa Kaler, Kota Bandung, Jawa Barat 40231'}</p>
+                                  <p className="text-sm font-medium text-[#124354] leading-relaxed">{panti?.alamat || '-'}</p>
                                </div>
                             </div>
                             <div className="flex gap-3 items-start">
                                <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Phone size={16} className="text-[#124354]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Telepon / WhatsApp</p>
-                                  <p className="text-sm font-medium text-[#124354]">0812-3456-7890</p>
+                                  <p className="text-sm font-medium text-[#124354]">{panti?.no_telepon || '-'}</p>
                                </div>
                             </div>
                             <div className="flex gap-3 items-start">
                                <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Mail size={16} className="text-[#124354]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Email Yayasan</p>
-                                  <p className="text-sm font-medium text-[#124354]">{panti?.user?.email || 'halo@yayasankasihibu.or.id'}</p>
+                                  <p className="text-sm font-medium text-[#124354]">{panti?.user?.email || '-'}</p>
                                </div>
                             </div>
                          </div>

@@ -32,48 +32,7 @@ interface Shelter {
   terverifikasi: boolean;
 }
 
-const SHELTERS_DATA: Shelter[] = [
-  {
-    id: 1,
-    nama: "Yayasan Kasih Ibu",
-    alamat: "Bandung Selatan, Jawa Barat",
-    deskripsi: "Panti asuhan yang berdedikasi membimbing dan menyekolahkan 45 anak yatim piatu sejak tahun 2012. Fokus pada pendidikan karakter dan keterampilan praktis.",
-    jumlah_anak: 45,
-    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop",
-    kebutuhan_mendesak: ["Beras Premium", "Susu Bayi", "Minyak Goreng"],
-    terverifikasi: true,
-  },
-  {
-    id: 2,
-    nama: "Panti Asuhan Nurul Iman",
-    alamat: "Jakarta Timur, DKI Jakarta",
-    deskripsi: "Mengasuh balita hingga anak sekolah tingkat SMA. Memiliki program beasiswa khusus hafiz Al-Qur'an dan bimbingan belajar mandiri.",
-    jumlah_anak: 60,
-    image: "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=600&auto=format&fit=crop",
-    kebutuhan_mendesak: ["Pampers M/L", "Buku Tulis", "Seragam Sekolah"],
-    terverifikasi: true,
-  },
-  {
-    id: 3,
-    nama: "Rumah Yatim Cahaya",
-    alamat: "Sukolilo, Surabaya",
-    deskripsi: "Fokus pada pemberdayaan anak-anak putus sekolah lewat pelatihan komputer gratis, menjahit, dan perakitan kerajinan tangan bernilai jual.",
-    jumlah_anak: 32,
-    image: "https://images.unsplash.com/photo-1482066006752-ee31cb2f0e7f?q=80&w=600&auto=format&fit=crop",
-    kebutuhan_mendesak: ["Laptop Bekas", "Meja Belajar", "Buku Pelajaran SD"],
-    terverifikasi: true,
-  },
-  {
-    id: 4,
-    nama: "Panti Wreda Bahagia",
-    alamat: "Sleman, Yogyakarta",
-    deskripsi: "Tempat bernaung yang aman dan hangat bagi para lansia terlantar. Menyediakan perawatan medis harian rutin serta terapi fisik psikologis.",
-    jumlah_anak: 25,
-    image: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=600&auto=format&fit=crop",
-    kebutuhan_mendesak: ["Popok Dewasa", "Vitamin", "Selimut Tebal"],
-    terverifikasi: true,
-  },
-];
+// Data diambil dinamis dari props panti
 
 // ================= KOMPONEN NAVIGASI =================
 function Nav() {
@@ -215,19 +174,19 @@ function Nav() {
 }
 
 // ================= KOMPONEN HALAMAN UTAMA =================
-export default function ProfilPanti() {
+export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
   const { auth } = usePage().props as any; 
   const [search, setSearch] = useState("");
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Filter data berdasarkan input pencarian
   const filteredShelters = useMemo(() => {
-    return SHELTERS_DATA.filter(
+    return pantis.filter(
       (s) =>
         s.nama.toLowerCase().includes(search.toLowerCase()) ||
-        s.alamat.toLowerCase().includes(search.toLowerCase())
+        (s.alamat && s.alamat.toLowerCase().includes(search.toLowerCase()))
     );
-  }, [search]);
+  }, [search, pantis]);
 
   // Handler aksi donasi / interaksi
   const handleDonationAction = (shelterId: number) => {

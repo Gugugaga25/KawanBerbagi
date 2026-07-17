@@ -258,7 +258,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
           {filtered.map((d) => {
             const badge = STAGE_BADGE[d.stage];
             return (
-              <div key={d.id} className="bg-white rounded-[1.5rem] border overflow-hidden transition-shadow hover:shadow-sm" style={{ borderColor: COLORS.mist }}>
+              <div key={d.id} className={`bg-white rounded-[1.5rem] border overflow-hidden transition-shadow hover:shadow-sm ${(d.stage === 2 || d.status === 'Batal') ? 'opacity-50' : ''}`} style={{ borderColor: COLORS.mist }}>
 
                 <div className="p-5 md:p-6 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
                   <div className="flex items-start gap-4 lg:w-[280px] shrink-0">

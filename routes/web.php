@@ -17,7 +17,22 @@ Route::get('/', function () {
 });
 
 Route::get('/profil-panti', function () {
-    return Inertia::render('ProfilPanti'); 
+    $pantis = \App\Models\Shelter::where('status', 'Active')->with('needs')->get()->map(function ($panti) {
+        return [
+            'id' => $panti->id_shelter,
+            'nama' => $panti->nama_yayasan,
+            'alamat' => $panti->alamat,
+            'deskripsi' => $panti->deskripsi ?? 'Panti asuhan yang berdedikasi membimbing dan menyekolahkan anak asuh.',
+            'jumlah_anak' => $panti->jumlah_anak ?? 0,
+            'image' => $panti->foto_profil ? asset('storage/' . $panti->foto_profil) : ($panti->dokumentasi_panti ? asset('storage/' . $panti->dokumentasi_panti) : 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop'),
+            'kebutuhan_mendesak' => $panti->needs->where('is_mendesak', true)->take(3)->pluck('nama_kebutuhan')->toArray(),
+            'terverifikasi' => true,
+        ];
+    });
+
+    return Inertia::render('ProfilPanti', [
+        'pantis' => $pantis
+    ]); 
 })->name('profil-panti');
 
 // Route penengah pasca-login (Auto-redirect sesuai role/tabel data)
@@ -283,8 +298,8 @@ Route::middleware('auth')->group(function () {
                 return $d['status'] === 'Diproses' && (!$d['resi'] || $d['resi'] === '-');
             })->take(1)->map(function ($d) {
                 return [
-                    'id_raw' => $d->id_donation,
-                    'item' => $d->need ? $d->need->nama_kebutuhan : '-',
+                    'id_raw' => $d['id_raw'],
+                    'item' => $d['barang'],
                 ];
             })->values();
 
