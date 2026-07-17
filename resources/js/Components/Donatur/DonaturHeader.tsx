@@ -44,19 +44,6 @@ export default function DonaturHeader({ activeTab, donaturData = null }: Donatur
 
       {/* Sisi Kanan: Pencarian, Notifikasi, & Profil */}
       <div className="flex items-center gap-5">
-        
-        {/* Input Pencarian */}
-        <div className="relative hidden md:block">
-          <Search
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-            size={16}
-          />
-          <input
-            type="text"
-            placeholder="Cari panti atau barang..."
-            className="pl-10 pr-4 py-2 w-64 bg-[#F4F3EF] rounded-full text-sm outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#4A828F] transition-all"
-          />
-        </div>
 
         {/* Tombol Notifikasi */}
         <NotificationBell />

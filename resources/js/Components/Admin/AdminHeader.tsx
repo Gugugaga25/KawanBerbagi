@@ -18,14 +18,6 @@ export default function AdminHeader({ activeTab }: AdminHeaderProps) {
       </div>
       
       <div className="flex items-center gap-5">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input 
-            type="text" 
-            placeholder="Cari data di sistem..." 
-            className="pl-10 pr-4 py-2 bg-[#F4F3EF] rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4A828F] text-[#124354] w-60 transition-all placeholder:text-gray-400"
-          />
-        </div>
         
         <button className="relative p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
           <Bell size={20} />

@@ -5,13 +5,15 @@ import {
   Users, 
   Building2, 
   PackageSearch, 
+  Flag, // Ditambahkan untuk menu laporan
   Settings, 
   LogOut 
 } from 'lucide-react';
 
 import { Link } from '@inertiajs/react';
 
-export type TabType = 'dashboard' | 'panti' | 'donatur' | 'kebutuhan';
+// Ditambahkan 'laporan' ke dalam tipe Tab
+export type TabType = 'dashboard' | 'panti' | 'donatur' | 'kebutuhan' | 'laporan';
 
 const SidebarItem = ({ icon: Icon, label, tabId, activeTab, onClick }: { 
   icon: any, label: string, tabId: TabType, activeTab: string, onClick: (id: TabType) => void 
@@ -64,6 +66,9 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
         <SidebarItem icon={Building2} label="Manajemen Panti" tabId="panti" activeTab={activeTab} onClick={onTabChange} />
         <SidebarItem icon={Users} label="Data Donatur" tabId="donatur" activeTab={activeTab} onClick={onTabChange} />
         <SidebarItem icon={PackageSearch} label="Kebutuhan" tabId="kebutuhan" activeTab={activeTab} onClick={onTabChange} />
+        
+        {/* Navigasi Baru untuk Halaman Daftar Laporan */}
+        <SidebarItem icon={Flag} label="Laporan & Aduan" tabId="laporan" activeTab={activeTab} onClick={onTabChange} />
       </nav>
 
       <div className="p-4 border-t border-gray-100 space-y-1">

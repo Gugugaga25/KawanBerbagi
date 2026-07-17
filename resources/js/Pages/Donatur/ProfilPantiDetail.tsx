@@ -5,7 +5,7 @@ import {
   Calendar, FileText, CheckCircle2, MessageCircle, 
   Repeat2, Heart, Share, BarChart3, Users2, ExternalLink,
   Clock, CalendarDays, ChevronRight, Phone, Mail, Map, Briefcase, User, Send,
-  X, Minus, Plus, Truck, Home, ShieldCheck, Flag
+  X, Minus, Plus, Truck, Home, ShieldCheck, Flag, Trash2, AlertTriangle
 } from 'lucide-react';
 
 import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
@@ -174,18 +174,21 @@ export default function ProfilPantiDetail({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const activeSidebarTab: DonaturTabType = 'cari';
-
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  // Hak Akses (Cek apakah user yang login adalah panti ini sendiri)
+  const isLoggedIn = !!auth?.user;
+  const isPantiOwner = isLoggedIn && auth?.user?.id_role_user === 'RL02PAN';
   
-  // States untuk Modals
+  // States untuk Modals Barang
   const [selectedNeed, setSelectedNeed] = useState<any>(null);
   const [isNeedModalOpen, setIsNeedModalOpen] = useState(false);
-  const [selectedVolunteer, setSelectedVolunteer] = useState<any>(null);
-  const [isVolunteerModalOpen, setIsVolunteerModalOpen] = useState(false);
 
-  // Formulir
+  // States untuk Modal Pelaporan
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{ id: string | number, type: 'panti' | 'postingan' | 'keuangan', title: string } | null>(null);
+
+  // Formulir Barang
   const formBarang = useForm({
     id_needs: '',
     jumlah_donasi: 1,
@@ -196,14 +199,11 @@ export default function ProfilPantiDetail({
     konfirmasi_langsung: false,
   });
 
-  const formVolunteer = useForm({
-    id_activity: '', nama: '', telepon: '', motivasi: ''
+  // Formulir Laporan
+  const formReport = useForm({
+    alasan: '',
+    catatan_tambahan: ''
   });
-
-  const submitDonasiUang = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Terima kasih! Simulasi Lanjut ke Pembayaran.");
-  };
 
   const adjustAmount = (delta: number) => {
     if (!selectedNeed) return;
@@ -222,10 +222,30 @@ export default function ProfilPantiDetail({
     });
   };
 
-  const submitVolunteer = (e: React.FormEvent) => {
+  const submitReport = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsVolunteerModalOpen(false);
-    alert("Pendaftaran relawan berhasil dikirim ke panti!");
+    // Simulasi pengiriman data laporan ke server
+    alert(`Laporan untuk ${reportTarget?.type} berhasil dikirim dan akan direview oleh Admin.`);
+    setIsReportModalOpen(false);
+    formReport.reset();
+  };
+
+  const openReportModal = (type: 'panti' | 'postingan' | 'keuangan', id: string | number, title: string) => {
+    setReportTarget({ type, id, title });
+    setIsReportModalOpen(true);
+  };
+
+  // Fungsi Hapus Foto
+  const handleDeleteCover = () => {
+    if(confirm('Apakah Anda yakin ingin menghapus foto sampul?')) {
+      alert('Foto sampul berhasil dihapus (Simulasi router.delete)');
+    }
+  };
+
+  const handleDeleteProfilePhoto = () => {
+    if(confirm('Apakah Anda yakin ingin menghapus foto profil?')) {
+      alert('Foto profil berhasil dihapus (Simulasi router.delete)');
+    }
   };
 
   const handleTabChange = (tab: DonaturTabType) => {
@@ -244,11 +264,8 @@ export default function ProfilPantiDetail({
   const profileTabs = [
     { id: 'postingan', label: 'Postingan' },
     { id: 'kebutuhan', label: 'Kebutuhan Barang' },
-    // { id: 'donasi', label: 'Donasi Uang' }, // Dipindah menjadi button di atas
-    // { id: 'volunteer', label: 'Volunteer' }, // Dikomen sementara seperti instruksi
-    { id: 'kontak', label: 'Kontak & Pengurus' }, // Tab Kontak & Pengurus disatukan
+    { id: 'kontak', label: 'Kontak & Pengurus' },
     { id: 'audit', label: 'Audit Keuangan' },
-    // { id: 'dokumen', label: 'Dokumen Resmi' }, // Dipindah ke section badge di bawah bio
   ];
 
   const [posts, setPosts] = useState<any[]>([]);
@@ -273,17 +290,8 @@ export default function ProfilPantiDetail({
     }));
   };
 
-  const volunteerActivities = [
-    { id: 1, title: "Kelas Inspirasi & Belajar Matematika Dasar", date: "Sabtu, 18 Jul 2026", time: "15:00 - 17:00", quota: 5, filled: 3, status: "open", desc: "Mengajarkan dasar matematika untuk anak SD kelas 1-3." },
-    { id: 2, title: "Kerja Bakti Bersih-Bersih Area Asrama", date: "Minggu, 19 Jul 2026", time: "08:00 - 11:00", quota: 10, filled: 10, status: "full", desc: "Membersihkan halaman, mengecat ulang pagar, dan merapikan gudang." },
-    { id: 3, title: "Workshop Melukis & Kerajinan Tangan", date: "Sabtu, 25 Jul 2026", time: "10:00 - 12:00", quota: 3, filled: 1, status: "open", desc: "Mengajak anak-anak berkreasi dengan cat air dan barang bekas." },
-  ];
-
   const pengurusList = panti?.pengurus || [];
   const auditList = panti?.laporan_audits || [];
-
-  // Cek status apakah user sudah login atau belum
-  const isLoggedIn = !!auth?.user;
 
   return (
     <div className={`font-sans bg-[#F4F3EF] text-[#124354] ${isLoggedIn ? "flex h-screen overflow-hidden" : "flex flex-col h-screen overflow-hidden"}`}>
@@ -324,47 +332,74 @@ export default function ProfilPantiDetail({
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
             <Head title={`Profil Panti - ${panti?.nama_yayasan || panti?.nama}`} />
 
-                <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-16 flex items-center gap-4 shadow-md">
-                    <Link 
-                        href={route('profil-panti')} 
-                        className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
-                        >
-                        <ArrowLeft size={18} className="text-white" />
-                    </Link>
-                    <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
-                        <h2 className="font-bold text-[16px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
-                        <p className="text-[12px] text-[#C0D5D6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
-                    </div>
-                    <button 
-                        onClick={() => alert('Laporkan Akun Panti Ini')} 
-                        className="p-1.5 ml-1 rounded-full transition-colors border border-white"
-                    >
-                        <Flag size={16} />
-                    </button>
+            <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-16 flex items-center gap-4 shadow-md">
+                <Link 
+                    href={`${route('donatur.dashboard')}?tab=cari`} 
+                    className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
+                >
+                    <ArrowLeft size={18} className="text-white" />
+                </Link>
+                <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
+                    <h2 className="font-bold text-[16px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
+                    <p className="text-[12px] text-[#C0D5D6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
                 </div>
+                {!isPantiOwner && (
+                  <button 
+                      onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
+                      className="p-1.5 ml-1 rounded-full hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors border border-white"
+                      title="Laporkan Akun Panti Ini"
+                  >
+                      <Flag size={16} />
+                  </button>
+                )}
+            </div>
 
             <div className="max-w-7xl mx-auto bg-white min-h-screen shadow-sm">
               
               <div className="relative">
                 {/* Cover Image */}
-                <div className="h-40 md:h-60 w-full relative overflow-hidden" style={{backgroundColor: COLORS.teal}}>
+                <div className="h-40 md:h-60 w-full relative overflow-hidden group" style={{backgroundColor: COLORS.teal}}>
                 
-                {/* Gambar hanya akan dirender JIKA panti memiliki foto_banner atau cover dari database */}
-                {(panti?.foto_banner || panti?.cover) && (
-                    <img src={panti.foto_banner ? '/storage/' + panti.foto_banner : panti.cover} alt="Cover" className="w-full h-full object-cover" />
-                )}
+                  {/* Gambar Cover dengan Opsi Hapus (Jika Panti Owner) */}
+                  {(panti?.foto_banner || panti?.cover) && (
+                      <>
+                        <img src={panti.foto_banner ? '/storage/' + panti.foto_banner : panti.cover} alt="Cover" className="w-full h-full object-cover transition-all group-hover:brightness-90" />
+                        {isPantiOwner && (
+                          <button 
+                            onClick={handleDeleteCover}
+                            className="absolute top-4 right-4 bg-red-600/90 text-white p-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700"
+                            title="Hapus Foto Sampul"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </>
+                  )}
                 
                 </div>
                 
                 <div className="px-5 md:px-8 pb-4">
                   <div className="flex justify-between items-start">
-                    <div className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#083A4F] text-white font-black text-5xl overflow-hidden relative z-10">
+                    {/* Profil Image dengan Opsi Hapus */}
+                    <div className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#083A4F] text-white font-black text-5xl overflow-hidden relative z-10 group">
                       {panti?.logo_url || panti?.foto || panti?.foto_profil ? (
-                        <img src={panti.foto_profil ? '/storage/' + panti.foto_profil : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover" />
+                        <>
+                          <img src={panti.foto_profil ? '/storage/' + panti.foto_profil : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover transition-all group-hover:brightness-75" />
+                          {isPantiOwner && (
+                            <button 
+                              onClick={handleDeleteProfilePhoto}
+                              className="absolute inset-0 m-auto w-10 h-10 bg-red-600 text-white flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:scale-105"
+                              title="Hapus Foto Profil"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
+                        </>
                       ) : (
                         <span>{getInitials(panti?.nama_yayasan || panti?.nama || 'Yayasan')}</span>
                       )}
                     </div>
+
                     {/* BUTTON DONASI UANG & CHAT */}
                     <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
                     {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
@@ -486,13 +521,15 @@ export default function ProfilPantiDetail({
                                   <Heart size={14} className={post.isLiked ? 'fill-red-500' : ''} />
                                   {post.likes}
                                 </button>
-                                <button 
-                                  onClick={() => alert(`Laporkan Postingan #${post.id}`)}
-                                  className="p-1.5 ml-1 text-red-500 bg-red-50 rounded-full transition-colors border border-red-200"
-                                  title="Laporkan Postingan"
-                                >
-                                  <Flag size={14} />
-                                </button>
+                                {!isPantiOwner && (
+                                  <button 
+                                    onClick={() => openReportModal('postingan', post.id, 'Postingan')}
+                                    className="p-1.5 ml-1 text-red-500 bg-red-50 hover:bg-red-100 rounded-full transition-colors border border-red-200"
+                                    title="Laporkan Postingan"
+                                  >
+                                    <Flag size={14} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                             <p className="text-sm mt-1 text-gray-800 leading-relaxed whitespace-pre-line">
@@ -576,11 +613,6 @@ export default function ProfilPantiDetail({
                   </div>
                 )}
 
-                {/* TAB 3: VOLUNTEER (Dikomenn/Disembunyikan Sementara) */}
-                {/* {activeProfileTab === 'volunteer' && (
-                  ...
-                )} */}
-
                 {/* TAB 4: KONTAK & PENGURUS (Digabung) */}
                 {activeProfileTab === 'kontak' && (
                   <div className="p-5 md:p-8 max-w-6xl mx-auto">
@@ -623,7 +655,7 @@ export default function ProfilPantiDetail({
                          </div>
                       </div>
 
-                      {/* Info Pengurus Panti (Menggantikan Form Kirim Pesan) */}
+                      {/* Info Pengurus Panti */}
                       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 h-fit self-start">
                         <h3 className="text-lg font-black text-[#124354] mb-4 flex items-center gap-2">
                             <Briefcase size={18} className="text-[#A58D66]" /> Susunan Pengurus
@@ -669,12 +701,14 @@ export default function ProfilPantiDetail({
                             Lihat Dokumen <ChevronRight size={14} />
                           </a>
                           {/* TOMBOL REPORT LAPORAN KEUANGAN */}
-                          <button 
-                            onClick={() => alert('Laporkan Laporan Keuangan ini jika Anda menemukan kejanggalan.')}
-                            className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
-                          >
-                            <Flag size={14} /> Laporkan
-                          </button>
+                          {!isPantiOwner && (
+                            <button 
+                              onClick={() => openReportModal('keuangan', audit.id, audit.judul)}
+                              className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
+                            >
+                              <Flag size={14} /> Laporkan
+                            </button>
+                          )}
                         </div>
                       </div>
                     )) : (
@@ -690,6 +724,74 @@ export default function ProfilPantiDetail({
             </div>
           </div>
         </main>
+
+        {/* ================= MODAL REPORT / LAPORAN (BARU) ================= */}
+        {isReportModalOpen && reportTarget && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-xs transition-opacity">
+            <div className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl flex flex-col">
+              {/* Header Modal */}
+              <div className="flex justify-between items-center mb-5 shrink-0">
+                <h3 className="text-lg font-black text-red-600 flex items-center gap-2">
+                  <AlertTriangle size={20} /> Laporkan {reportTarget.type === 'panti' ? 'Panti' : reportTarget.type === 'postingan' ? 'Postingan' : 'Dokumen Keuangan'}
+                </h3>
+                <button onClick={() => setIsReportModalOpen(false)} className="p-2 text-gray-400 hover:text-[#124354] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={submitReport} className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-sm font-medium text-red-800">
+                  Anda akan melaporkan: <br/>
+                  <strong>{reportTarget.title}</strong>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Alasan Laporan</label>
+                  <select
+                    required
+                    value={formReport.data.alasan}
+                    onChange={(e) => formReport.setData('alasan', e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl text-sm font-medium outline-none border border-gray-200 focus:border-red-500 text-[#083A4F]"
+                  >
+                    <option value="">-- Pilih Alasan Utama --</option>
+                    <option value="spam">Spam atau Iklan Tidak Relevan</option>
+                    <option value="penipuan">Indikasi Penipuan / Fiktif</option>
+                    <option value="konten_tidak_pantas">Konten Tidak Pantas / Kekerasan</option>
+                    <option value="informasi_palsu">Informasi Palsu / Bukti Palsu</option>
+                    <option value="lainnya">Lainnya...</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Catatan Tambahan (Opsional)</label>
+                  <textarea
+                    value={formReport.data.catatan_tambahan}
+                    onChange={(e) => formReport.setData('catatan_tambahan', e.target.value)}
+                    placeholder="Jelaskan secara singkat kronologi atau kecurigaan Anda..."
+                    className="w-full p-3 text-sm rounded-xl border border-gray-200 focus:border-red-500 outline-none h-24 resize-none text-[#083A4F] font-medium"
+                  />
+                </div>
+
+                <div className="pt-3 flex gap-3 mt-4 border-t border-gray-50">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsReportModalOpen(false)} 
+                    className="px-5 py-2.5 bg-white border border-gray-200 text-gray-500 text-xs font-extrabold rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={!formReport.data.alasan}
+                    className="flex-1 py-2.5 bg-red-600 text-white text-xs font-extrabold rounded-xl hover:bg-red-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    <Flag size={14} /> Kirim Aduan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* ================= MODAL BOOKING BARANG ================= */}
         {isNeedModalOpen && selectedNeed && (
