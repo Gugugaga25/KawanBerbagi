@@ -6,6 +6,7 @@ use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Donor;
 use App\Models\Shelter;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -43,7 +44,8 @@ class ChatController extends Controller
 
         return Inertia::render('Donatur/DonaturChat', [
             'chats' => $chats,
-            'activeChatId' => $request->query('active_chat') ? (int) $request->query('active_chat') : null,
+            'activeChatId' => $request->query('active_chat') ? (is_numeric($request->query('active_chat')) ? (int) $request->query('active_chat') : $request->query('active_chat')) : null,
+
             'donaturData' => [
                 'id_donor' => $donor->id_donor,
                 'nama_lengkap' => $donor->nama_lengkap,
@@ -216,6 +218,100 @@ class ChatController extends Controller
 
         return response()->json([
             'unread_chat_count' => $unreadChatCount,
+        ]);
+    }
+
+    public function sendBotMessage(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string',
+        ]);
+
+        $userMessage = $request->input('message');
+        $gemini = new GeminiService();
+
+        // 1. Ekstrak parameter pencarian menggunakan AI
+        $searchParams = $gemini->extractSearchParams($userMessage);
+        $item = $searchParams['item'] ?? null;
+        $location = $searchParams['location'] ?? null;
+        $kategori = $searchParams['kategori'] ?? null;
+
+        $shelters = collect();
+        $isFallback = false;
+
+        // 2. Lakukan pencarian jika ada item atau lokasi yang dicari
+        if ($item || $location) {
+            // Coba pencarian utama: cari panti yang butuh item spesifik di lokasi tersebut
+            $query = Shelter::where('status', 'Active');
+
+            if ($location) {
+                $query->where('alamat', 'like', '%' . $location . '%');
+            }
+
+            if ($item) {
+                $query->whereHas('needs', function($q) use ($item) {
+                    $q->where('nama_kebutuhan', 'like', '%' . $item . '%');
+                });
+            }
+
+            $shelters = $query->with(['needs' => function($q) use ($item) {
+                if ($item) {
+                    $q->where('nama_kebutuhan', 'like', '%' . $item . '%');
+                }
+            }])->get();
+
+            // 3. Jika pencarian utama kosong dan ada pencarian barang spesifik, lakukan fallback ke kategori umum
+            if ($shelters->isEmpty() && $item) {
+                $fallbackCategory = $kategori ?? 'Sandang'; // default ke Sandang jika tidak terdeteksi
+                
+                $fallbackQuery = Shelter::where('status', 'Active');
+                
+                if ($location) {
+                    $fallbackQuery->where('alamat', 'like', '%' . $location . '%');
+                }
+
+                $fallbackQuery->whereHas('needs', function($q) use ($fallbackCategory) {
+                    $q->where('kategori', 'like', '%' . $fallbackCategory . '%');
+                });
+
+                $shelters = $fallbackQuery->with(['needs' => function($q) use ($fallbackCategory) {
+                    $q->where('kategori', 'like', '%' . $fallbackCategory . '%');
+                }])->get();
+
+                $isFallback = true;
+            }
+        }
+
+        // 4. Petakan data panti asuhan untuk dikembalikan ke frontend
+        $mappedShelters = $shelters->map(function($shelter) {
+            return [
+                'id_shelter' => $shelter->id_shelter,
+                'nama_yayasan' => $shelter->nama_yayasan,
+                'alamat' => $shelter->alamat,
+                'foto_profil' => $shelter->foto_profil ? asset('storage/' . $shelter->foto_profil) : null,
+                'username' => $shelter->username ?? ($shelter->user->name ?? ''),
+                'needs' => $shelter->needs->map(function($need) {
+                    return [
+                        'id_needs' => $need->id_needs,
+                        'nama_kebutuhan' => $need->nama_kebutuhan,
+                        'jumlah' => $need->jumlah,
+                        'terkumpul' => $need->terkumpul,
+                        'satuan' => $need->satuan,
+                        'kategori' => $need->kategori,
+                    ];
+                })->toArray()
+            ];
+        })->toArray();
+
+        // 5. Sintesis jawaban AI berdasarkan hasil pencarian database
+        $aiResponseText = $gemini->synthesizeResponse($userMessage, $searchParams, $mappedShelters, $isFallback);
+
+        return response()->json([
+            'success' => true,
+            'message' => $aiResponseText,
+            'shelters' => $mappedShelters,
+            'is_fallback' => $isFallback,
+            'search_params' => $searchParams,
         ]);
     }
 }

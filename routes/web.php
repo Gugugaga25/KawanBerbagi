@@ -378,7 +378,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/panti/chat', [App\Http\Controllers\ChatController::class, 'shelterIndex'])->name('panti.chat');
     Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread_count');
     Route::get('/chat/{id_chat}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::post('/chat/bot/send', [App\Http\Controllers\ChatController::class, 'sendBotMessage'])->name('chat.bot.send');
     Route::post('/chat/{id_chat}/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
+
+
 
     // Pencarian Panti & Detail Panti
     Route::get('/donatur/cari-panti', [App\Http\Controllers\Donatur\SearchController::class, 'index'])->name('donatur.cari_panti');

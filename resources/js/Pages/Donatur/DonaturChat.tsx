@@ -1,18 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { 
-  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Clock, User2
+  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Clock, User2, Bot
 } from 'lucide-react';
 import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
 import DonaturHeader from '@/Components/Donatur/DonaturHeader';
 
 interface Message {
-  id_message: number;
-  id_chat: number;
-  id_sender: number;
+  id_message: number | string;
+  id_chat: number | string;
+  id_sender: number | string;
   message: string;
   is_read: boolean;
   created_at: string;
+  shelters?: Array<{
+    id_shelter: number;
+    nama_yayasan: string;
+    alamat: string;
+    foto_profil: string | null;
+    username: string;
+    needs: Array<{
+      id_needs: number;
+      nama_kebutuhan: string;
+      jumlah: number;
+      terkumpul: number;
+      satuan: string;
+      kategori: string;
+    }>;
+  }>;
 }
 
 interface ChatItem {
@@ -30,7 +45,7 @@ interface ChatItem {
 
 interface DonaturChatProps {
   chats: ChatItem[];
-  activeChatId: number | null;
+  activeChatId: number | string | null;
   donaturData: {
     id_donor: number;
     nama_lengkap: string;
@@ -49,15 +64,57 @@ const COLORS = {
 
 export default function DonaturChat({ chats: initialChats, activeChatId: initialActiveChatId, donaturData, auth }: DonaturChatProps) {
   const [chats, setChats] = useState<ChatItem[]>(initialChats);
-  const [activeChatId, setActiveChatId] = useState<number | null>(initialActiveChatId);
+  const [activeChatId, setActiveChatId] = useState<number | string | null>(initialActiveChatId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<number | null>(null);
 
-  const activeChat = chats.find(c => c.id_chat === activeChatId);
+  const isAiSelected = activeChatId === 'ai-assistant';
+
+  const activeChat = isAiSelected
+    ? {
+        id_chat: 'ai-assistant',
+        shelter: {
+          id_shelter: 0,
+          nama_yayasan: 'Asisten AI KawanBerbagi',
+          foto_profil: null,
+          username: 'asisten_ai',
+        },
+        last_message: null,
+        last_message_time: null,
+        unread_count: 0
+      }
+    : chats.find(c => c.id_chat === activeChatId);
+
+  // LocalStorage Helper for AI Chat History
+  const getAiHistory = (): Message[] => {
+    const history = localStorage.getItem('kawanberbagi_ai_history');
+    if (history) {
+      try {
+        return JSON.parse(history);
+      } catch (e) {
+        return [];
+      }
+    }
+    // Default welcome message from AI
+    const defaultWelcome: Message = {
+      id_message: 'welcome-ai',
+      id_chat: 'ai-assistant',
+      id_sender: 'ai-assistant-sender',
+      message: 'Halo! Saya Asisten AI KawanBerbagi. 🤖\n\nSaya bisa membantu Anda merekomendasikan panti asuhan yang membutuhkan donasi barang Anda di lokasi tertentu.\n\nSilakan tanyakan sesuatu seperti:\n"Saya mau donasi beras di daerah Bandung" atau\n"Ada yang butuh pakaian hangat di daerah Bogor?"',
+      is_read: true,
+      created_at: new Date().toISOString(),
+    };
+    return [defaultWelcome];
+  };
+
+  const saveAiHistory = (history: Message[]) => {
+    localStorage.setItem('kawanberbagi_ai_history', JSON.stringify(history));
+  };
 
   // Auto scroll to bottom
   const scrollToBottom = () => {
@@ -117,8 +174,15 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
 
   useEffect(() => {
     if (activeChatId) {
-      fetchMessages(activeChatId);
-      startPolling(activeChatId);
+      if (activeChatId === 'ai-assistant') {
+        if (pollingIntervalRef.current) {
+          window.clearInterval(pollingIntervalRef.current);
+        }
+        setMessages(getAiHistory());
+      } else {
+        fetchMessages(activeChatId as number);
+        startPolling(activeChatId as number);
+      }
     } else {
       setMessages([]);
       if (pollingIntervalRef.current) {
@@ -133,11 +197,15 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
     };
   }, [activeChatId]);
 
-  const handleSelectChat = (chatId: number) => {
+  const handleSelectChat = (chatId: number | string) => {
     setActiveChatId(chatId);
     // Update URL to make it bookmarkable
     const newUrl = `${window.location.pathname}?active_chat=${chatId}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
+  };
+
+  const handleSelectAiChat = () => {
+    handleSelectChat('ai-assistant');
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -147,43 +215,107 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
     const messageText = inputMessage;
     setInputMessage('');
 
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-      const response = await fetch(`/chat/${activeChatId}/send`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        body: JSON.stringify({ message: messageText }),
-      });
-      if (response.status === 401) {
-        window.location.href = '/login';
-        return;
-      }
+    if (isAiSelected) {
+      const userMsg: Message = {
+        id_message: `user-${Date.now()}`,
+        id_chat: 'ai-assistant',
+        id_sender: auth.user.id_user,
+        message: messageText,
+        is_read: true,
+        created_at: new Date().toISOString(),
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        // Append sent message
-        setMessages(prev => [...prev, data.message]);
-        
-        // Update last message in the chat list
-        setChats(prevChats => 
-          prevChats.map(c => 
-            c.id_chat === activeChatId 
-              ? { ...c, last_message: messageText, last_message_time: new Date().toISOString() } 
-              : c
-          ).sort((a, b) => {
-            const timeA = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
-            const timeB = b.last_message_time ? new Date(b.last_message_time).getTime() : 0;
-            return timeB - timeA;
-          })
-        );
+      const updatedHistory = [...messages, userMsg];
+      setMessages(updatedHistory);
+      saveAiHistory(updatedHistory);
+
+      setIsBotTyping(true);
+
+      try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const response = await fetch('/chat/bot/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          body: JSON.stringify({ message: messageText }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const aiMsg: Message = {
+            id_message: `ai-${Date.now()}`,
+            id_chat: 'ai-assistant',
+            id_sender: 'ai-assistant-sender',
+            message: data.message,
+            is_read: true,
+            created_at: new Date().toISOString(),
+            shelters: data.shelters,
+          };
+
+          const finalHistory = [...updatedHistory, aiMsg];
+          setMessages(finalHistory);
+          saveAiHistory(finalHistory);
+        } else {
+          const errorMsg: Message = {
+            id_message: `ai-err-${Date.now()}`,
+            id_chat: 'ai-assistant',
+            id_sender: 'ai-assistant-sender',
+            message: 'Maaf, saya tidak dapat memproses pesan Anda saat ini. Silakan coba beberapa saat lagi.',
+            is_read: true,
+            created_at: new Date().toISOString(),
+          };
+          const finalHistory = [...updatedHistory, errorMsg];
+          setMessages(finalHistory);
+          saveAiHistory(finalHistory);
+        }
+      } catch (error) {
+        console.error('Error with chatbot response:', error);
+      } finally {
+        setIsBotTyping(false);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
+    } else {
+      try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const response = await fetch(`/chat/${activeChatId}/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+          body: JSON.stringify({ message: messageText }),
+        });
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          // Append sent message
+          setMessages(prev => [...prev, data.message]);
+          
+          // Update last message in the chat list
+          setChats(prevChats => 
+            prevChats.map(c => 
+              c.id_chat === activeChatId 
+                ? { ...c, last_message: messageText, last_message_time: new Date().toISOString() } 
+                : c
+            ).sort((a, b) => {
+              const timeA = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
+              const timeB = b.last_message_time ? new Date(b.last_message_time).getTime() : 0;
+              return timeB - timeA;
+            })
+          );
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -258,6 +390,29 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
               </div>
 
               <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+                {/* Pinned AI Assistant */}
+                <button
+                  onClick={handleSelectAiChat}
+                  className={`w-full p-4 flex items-start gap-3 text-left transition-all border-b border-gray-100 ${
+                    isAiSelected 
+                      ? 'bg-[#407E8C]/10 border-l-4 border-[#407E8C]' 
+                      : 'hover:bg-gray-50 border-l-4 border-transparent'
+                  }`}
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm flex flex-col">
+                    <Bot size={20} className="text-[#A58D66]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline mb-0.5">
+                      <h4 className="font-extrabold text-xs text-[#124354] truncate">Asisten AI KawanBerbagi</h4>
+                      <span className="text-[9px] text-[#A58D66] font-bold uppercase tracking-wider">AI Bot</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 truncate pr-4 font-semibold">
+                      Tanyakan rekomendasi panti asuhan & kebutuhan donasi.
+                    </p>
+                  </div>
+                </button>
+
                 {chats.length > 0 ? (
                   chats.map((chat) => {
                     const isSelected = chat.id_chat === activeChatId;
@@ -321,7 +476,9 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                     </button>
                     
                     <div className="w-9 h-9 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold">
-                      {activeChat.shelter.foto_profil ? (
+                      {isAiSelected ? (
+                        <Bot size={18} className="text-[#A58D66]" />
+                      ) : activeChat.shelter.foto_profil ? (
                         <img src={activeChat.shelter.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                       ) : (
                         <span>{activeChat.shelter.nama_yayasan.charAt(0)}</span>
@@ -330,7 +487,9 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                     
                     <div className="flex-1 min-w-0">
                       <h4 className="font-extrabold text-xs text-[#124354] truncate">{activeChat.shelter.nama_yayasan}</h4>
-                      <p className="text-[9px] text-gray-400 font-medium">@{activeChat.shelter.username}</p>
+                      <p className="text-[9px] text-gray-400 font-medium">
+                        {isAiSelected ? 'Online' : `@${activeChat.shelter.username}`}
+                      </p>
                     </div>
                   </div>
 
@@ -356,12 +515,66 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                               }`}
                             >
                               <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>
+                              
+                              {/* Render Interactive Recommended Shelters Cards */}
+                              {msg.shelters && msg.shelters.length > 0 && (
+                                <div className="mt-3 space-y-3 w-full max-w-sm text-left">
+                                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Rekomendasi Panti Asuhan:</p>
+                                  <div className="grid grid-cols-1 gap-2.5">
+                                    {msg.shelters.map((shelter) => (
+                                      <div 
+                                        key={shelter.id_shelter} 
+                                        className="bg-[#F9F8F6] border border-gray-200/80 rounded-2xl p-3 shadow-xs hover:border-[#407E8C]/50 transition-all flex flex-col gap-2"
+                                      >
+                                        <div className="flex gap-2.5 items-center">
+                                          <div className="w-8 h-8 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold text-xs border border-gray-50">
+                                            {shelter.foto_profil ? (
+                                              <img src={shelter.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
+                                            ) : (
+                                              <span className="text-white">{shelter.nama_yayasan.charAt(0)}</span>
+                                            )}
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                            <h5 className="font-extrabold text-[11px] text-[#124354] truncate">{shelter.nama_yayasan}</h5>
+                                            <p className="text-[9px] text-gray-400 truncate">{shelter.alamat}</p>
+                                          </div>
+                                        </div>
+
+                                        {/* Panti Specific Needs */}
+                                        {shelter.needs && shelter.needs.length > 0 && (
+                                          <div className="bg-white border border-gray-100 p-2 rounded-xl text-[10px]">
+                                            <p className="font-bold text-gray-600 mb-1">Kebutuhan terdeteksi:</p>
+                                            <ul className="space-y-0.5 text-gray-500 font-semibold">
+                                              {shelter.needs.map((need: any) => (
+                                                <li key={need.id_needs} className="flex justify-between items-center">
+                                                  <span className="truncate pr-2">• {need.nama_kebutuhan}</span>
+                                                  <span className="shrink-0 text-[#083A4F] font-bold">
+                                                    {need.terkumpul}/{need.jumlah} {need.satuan}
+                                                  </span>
+                                                </li>
+                                              ))}
+                                            </ul>
+                                          </div>
+                                        )}
+
+                                        <button
+                                          type="button"
+                                          onClick={() => router.visit(route('donatur.panti.show', { id: shelter.id_shelter }))}
+                                          className="w-full py-1.5 bg-[#083A4F] hover:bg-[#124354] text-white text-[10px] font-bold rounded-xl transition text-center shadow-xs"
+                                        >
+                                          Kunjungi Profil
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center gap-1 mt-1 px-1">
                               <span className="text-[8px] text-gray-400">
                                 {formatTime(msg.created_at)}
                               </span>
-                              {isMe && (
+                              {isMe && !isAiSelected && (
                                 msg.is_read ? (
                                   <CheckCheck size={11} className="text-blue-500" />
                                 ) : (
@@ -377,6 +590,18 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                         <MessageSquare size={36} className="mb-2 opacity-30 text-[#124354]" />
                         <p className="text-xs font-bold">Kirim pesan pertama Anda</p>
                         <p className="text-[10px] mt-1">Mulailah obrolan hangat dengan {activeChat.shelter.nama_yayasan}.</p>
+                      </div>
+                    )}
+                    {isBotTyping && (
+                      <div className="flex flex-col max-w-[75%] self-start items-start">
+                        <div className="p-3 rounded-2xl text-xs font-semibold shadow-xs bg-white text-[#124354] border border-gray-100 rounded-tl-none flex items-center gap-1.5">
+                          <span className="text-[10px] text-gray-400 animate-pulse font-semibold">Mengetik</span>
+                          <span className="flex gap-1">
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          </span>
+                        </div>
                       </div>
                     )}
                     <div ref={messagesEndRef} />
