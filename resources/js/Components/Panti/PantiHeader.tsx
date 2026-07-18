@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
+import NotificationBell from '@/Components/Donatur/NotificationBell';
 
 const TAB_LABEL: Record<string, string> = {
   dashboard: 'Dashboard Panti',
@@ -32,10 +33,7 @@ export default function PantiHeader({ activeTab, orgName = 'Panti Kasih Ibu' }: 
       <div className="flex items-center gap-5">
 
         {/* Tombol Notifikasi */}
-        <button className="relative p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-50 rounded-xl transition-colors">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-amber-500 rounded-full" />
-        </button>
+        <NotificationBell userType="panti" />
 
         {/* Identitas Akun */}
         <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-gray-100">

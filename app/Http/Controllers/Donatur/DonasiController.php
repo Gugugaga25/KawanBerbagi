@@ -141,6 +141,18 @@ class DonasiController extends Controller
             ['id_donation' => $donation->id_donation]
         );
 
+        // Kirim notifikasi ke Panti
+        $need->load('shelter');
+        if ($need->shelter && $need->shelter->id_user) {
+            DonaturNotification::kirim(
+                $need->shelter->id_user,
+                'status_update',
+                'Donasi Baru Diterima! 🎁',
+                'Panti Anda mendapatkan donasi ' . $request->jumlah_donasi . ' ' . $need->satuan . ' ' . $need->nama_kebutuhan . '.',
+                ['id_donation' => $donation->id_donation]
+            );
+        }
+
         return redirect()->route('donatur.dashboard', ['tab' => 'donasi'])->with('success', 'Donasi berhasil dibuat.');
     }
 

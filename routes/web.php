@@ -384,6 +384,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/panti/audits', [App\Http\Controllers\Panti\ProfilController::class, 'storeAudit'])->name('panti.audits.store');
     Route::delete('/panti/audits/{id}', [App\Http\Controllers\Panti\ProfilController::class, 'destroyAudit'])->name('panti.audits.destroy');
 
+    // Notifikasi Panti
+    Route::get('/panti/notifications', [App\Http\Controllers\Panti\NotificationController::class, 'index'])->name('panti.notifications.index');
+    Route::patch('/panti/notifications/{id}/read', [App\Http\Controllers\Panti\NotificationController::class, 'markAsRead'])->name('panti.notifications.read');
+    Route::patch('/panti/notifications/read-all', [App\Http\Controllers\Panti\NotificationController::class, 'markAllRead'])->name('panti.notifications.readAll');
 
     // ================= ACTIONS & AKSI MANAJEMEN DONATUR =================
     

@@ -21,7 +21,7 @@ interface Notif {
   type: string;    // status_update | thank_you | resi_reminder
   title: string;
   body: string;
-  data: { id_donation?: number } | null;
+  data: { id_donation?: number; id_cash_donation?: number } | null;
   is_read: boolean;
   created_at: string;
 }
@@ -32,7 +32,7 @@ function NotifIcon({ type }: { type: string }) {
   return <Package size={16} className="text-blue-500" />;
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({ userType = 'donatur' }: { userType?: 'donatur' | 'panti' }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notif[]>([]);
   const [unread, setUnread] = useState(0);
@@ -43,7 +43,8 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/donatur/notifications', {
+      const baseUrl = userType === 'panti' ? '/panti/notifications' : '/donatur/notifications';
+      const res = await fetch(baseUrl, {
         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       });
       const data = await res.json();
@@ -58,16 +59,27 @@ export default function NotificationBell() {
 
   // Tandai satu notifikasi sudah dibaca
   const markRead = async (notif: Notif) => {
-    if (notif.is_read) {
-      if (notif.data?.id_donation) {
-        window.location.href = `/donasi/${notif.data.id_donation}`;
+    const handleRedirect = () => {
+      if (userType === 'panti' && (notif.data?.id_donation || notif.data?.id_cash_donation)) {
+        window.location.href = '/panti/dashboard?tab=donasi';
+      } else if (userType === 'donatur') {
+        if (notif.data?.id_donation) {
+          window.location.href = `/donasi/${notif.data.id_donation}`;
+        } else if (notif.data?.id_cash_donation) {
+          window.location.href = '/donatur/dashboard?tab=donasi';
+        }
       }
+    };
+
+    if (notif.is_read) {
+      handleRedirect();
       return;
     }
 
     try {
       const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
-      await fetch(`/donatur/notifications/${notif.id}/read`, {
+      const baseUrl = userType === 'panti' ? '/panti/notifications' : '/donatur/notifications';
+      await fetch(`${baseUrl}/${notif.id}/read`, {
         method: 'PATCH',
         headers: {
           'X-CSRF-TOKEN': csrfToken,
@@ -84,9 +96,7 @@ export default function NotificationBell() {
       // ignore
     }
 
-    if (notif.data?.id_donation) {
-      window.location.href = `/donasi/${notif.data.id_donation}`;
-    }
+    handleRedirect();
   };
 
   // Fetch saat pertama mount + polling setiap 30 detik
