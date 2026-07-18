@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { Head } from '@inertiajs/react';
 import { 
   Flag, Search, Filter, Eye, CheckCircle, AlertTriangle, 
   XCircle, Clock, ShieldAlert, ChevronLeft, ChevronRight,
-  MoreVertical, Building2, FileText, Heart, CheckCircle2
+  MoreVertical, Building2, FileText, Heart, CheckCircle2, Image
 } from 'lucide-react';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
+import { Link } from '@inertiajs/react';
 
 const COLORS = {
   navy: "#083A4F",
@@ -19,6 +21,7 @@ const COLORS = {
 interface Report {
   id: string;
   tipe_laporan: 'panti' | 'postingan' | 'keuangan';
+  id_target: string;
   pelapor: string;
   terlapor_nama: string;
   alasan: string;
@@ -27,40 +30,7 @@ interface Report {
   status: 'pending' | 'diproses' | 'selesai' | 'ditolak';
 }
 
-export default function Laporan({ auth, reports: initialReports }: { auth?: any; reports?: Report[] }) {
-  const [reports, setReports] = useState<Report[]>(initialReports || [
-    {
-      id: "REP-001",
-      tipe_laporan: 'panti',
-      pelapor: "Budi Santoso",
-      terlapor_nama: "Yayasan Kasih Ibu",
-      alasan: "Indikasi panti fiktif / alamat tidak ditemukan",
-      catatan_tambahan: "Saya mencoba mendatangi lokasi sesuai aplikasi namun area tersebut adalah lahan kosong.",
-      tanggal: "2026-07-15",
-      status: 'pending'
-    },
-    {
-      id: "REP-002",
-      tipe_laporan: 'postingan',
-      pelapor: "Siti Aminah",
-      terlapor_nama: "Postingan #1 - Yayasan Kasih Ibu",
-      alasan: "Foto menggunakan dokumentasi yayasan lain",
-      catatan_tambahan: "Foto penyaluran sembako diambil dari berita online tahun 2022.",
-      tanggal: "2026-07-16",
-      status: 'diproses'
-    },
-    {
-      id: "REP-003",
-      tipe_laporan: 'keuangan',
-      pelapor: "Ahmad Fauzi",
-      terlapor_nama: "Audit Q2 - Panti Harapan Bangsa",
-      alasan: "Ketidaksesuaian nota pembelian logistik",
-      catatan_tambahan: "Terdapat selisih nominal senilai Rp 2.500.000 pada kwitansi belanja.",
-      tanggal: "2026-07-17",
-      status: 'selesai'
-    }
-  ]);
-
+export default function Laporan({ auth, reports }: { auth?: any; reports?: Report[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'semua' | 'pending' | 'diproses' | 'selesai'>('semua');
   
@@ -69,12 +39,13 @@ export default function Laporan({ auth, reports: initialReports }: { auth?: any;
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
   // Filter Data
-  const filteredReports = reports.filter(report => {
+  const safeReports = reports || [];
+  const filteredReports = safeReports.filter(report => {
     const matchesTab = activeTab === 'semua' || report.status === activeTab;
     const matchesSearch = 
-      report.terlapor_nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.pelapor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.id.toLowerCase().includes(searchQuery.toLowerCase());
+      (report.terlapor_nama || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (report.pelapor || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      report.id.toString().toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTab && matchesSearch;
   });
 
@@ -84,10 +55,16 @@ export default function Laporan({ auth, reports: initialReports }: { auth?: any;
   };
 
   const handleUpdateStatus = (id: string, newStatus: 'diproses' | 'selesai' | 'ditolak') => {
-    setReports(prev => prev.map(rep => rep.id === id ? { ...rep, status: newStatus } : rep));
-    if (selectedReport?.id === id) {
-      setSelectedReport(prev => prev ? { ...prev, status: newStatus } : null);
-    }
+    import('@inertiajs/react').then(({ router }) => {
+      router.patch(route('admin.laporan.status', id), { status: newStatus }, {
+        preserveScroll: true,
+        onSuccess: () => {
+          if (selectedReport?.id === id) {
+            setSelectedReport(prev => prev ? { ...prev, status: newStatus } : null);
+          }
+        }
+      });
+    });
   };
 
   const getStatusBadge = (status: Report['status']) => {
@@ -153,19 +130,19 @@ export default function Laporan({ auth, reports: initialReports }: { auth?: any;
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Total Aduan</p>
-          <p className="text-2xl font-black mt-1 text-[#124354]">{reports.length}</p>
+          <p className="text-2xl font-black mt-1 text-[#124354]">{safeReports.length}</p>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-amber-600 font-bold uppercase tracking-wide">Menunggu</p>
-          <p className="text-2xl font-black mt-1 text-amber-600">{reports.filter(r => r.status === 'pending').length}</p>
+          <p className="text-2xl font-black mt-1 text-amber-600">{safeReports.filter(r => r.status === 'pending').length}</p>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-blue-600 font-bold uppercase tracking-wide">Diproses</p>
-          <p className="text-2xl font-black mt-1 text-blue-600">{reports.filter(r => r.status === 'diproses').length}</p>
+          <p className="text-2xl font-black mt-1 text-blue-600">{safeReports.filter(r => r.status === 'diproses').length}</p>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-green-600 font-bold uppercase tracking-wide">Selesai</p>
-          <p className="text-2xl font-black mt-1 text-green-600">{reports.filter(r => r.status === 'selesai').length}</p>
+          <p className="text-2xl font-black mt-1 text-green-600">{safeReports.filter(r => r.status === 'selesai').length}</p>
         </div>
       </div>
 
@@ -196,7 +173,7 @@ export default function Laporan({ auth, reports: initialReports }: { auth?: any;
                 </tr>
               ) : (
                 filteredReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50/80 transition-colors">
+                  <tr key={report.id} className={`hover:bg-gray-50/80 transition-all ${report.status === 'selesai' || report.status === 'ditolak' ? 'opacity-50 grayscale hover:grayscale-0' : ''}`}>
                     <td className="px-6 py-4 border-b border-gray-100 whitespace-nowrap">
                       <span className="font-bold text-[#124354]">{report.id}</span>
                       <p className="text-xs text-gray-400 mt-0.5">{report.tanggal}</p>
@@ -204,9 +181,13 @@ export default function Laporan({ auth, reports: initialReports }: { auth?: any;
                     <td className="px-6 py-4 border-b border-gray-100">
                       <div className="flex items-center gap-2">
                         {getCategoryIcon(report.tipe_laporan)}
-                        <span className="font-bold text-[#124354] max-w-[150px] truncate" title={report.terlapor_nama}>
+                        <Link 
+                          href={`/panti/${report.id_target}`}
+                          className="font-bold text-[#124354] hover:text-[#407E8C] max-w-[150px] truncate transition-colors underline decoration-dashed decoration-[#407E8C]/30 underline-offset-4" 
+                          title={`Kunjungi Halaman: ${report.terlapor_nama}`}
+                        >
                           {report.terlapor_nama}
-                        </span>
+                        </Link>
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium text-gray-600 border-b border-gray-100">{report.pelapor}</td>
@@ -331,6 +312,36 @@ export default function Laporan({ auth, reports: initialReports }: { auth?: any;
                   <p className="text-sm font-bold text-[#124354] mb-2">Kronologi / Catatan Tambahan:</p>
                   <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl text-sm text-gray-600 leading-relaxed">
                     {selectedReport.catatan_tambahan}
+                  </div>
+                </div>
+              )}
+
+              {/* Obyek Bukti (Visualisasi) */}
+              {selectedReport.tipe_laporan === 'postingan' && (
+                <div>
+                  <p className="text-sm font-bold text-[#124354] mb-2">Konten Postingan yang Dilaporkan:</p>
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex gap-4 items-start">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center">
+                      <Image size={24} className="text-gray-400" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">Isi atau deskripsi lengkap postingan tidak ditampilkan penuh dalam mode ringkas. Kunjungi langsung halaman Panti untuk melihat secara detail konten yang diduga melanggar.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {selectedReport.tipe_laporan === 'keuangan' && (
+                <div>
+                  <p className="text-sm font-bold text-[#124354] mb-2">Dokumen Keuangan yang Dilaporkan:</p>
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex gap-4 items-center">
+                    <div className="w-12 h-12 bg-red-50 text-red-500 rounded-lg shrink-0 flex items-center justify-center">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">Laporan PDF / Audit Dokumen</p>
+                    </div>
                   </div>
                 </div>
               )}

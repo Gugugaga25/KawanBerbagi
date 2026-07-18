@@ -118,7 +118,7 @@ export default function AdminDashboard({
 
         {/* Top Header Asli */}
         <div className="hidden lg:block">
-          <AdminHeader activeTab={activeTab} />
+          <AdminHeader activeTab={activeTab} laporans={laporans} pantis={pantis} />
         </div>
 
         {/* Dynamic Content Area */}

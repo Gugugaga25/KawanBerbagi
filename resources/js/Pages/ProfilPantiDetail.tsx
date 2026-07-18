@@ -173,12 +173,10 @@ export default function ProfilPantiDetail({
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const activeSidebarTab: DonaturTabType = 'cari';
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
 
-  // Hak Akses (Cek apakah user yang login adalah panti ini sendiri)
-  const isLoggedIn = !!auth?.user;
-  const isPantiOwner = isLoggedIn && auth?.user?.id_role_user === 'RL02PAN';
+  // Hak Akses
+  const isPantiOwner = !!auth?.user && auth?.user?.id_role_user === 'RL02PAN';
   
   // States untuk Modals Barang
   const [selectedNeed, setSelectedNeed] = useState<any>(null);
@@ -201,6 +199,9 @@ export default function ProfilPantiDetail({
 
   // Formulir Laporan
   const formReport = useForm({
+    tipe_laporan: '',
+    id_target: '',
+    judul_target: '',
     alasan: '',
     catatan_tambahan: ''
   });
@@ -224,14 +225,30 @@ export default function ProfilPantiDetail({
 
   const submitReport = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulasi pengiriman data laporan ke server
-    alert(`Laporan untuk ${reportTarget?.type} berhasil dikirim dan akan direview oleh Admin.`);
-    setIsReportModalOpen(false);
-    formReport.reset();
+    if (!reportTarget) return;
+
+    formReport.post(route('laporan.store'), {
+      preserveScroll: true,
+      onSuccess: () => {
+        alert('Laporan berhasil dikirim dan akan direview oleh Admin.');
+        setIsReportModalOpen(false);
+        formReport.reset();
+      }
+    });
   };
 
   const openReportModal = (type: 'panti' | 'postingan' | 'keuangan', id: string | number, title: string) => {
+    if (!auth?.user) {
+      window.location.href = '/login';
+      return;
+    }
     setReportTarget({ type, id, title });
+    formReport.setData({
+      ...formReport.data,
+      tipe_laporan: type,
+      id_target: id.toString(),
+      judul_target: title
+    });
     setIsReportModalOpen(true);
   };
 
@@ -294,40 +311,14 @@ export default function ProfilPantiDetail({
   const auditList = panti?.laporan_audits || [];
 
   return (
-    <div className={`font-sans bg-[#F4F3EF] text-[#124354] ${isLoggedIn ? "flex h-screen overflow-hidden" : "flex flex-col h-screen overflow-hidden"}`}>
+    <div className="font-sans bg-[#F4F3EF] text-[#124354] min-h-screen flex flex-col">
       
-      {/* TAMPILKAN HEADER NAV JIKA GUEST / TIDAK LOGIN */}
-      {!isLoggedIn && <Nav />}
+      {/* TAMPILKAN HEADER NAV */}
+      <Nav />
 
       {/* LAYER PEMBUNGKUS UTAMA */}
-      <div className={`flex flex-1 min-w-0 overflow-hidden relative ${!isLoggedIn ? "flex-col" : ""}`}>
+      <div className="flex-1 flex flex-col relative w-full">
         
-        {/* SIDEBAR & MOBILE BACKDROP (HANYA MUNCUL JIKA USER LOGIN) */}
-        {isLoggedIn && (
-          <>
-            {isMobileMenuOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
-            <div className={`fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-              <DonaturSidebar activeTab={activeSidebarTab} onTabChange={handleTabChange} donaturData={donaturData} stats={stats} />
-            </div>
-          </>
-        )}
-
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-white">
-          
-          {/* HEADER DASHBOARD*/}
-          {isLoggedIn && (
-            <>
-              <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30 shadow-md">
-                <div className="flex items-center gap-3 text-white">
-                  <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10"><Menu size={18} /></button>
-                  <span className="font-extrabold tracking-wide uppercase text-sm">Detail Panti</span>
-                </div>
-              </div>
-              <div className="hidden lg:block bg-white border-b border-gray-100 z-10">
-                <DonaturHeader activeTab={activeSidebarTab} donaturData={donaturData} />
-              </div>
-            </>
-          )}
 
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
             <Head title={`Profil Panti - ${panti?.nama_yayasan || panti?.nama}`} />
@@ -402,7 +393,7 @@ export default function ProfilPantiDetail({
 
                     {/* BUTTON DONASI UANG & CHAT */}
                     <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
-                    {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
+                    {(!auth?.user || auth?.user?.id_role_user === 'RL03DON') && (
                       <Link 
                       href={route('donatur.chat.init', panti?.id_shelter)} 
                       className="px-5 py-2 md:px-6 md:py-2.5 text-white rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base"
@@ -520,7 +511,7 @@ export default function ProfilPantiDetail({
                                 </button>
                                 {!isPantiOwner && (
                                   <button 
-                                    onClick={() => openReportModal('postingan', post.id, 'Postingan')}
+                                    onClick={() => openReportModal('postingan', panti?.id_shelter || 1, `Postingan #${post.id}`)}
                                     className="p-1.5 ml-1 text-red-500 bg-red-50 hover:bg-red-100 rounded-full transition-colors border border-red-200"
                                     title="Laporkan Postingan"
                                   >
@@ -700,7 +691,7 @@ export default function ProfilPantiDetail({
                           {/* TOMBOL REPORT LAPORAN KEUANGAN */}
                           {!isPantiOwner && (
                             <button 
-                              onClick={() => openReportModal('keuangan', audit.id, audit.judul)}
+                              onClick={() => openReportModal('keuangan', panti?.id_shelter || 1, audit.judul)}
                               className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
                             >
                               <Flag size={14} /> Laporkan
@@ -720,7 +711,6 @@ export default function ProfilPantiDetail({
               </div>
             </div>
           </div>
-        </main>
 
         {/* ================= MODAL REPORT / LAPORAN (BARU) ================= */}
         {isReportModalOpen && reportTarget && (

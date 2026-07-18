@@ -5,6 +5,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\DonasiController;
+use App\Http\Controllers\Admin\NeedController;
+use App\Http\Controllers\Admin\PantiController as AdminPantiController;
+use App\Http\Controllers\ReportController;
 
 // ================= HALAMAN UTAMA =================
 Route::get('/', function () {
@@ -129,13 +132,31 @@ Route::middleware('auth')->group(function () {
             ];
         });
 
+        $laporans = \App\Models\Report::with('pelapor')->orderBy('created_at', 'desc')->get()->map(function ($report) {
+            return [
+                'id' => $report->id,
+                'id_target' => $report->id_target,
+                'tipe_laporan' => $report->tipe_laporan,
+                'pelapor' => $report->pelapor ? $report->pelapor->name : 'Anonim',
+                'terlapor_nama' => $report->judul_target,
+                'alasan' => $report->alasan,
+                'catatan_tambahan' => $report->catatan_tambahan,
+                'tanggal' => $report->created_at->format('Y-m-d'),
+                'status' => $report->status,
+            ];
+        });
+
         return Inertia::render('Admin/AdminDashboard', [
             'pantis' => $pantis,
             'donaturs' => $donaturs,
             'needs' => $needs,
             'activeShelters' => $activeShelters,
+            'laporans' => $laporans,
         ]);
     })->name('admin.dashboard');
+
+    Route::patch('/admin/laporan/{id}/status', [ReportController::class, 'updateStatus'])->name('admin.laporan.status');
+
 
 
     // ================= ROUTE DASHBOARD PANTI =================
@@ -414,6 +435,11 @@ Route::middleware('auth')->group(function () {
     
     // Donasi Barang / Kebutuhan
     Route::get('/kebutuhan/{id}/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'checkout'])->name('donatur.donasi.checkout');
+    Route::get('/donatur/riwayat', [App\Http\Controllers\Donatur\DonasiController::class, 'riwayat'])->name('donatur.riwayat');
+
+    // ================= ROUTE LAPORAN =================
+    Route::post('/laporan', [ReportController::class, 'store'])->name('laporan.store');
+
     Route::get('/donasi/{id}', [App\Http\Controllers\Donatur\DonasiController::class, 'show'])->name('donatur.donasi.show');
     Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');
     Route::patch('/donatur/donasi/{id}/resi', [App\Http\Controllers\Donatur\DonasiController::class, 'updateResi'])->name('donatur.donasi.updateResi');

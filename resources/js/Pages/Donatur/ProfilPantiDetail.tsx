@@ -201,6 +201,9 @@ export default function ProfilPantiDetail({
 
   // Formulir Laporan
   const formReport = useForm({
+    tipe_laporan: '',
+    id_target: '',
+    judul_target: '',
     alasan: '',
     catatan_tambahan: ''
   });
@@ -224,14 +227,30 @@ export default function ProfilPantiDetail({
 
   const submitReport = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulasi pengiriman data laporan ke server
-    alert(`Laporan untuk ${reportTarget?.type} berhasil dikirim dan akan direview oleh Admin.`);
-    setIsReportModalOpen(false);
-    formReport.reset();
+    if (!reportTarget) return;
+
+    formReport.post(route('laporan.store'), {
+      preserveScroll: true,
+      onSuccess: () => {
+        alert('Laporan berhasil dikirim dan akan direview oleh Admin.');
+        setIsReportModalOpen(false);
+        formReport.reset();
+      }
+    });
   };
 
   const openReportModal = (type: 'panti' | 'postingan' | 'keuangan', id: string | number, title: string) => {
+    if (!isLoggedIn) {
+      window.location.href = '/login';
+      return;
+    }
     setReportTarget({ type, id, title });
+    formReport.setData({
+      ...formReport.data,
+      tipe_laporan: type,
+      id_target: id.toString(),
+      judul_target: title
+    });
     setIsReportModalOpen(true);
   };
 
@@ -520,7 +539,7 @@ export default function ProfilPantiDetail({
                                 </button>
                                 {!isPantiOwner && (
                                   <button 
-                                    onClick={() => openReportModal('postingan', post.id, 'Postingan')}
+                                    onClick={() => openReportModal('postingan', panti?.id_shelter || 1, `Postingan #${post.id}`)}
                                     className="p-1.5 ml-1 text-red-500 bg-red-50 hover:bg-red-100 rounded-full transition-colors border border-red-200"
                                     title="Laporkan Postingan"
                                   >
@@ -700,7 +719,7 @@ export default function ProfilPantiDetail({
                           {/* TOMBOL REPORT LAPORAN KEUANGAN */}
                           {!isPantiOwner && (
                             <button 
-                              onClick={() => openReportModal('keuangan', audit.id, audit.judul)}
+                              onClick={() => openReportModal('keuangan', panti?.id_shelter || 1, audit.judul)}
                               className="w-full sm:w-auto text-xs font-bold text-red-500 border border-red-100 bg-red-50 px-4 py-2.5 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-1.5"
                             >
                               <Flag size={14} /> Laporkan
