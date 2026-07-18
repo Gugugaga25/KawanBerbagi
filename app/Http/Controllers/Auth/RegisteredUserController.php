@@ -84,6 +84,8 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($request->password),
             ]);
 
+            $username = strtolower(str_replace(' ', '', $request->orgName));
+
             \App\Models\Shelter::create([
                 'id_user' => $user->id_user,
                 'nama_yayasan' => $request->orgName,
@@ -97,6 +99,7 @@ class RegisteredUserController extends Controller
                 'izin_operasional' => $izinPath,
                 'npwp_yayasan' => $npwpPath,
                 'dokumentasi_panti' => $orgPhotoPath,
+                'username' => $username,
             ]);
         }
 

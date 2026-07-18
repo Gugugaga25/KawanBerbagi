@@ -44,6 +44,8 @@ class PantiController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        $username = strtolower(str_replace(' ', '', $request->orgName));
+
         Shelter::create([
             'id_user' => $user->id_user,
             'nama_yayasan' => $request->orgName,
@@ -57,6 +59,7 @@ class PantiController extends Controller
             'izin_operasional' => $izinPath,
             'npwp_yayasan' => $npwpPath,
             'dokumentasi_panti' => $orgPhotoPath,
+            'username' => $username,
         ]);
 
         // Redirect back dengan pesan sukses, tanpa melakukan auth/login otomatis
