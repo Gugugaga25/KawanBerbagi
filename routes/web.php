@@ -449,7 +449,7 @@ Route::middleware('auth')->group(function () {
 
 // ================= ROUTE DINAMIS (PUBLIC) DITARUH DI BAWAH =================
 // Route ini dipindahkan ke bawah agar tidak bertabrakan dengan /panti/dashboard
-Route::get('/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'show'])->name('panti.detail.public');
+Route::get('/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'showPublic'])->name('panti.detail.public');
 
 
 require __DIR__.'/auth.php';

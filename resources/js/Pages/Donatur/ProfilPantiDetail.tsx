@@ -334,7 +334,7 @@ export default function ProfilPantiDetail({
 
             <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-16 flex items-center gap-4 shadow-md">
                 <Link 
-                    href={`${route('donatur.dashboard')}?tab=cari`} 
+                    href={`${route('donatur.dashboard')}?tab=cari&mode=panti`} 
                     className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
                 >
                     <ArrowLeft size={18} className="text-white" />
