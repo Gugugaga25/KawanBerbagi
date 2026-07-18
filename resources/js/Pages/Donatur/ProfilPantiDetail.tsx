@@ -436,28 +436,25 @@ export default function ProfilPantiDetail({
                   {/* DOKUMEN RESMI (BADGES) */}
                   <div className="mt-3 flex flex-wrap gap-3 mb-2">
                      {panti?.akta_yayasan && (
-                     <button 
-                       onClick={() => alert(`Membuka PDF Akta Pendirian: ${panti.akta_yayasan}`)} 
-                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
+                     <div 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 cursor-default"
                      >
                         <FileText size={14} /> Akta Pendirian
-                     </button>
+                     </div>
                      )}
                      {panti?.sk_kemenkumham && (
-                     <button 
-                       onClick={() => alert(`Membuka PDF SK Kemenkumham: ${panti.sk_kemenkumham}`)} 
-                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
+                     <div 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 cursor-default"
                      >
                         <FileText size={14} /> SK Kemenkumham
-                     </button>
+                     </div>
                      )}
                      {panti?.izin_operasional && (
-                     <button 
-                       onClick={() => alert(`Membuka PDF Tanda Daftar Yayasan: ${panti.izin_operasional}`)} 
-                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors"
+                     <div 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 cursor-default"
                      >
                         <FileText size={14} /> Tanda Daftar Yayasan
-                     </button>
+                     </div>
                      )}
                   </div>
 

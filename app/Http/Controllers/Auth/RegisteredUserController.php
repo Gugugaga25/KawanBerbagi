@@ -64,17 +64,17 @@ class RegisteredUserController extends Controller
                 'picName' => 'required|string|max:255',
                 'phone' => 'required|string|max:20',
                 'address' => 'required|string',
-                'aktaDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'aktaDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'skDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'izinDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
-                'npwpDoc' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+                'npwpDoc' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
                 'orgPhoto' => 'nullable|file|mimes:jpg,jpeg,png|max:5120',
             ]);
 
-            $aktaPath = $request->file('aktaDoc')->store('legal_docs/akta', 'public');
+            $aktaPath = $request->hasFile('aktaDoc') ? $request->file('aktaDoc')->store('legal_docs/akta', 'public') : null;
             $skPath = $request->file('skDoc')->store('legal_docs/sk', 'public');
             $izinPath = $request->file('izinDoc')->store('legal_docs/izin', 'public');
-            $npwpPath = $request->file('npwpDoc')->store('legal_docs/npwp', 'public');
+            $npwpPath = $request->hasFile('npwpDoc') ? $request->file('npwpDoc')->store('legal_docs/npwp', 'public') : null;
             $orgPhotoPath = $request->hasFile('orgPhoto') ? $request->file('orgPhoto')->store('org_photos', 'public') : null;
 
             $user = User::create([

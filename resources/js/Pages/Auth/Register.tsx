@@ -511,9 +511,8 @@ export default function Register() {
                     <div>
                       <FileField
                         icon={FileText}
-                        label="Akta Pendirian Yayasan"
+                        label="Akta Pendirian Yayasan (opsional)"
                         hint="PDF/JPG (Maks 5MB)"
-                        required
                         file={data.aktaDoc}
                         onChange={(f) => setData("aktaDoc", f)}
                       />
@@ -547,9 +546,8 @@ export default function Register() {
                     <div>
                       <FileField
                         icon={FileText}
-                        label="NIB / NPWP Yayasan"
+                        label="NIB / NPWP Yayasan (opsional)"
                         hint="PDF/JPG (Maks 5MB)"
-                        required
                         file={data.npwpDoc}
                         onChange={(f) => setData("npwpDoc", f)}
                       />

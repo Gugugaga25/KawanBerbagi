@@ -250,15 +250,26 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
           {/* Dokumen Resmi (Editable) */}
           <div className="mt-4 flex flex-wrap gap-3 mb-2 items-center">
-            <button className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+            {pantiData?.akta_yayasan && (
+            <a href={'/storage/' + pantiData.akta_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
               <FileText size={14} /> Akta Pendirian
-            </button>
-            <button className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+            </a>
+            )}
+            {pantiData?.sk_kemenkumham && (
+            <a href={'/storage/' + pantiData.sk_kemenkumham} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
               <FileText size={14} /> SK Kemenkumham
-            </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs font-bold text-gray-400 hover:text-[#407E8C] hover:border-[#407E8C] transition-colors">
-              <Plus size={14} /> Tambah Dokumen
-            </button>
+            </a>
+            )}
+            {pantiData?.izin_operasional && (
+            <a href={'/storage/' + pantiData.izin_operasional} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+              <FileText size={14} /> Izin Operasional
+            </a>
+            )}
+            {pantiData?.npwp_yayasan && (
+            <a href={'/storage/' + pantiData.npwp_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+              <FileText size={14} /> NPWP Yayasan
+            </a>
+            )}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-medium text-gray-500">
