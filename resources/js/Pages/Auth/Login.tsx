@@ -100,6 +100,13 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {/* Error Message */}
+              {errors.email && (
+                <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-semibold text-center border border-red-200">
+                  Email atau password tidak sesuai
+                </div>
+              )}
+
               {/* Input Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
@@ -231,6 +238,13 @@ export default function Login() {
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {/* Error Message */}
+              {errors.email && (
+                <div className="bg-red-50 text-red-500 p-3.5 rounded-xl text-sm font-semibold text-center border border-red-200">
+                  Email atau password tidak sesuai
+                </div>
+              )}
+
               {/* Input Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
