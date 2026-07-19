@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { MoreVertical, Filter, Plus, Building2, CheckCircle, Clock, Edit, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { MoreVertical, Filter, Plus, Building2, CheckCircle, Clock, Edit, Trash2, CheckCircle2, XCircle, MessageSquare } from 'lucide-react';
 import PantiRegistrationModal from '@/Components/PantiRegistrationModal';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
-import { useForm } from '@inertiajs/react';
+import { useForm, router } from '@inertiajs/react';
 
 const DATA_PANTI = [
   { id: 1, nama: "Yayasan Kasih Ibu", alamat: "Bandung, Jawa Barat", status: "Terverifikasi", pimpinan: "H. Ahmad", anak: 45 },
@@ -131,12 +131,20 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right border-b border-gray-100">
-                      <Dropdown>
-                        <Dropdown.Trigger>
-                          <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
-                            <MoreVertical size={18} />
-                          </button>
-                        </Dropdown.Trigger>
+                      <div className="flex items-center justify-end gap-1">
+                        <button 
+                          onClick={() => router.visit(route('admin.chat.init_panti', { id_panti: panti.id }))}
+                          className="p-2 text-[#5A7C85] hover:text-[#407E8C] hover:bg-[#407E8C]/10 rounded-lg transition-colors mr-1"
+                          title="Hubungi Panti"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
+                        <Dropdown>
+                          <Dropdown.Trigger>
+                            <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
+                              <MoreVertical size={18} />
+                            </button>
+                          </Dropdown.Trigger>
   
                         <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl">
                           <button 
@@ -160,6 +168,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                           </button>
                         </Dropdown.Content>
                       </Dropdown>
+                      </div>
                     </td>
                   </tr>
                 ))

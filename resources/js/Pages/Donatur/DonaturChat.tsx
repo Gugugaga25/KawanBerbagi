@@ -241,7 +241,13 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': csrfToken,
           },
-          body: JSON.stringify({ message: messageText }),
+          body: JSON.stringify({ 
+            message: messageText,
+            history: updatedHistory.map(h => ({
+              role: h.id_sender === auth.user.id_user ? 'user' : 'model',
+              message: h.message
+            }))
+          }),
         });
 
         if (response.ok) {

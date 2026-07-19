@@ -421,6 +421,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/chat/bot/send', [App\Http\Controllers\ChatController::class, 'sendBotMessage'])->name('chat.bot.send');
     Route::post('/chat/{id_chat}/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
 
+    // Admin Chat
+    Route::get('/admin/chat', [App\Http\Controllers\ChatController::class, 'adminIndex'])->name('admin.chat');
+    Route::get('/admin/chat/init/panti/{id_panti}', [App\Http\Controllers\ChatController::class, 'initAdminPantiChat'])->name('admin.chat.init_panti');
+    Route::get('/admin/chat/init/donatur/{id_donatur}', [App\Http\Controllers\ChatController::class, 'initAdminDonaturChat'])->name('admin.chat.init_donatur');
+
 
 
     // Pencarian Panti & Detail Panti

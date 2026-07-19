@@ -1,38 +1,45 @@
 import React from 'react';
-import { router } from '@inertiajs/react';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  PackageSearch, 
+import { router, Link, usePage } from '@inertiajs/react';
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  PackageSearch,
   Flag, // Ditambahkan untuk menu laporan
-  Settings, 
-  LogOut 
+  Settings,
+  LogOut,
+  MessageSquare
 } from 'lucide-react';
 
-import { Link } from '@inertiajs/react';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 
-// Ditambahkan 'laporan' ke dalam tipe Tab
-export type TabType = 'dashboard' | 'panti' | 'donatur' | 'kebutuhan' | 'laporan';
+// Ditambahkan 'laporan' dan 'chat' ke dalam tipe Tab
+export type TabType = 'dashboard' | 'panti' | 'donatur' | 'chat' | 'kebutuhan' | 'laporan';
 
-const SidebarItem = ({ icon: Icon, label, tabId, activeTab, onClick }: { 
-  icon: any, label: string, tabId: TabType, activeTab: string, onClick: (id: TabType) => void 
-}) => (
-  <button 
-    onClick={() => onClick(tabId)}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-      activeTab === tabId 
-        ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10' 
+const SidebarItem = ({ icon: Icon, label, tabId, activeTab, onClick, unreadCount = 0 }: {
+  icon: any, label: string, tabId: TabType, activeTab: string, onClick: (id: TabType) => void, unreadCount?: number
+}) => {
+  const active = activeTab === tabId;
+  return (
+    <button
+      onClick={() => onClick(tabId)}
+      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${active
+        ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10'
         : 'text-[#5A7C85] font-medium hover:bg-[#EAE8E3] hover:text-[#124354]'
-    }`}
-  >
-    <Icon size={20} />
-    <span>{label}</span>
-  </button>
-);
+        }`}
+    >
+      <div className="flex items-center gap-3">
+        <Icon size={20} />
+        <span>{label}</span>
+      </div>
+      {tabId === 'chat' && unreadCount > 0 && (
+        <span className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-xs animate-pulse" />
+      )}
+    </button>
+  );
+};
 
 interface AdminSidebarProps {
   activeTab: TabType;
@@ -40,10 +47,46 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
+  const { auth } = usePage().props as any;
+  const [unreadCount, setUnreadCount] = React.useState(auth?.unread_chat_count ?? 0);
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
-  
+
+  React.useEffect(() => {
+    setUnreadCount(auth?.unread_chat_count ?? 0);
+  }, [auth?.unread_chat_count]);
+
+  React.useEffect(() => {
+    const checkUnread = async () => {
+      try {
+        const res = await fetch('/chat/unread-count', {
+          headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.unread_chat_count);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    checkUnread();
+    const interval = setInterval(checkUnread, 10000);
+
+    const handleUpdate = (e: CustomEvent) => {
+      setUnreadCount(e.detail.unread_chat_count);
+    };
+
+    window.addEventListener('unread-chat-count-updated', handleUpdate as any);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('unread-chat-count-updated', handleUpdate as any);
+    };
+  }, []);
+
   const handleLogout = () => {
-    router.post('/logout'); 
+    router.post('/logout');
   };
 
   return (
@@ -65,17 +108,18 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
         <SidebarItem icon={LayoutDashboard} label="Dashboard" tabId="dashboard" activeTab={activeTab} onClick={onTabChange} />
         <SidebarItem icon={Building2} label="Manajemen Panti" tabId="panti" activeTab={activeTab} onClick={onTabChange} />
         <SidebarItem icon={Users} label="Data Donatur" tabId="donatur" activeTab={activeTab} onClick={onTabChange} />
+        <SidebarItem icon={MessageSquare} label="Pesan Chat" tabId="chat" activeTab={activeTab} onClick={onTabChange} unreadCount={unreadCount} />
         <SidebarItem icon={PackageSearch} label="Kebutuhan" tabId="kebutuhan" activeTab={activeTab} onClick={onTabChange} />
-        
-        {/* Navigasi Baru untuk Halaman Daftar Laporan */}
         <SidebarItem icon={Flag} label="Laporan & Aduan" tabId="laporan" activeTab={activeTab} onClick={onTabChange} />
+
+
       </nav>
 
       <div className="p-4 border-t border-gray-100 space-y-1">
         <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354] rounded-xl font-medium transition-colors text-sm">
           <Settings size={18} /> Pengaturan
         </button>
-        <button 
+        <button
           onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left"
         >

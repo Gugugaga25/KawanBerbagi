@@ -50,6 +50,12 @@ class HandleInertiaRequests extends Middleware
                       ->where('is_read', false)
                       ->count();
                 }
+            } elseif ($user->id_role_user === 'RL01ADM') {
+                $unreadChatCount = \App\Models\Message::whereIn('id_chat', function ($query) use ($user) {
+                    $query->select('id_chat')->from('chats')->where('id_admin', $user->id_user);
+                })->where('id_sender', '!=', $user->id_user)
+                  ->where('is_read', false)
+                  ->count();
             }
         }
 

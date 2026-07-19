@@ -15,7 +15,13 @@ class Chat extends Model
     protected $fillable = [
         'id_donor',
         'id_shelter',
+        'id_admin',
     ];
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'id_admin', 'id_user');
+    }
 
     public function donor()
     {

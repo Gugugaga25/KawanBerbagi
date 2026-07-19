@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class GeminiService
 {
     protected $apiKey;
-    protected $baseUrl = 'https://generativelanguage.googleapis.com/v1/models';
+    protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
     protected $model = 'gemini-3.1-flash-lite';
 
     public function __construct()
@@ -35,6 +35,9 @@ class GeminiService
                         ['text' => $prompt]
                     ]
                 ]
+            ],
+            'generationConfig' => [
+                'maxOutputTokens' => 150,
             ]
         ];
 
@@ -63,16 +66,84 @@ class GeminiService
     }
 
     /**
-     * Extract search parameters (item, location, kategori) from user message.
+     * Call the Gemini API generateContent endpoint with conversation history.
      */
-    public function extractSearchParams(string $message): array
+    protected function generateContentWithHistory(array $history, $systemInstruction = null)
     {
+        if (!$this->apiKey) {
+            Log::error('Gemini API key is not configured in .env file.');
+            return null;
+        }
+
+        $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $contents = [];
+        foreach ($history as $chat) {
+            $contents[] = [
+                'role' => $chat['role'] === 'model' ? 'model' : 'user',
+                'parts' => [
+                    ['text' => $chat['message']]
+                ]
+            ];
+        }
+
+        $payload = [
+            'contents' => $contents,
+            'generationConfig' => [
+                'maxOutputTokens' => 150,
+            ]
+        ];
+
+        if ($systemInstruction) {
+            $payload['systemInstruction'] = [
+                'parts' => [
+                    ['text' => $systemInstruction]
+                ]
+            ];
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            }
+
+            Log::error('Gemini API request failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Gemini API exception', ['message' => $e->getMessage()]);
+            return null;
+        }
+    }
+
+    /**
+     * Extract search parameters (item, location, kategori) from conversation history.
+     */
+    public function extractSearchParams(array $history): array
+    {
+        $historyStr = "";
+        foreach ($history as $h) {
+            $roleName = $h['role'] === 'model' ? 'Asisten AI' : 'Donatur';
+            $historyStr .= "{$roleName}: {$h['message']}\n";
+        }
+
         $prompt = <<<PROMPT
-Analisis pesan bahasa Indonesia berikut dari donatur yang ingin melakukan donasi ke panti asuhan:
-"{$message}"
+Analisis percakapan bahasa Indonesia berikut dari donatur yang ingin melakukan donasi ke panti asuhan:
+---
+{$historyStr}
+---
+
+Tugas Anda: Ekstrak parameter pencarian berdasarkan pesan terakhir dari donatur, dengan mempertimbangkan konteks percakapan di atas jika pesan terakhir kurang spesifik (misal: jika donatur sebelumnya mencari "beras di Bandung" lalu bertanya "Ada panti lainnya?", maka item tetap "beras" dan lokasi tetap "bandung").
 
 Ekstrak parameter pencarian dan kembalikan HANYA objek JSON dengan properti berikut:
-1. "item": string atau null. Nama barang spesifik yang ingin didonasikan (misal: "baju batik", "beras", "susu bayi").
+1. "item": string atau null. Nama barang spesifik yang ingin didonasikan (misal: "baju batik", "beras", "susu bayi"). Lakukan pemetaan sinonim cerdas ke kata benda yang lebih spesifik yang mungkin ada di database (misalnya: jika donatur mengetik "sembako", petakan menjadi "beras" atau "minyak goreng"; jika mengetik "baju bekas" atau "pakaian layak pakai", petakan menjadi "pakaian"; jika mengetik "buku tulis", petakan menjadi "buku").
 2. "location": string atau null. Nama kota, kabupaten, atau daerah (misal: "bogor", "bandung", "jakarta timur"). Cukup ambil nama daerah/kotanya saja tanpa kata jalan/jalan raya jika ada.
 3. "kategori": string atau null. Harus merupakan salah satu dari kategori berikut sesuai jenis barangnya:
    - "Pangan" (jika berkaitan dengan makanan/minuman seperti beras, minyak, mie instan, bumbu dapur)
@@ -83,9 +154,9 @@ Ekstrak parameter pencarian dan kembalikan HANYA objek JSON dengan properti beri
 
 Format output harus berupa JSON valid tanpa markdown code block. Contoh:
 {
-  "item": "baju batik",
-  "location": "bogor",
-  "kategori": "Sandang"
+  "item": "beras",
+  "location": "bandung",
+  "kategori": "Pangan"
 }
 PROMPT;
 
@@ -110,7 +181,7 @@ PROMPT;
     /**
      * Synthesize the final assistant response using the search results and query type.
      */
-    public function synthesizeResponse(string $userMessage, array $searchParams, array $shelters, bool $isFallback): string
+    public function synthesizeResponse(array $history, array $searchParams, array $shelters, bool $isFallback): string
     {
         $shelterContext = [];
         foreach ($shelters as $s) {
@@ -125,12 +196,11 @@ PROMPT;
         $paramsStr = json_encode($searchParams);
         $fallbackStatus = $isFallback ? 'true' : 'false';
 
-        $prompt = <<<PROMPT
+        $systemInstruction = <<<PROMPT
 Anda adalah "Asisten AI KawanBerbagi", konsultan pintar AI yang membantu donatur menemukan panti asuhan yang membutuhkan bantuan mereka.
 Tugas Anda adalah merespons pesan pengguna secara ramah, sopan, dan persuasif dalam bahasa Indonesia.
 
-Pesan Pengguna: "{$userMessage}"
-Parameter Ekstraksi: {$paramsStr}
+Parameter Ekstraksi Saat Ini: {$paramsStr}
 Apakah Menggunakan Pencarian Fallback (Kategori Umum): {$fallbackStatus}
 Data Panti yang Ditemukan di Database:
 ---
@@ -145,11 +215,9 @@ ATURAN MERESPONS:
    "ini ada yang membutuhkan [KATEGORI/BARANG_UMUM] tapi tidak spesifik [BARANG_SPESIFIK] silakan konfirmasi dahulu ke pantinya"
    Contoh: Jika donatur mencari "baju batik" (Sandang) dan kita mengembalikan panti yang butuh "pakaian hangat/selimut", Anda harus menulis: "ini ada yang membutuhkan baju/pakaian tapi tidak spesifik baju batik silakan konfirmasi dahulu ke pantinya". Sesuaikan kata barang umum dan barang spesifiknya dengan konteks obrolan.
 4. Jika tidak ada panti yang ditemukan sama sekali, beri tahu donatur dengan sopan bahwa saat ini belum ada panti asuhan di lokasi tersebut yang mencantumkan kebutuhan tersebut, dan sarankan untuk mencari lokasi terdekat atau jenis bantuan lain.
-5. Jaga agar tanggapan Anda tetap ringkas (maksimal 3-4 kalimat).
-
-Tulis respon Anda sekarang:
+5. Jaga agar tanggapan Anda sangat singkat dan padat (maksimal 2 kalimat atau kurang dari 40 kata).
 PROMPT;
 
-        return $this->generateContent($prompt, false) ?? "Halo! Maaf, saya sedang mengalami kendala koneksi ke server AI. Namun berikut adalah beberapa panti asuhan yang berhasil ditemukan berdasarkan pencarian database.";
+        return $this->generateContentWithHistory($history, $systemInstruction) ?? "Halo! Maaf, saya sedang mengalami kendala koneksi ke server AI. Namun berikut adalah beberapa panti asuhan yang berhasil ditemukan berdasarkan pencarian database.";
     }
 }

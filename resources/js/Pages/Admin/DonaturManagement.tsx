@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Filter, Plus, Mail, Award, MoreVertical, Edit, Trash2 } from 'lucide-react';
-import { useForm } from '@inertiajs/react';
+import { Filter, Plus, Mail, Award, MoreVertical, Edit, Trash2, MessageSquare } from 'lucide-react';
+import { useForm, router } from '@inertiajs/react';
 import DonaturRegistrationModal from '@/Components/DonaturRegistrationModal';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
@@ -122,12 +122,20 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                       {donor.terakhir}
                     </td>
                     <td className="px-6 py-4 text-right border-b border-gray-100">
-                      <Dropdown>
-                        <Dropdown.Trigger>
-                          <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
-                            <MoreVertical size={18} />
-                          </button>
-                        </Dropdown.Trigger>
+                      <div className="flex items-center justify-end gap-1">
+                        <button 
+                          onClick={() => router.visit(route('admin.chat.init_donatur', { id_donatur: donor.id }))}
+                          className="p-2 text-[#5A7C85] hover:text-[#407E8C] hover:bg-[#407E8C]/10 rounded-lg transition-colors mr-1"
+                          title="Hubungi Donatur"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
+                        <Dropdown>
+                          <Dropdown.Trigger>
+                            <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
+                              <MoreVertical size={18} />
+                            </button>
+                          </Dropdown.Trigger>
 
                         <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl">
                           <button 
@@ -145,6 +153,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                           </button>
                         </Dropdown.Content>
                       </Dropdown>
+                      </div>
                     </td>
                   </tr>
                 ))

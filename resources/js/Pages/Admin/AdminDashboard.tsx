@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react'; 
+import { router } from '@inertiajs/react';
 
 // Import komponen dari file terpisah
 import PantiManagement from './PantiManagement';
@@ -53,6 +54,10 @@ export default function AdminDashboard({
 
   // Fungsi ganti tab dan update URL tanpa reload
   const handleTabChange = (tab: TabType) => {
+    if (tab === 'chat') {
+      router.visit(route('admin.chat'));
+      return;
+    }
     setActiveTab(tab);
     setIsMobileMenuOpen(false); 
     
