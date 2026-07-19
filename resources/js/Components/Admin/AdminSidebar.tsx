@@ -15,8 +15,8 @@ import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 
-// Ditambahkan 'laporan' dan 'chat' ke dalam tipe Tab
-export type TabType = 'dashboard' | 'panti' | 'donatur' | 'chat' | 'kebutuhan' | 'laporan';
+// Ditambahkan 'laporan', 'chat', dan 'pengaturan' ke dalam tipe Tab
+export type TabType = 'dashboard' | 'panti' | 'donatur' | 'chat' | 'kebutuhan' | 'laporan' | 'pengaturan';
 
 const SidebarItem = ({ icon: Icon, label, tabId, activeTab, onClick, unreadCount = 0 }: {
   icon: any, label: string, tabId: TabType, activeTab: string, onClick: (id: TabType) => void, unreadCount?: number
@@ -116,7 +116,14 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
       </nav>
 
       <div className="p-4 border-t border-gray-100 space-y-1">
-        <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354] rounded-xl font-medium transition-colors text-sm">
+        <button
+          onClick={() => onTabChange('pengaturan')}
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition-colors text-sm ${
+            activeTab === 'pengaturan'
+              ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10'
+              : 'text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354]'
+          }`}
+        >
           <Settings size={18} /> Pengaturan
         </button>
         <button

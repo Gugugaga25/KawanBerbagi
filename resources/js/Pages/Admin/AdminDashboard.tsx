@@ -8,6 +8,7 @@ import DonaturManagement from './DonaturManagement';
 import KebutuhanManagement from './KebutuhanManagement';
 import DashboardOverview from './DashboardOverview';
 import Laporan from './Laporan'; 
+import AdminSettings from './AdminSettings';
 import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
 
@@ -40,7 +41,7 @@ export default function AdminDashboard({
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab') as TabType;
       
-      if (tabParam && ['dashboard', 'panti', 'donatur', 'kebutuhan', 'laporan'].includes(tabParam)) {
+      if (tabParam && ['dashboard', 'panti', 'donatur', 'kebutuhan', 'laporan', 'pengaturan'].includes(tabParam)) {
         setActiveTab(tabParam);
       } else {
         setActiveTab('dashboard');
@@ -80,6 +81,8 @@ export default function AdminDashboard({
       case 'laporan': 
         // 3. FIX: Oper prop auth dan reports ke komponen Laporan
         return <Laporan auth={auth} reports={laporans} />;
+      case 'pengaturan':
+        return <AdminSettings auth={auth} />;
       case 'dashboard':
       default: 
         return <DashboardOverview />;
