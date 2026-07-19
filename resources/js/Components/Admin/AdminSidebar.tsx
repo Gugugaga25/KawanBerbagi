@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 
 import { Link } from '@inertiajs/react';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
 
 // Ditambahkan 'laporan' ke dalam tipe Tab
 export type TabType = 'dashboard' | 'panti' | 'donatur' | 'kebutuhan' | 'laporan';
@@ -37,12 +40,9 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
   
-  // Fungsi logout dimasukkan ke sini dan diberi type event-nya
-  const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    
-    // Langsung nembak ke route POST /logout bawaan Laravel via Inertia
+  const handleLogout = () => {
     router.post('/logout'); 
   };
 
@@ -75,15 +75,32 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
         <button className="w-full flex items-center gap-3 px-4 py-2.5 text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354] rounded-xl font-medium transition-colors text-sm">
           <Settings size={18} /> Pengaturan
         </button>
-        <Link 
-          href={route('logout')} 
-          method="post" 
-          as="button"
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm"
+        <button 
+          onClick={() => setShowLogoutModal(true)}
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left"
         >
           <LogOut size={18} /> Keluar
-        </Link>
+        </button>
       </div>
+
+      <Modal show={showLogoutModal} onClose={() => setShowLogoutModal(false)} maxWidth="sm">
+        <div className="p-6">
+          <h2 className="text-lg font-bold text-[#124354]">
+            Konfirmasi Keluar
+          </h2>
+          <p className="mt-2 text-sm text-gray-500 font-medium">
+            Apakah Anda yakin ingin keluar?
+          </p>
+          <div className="mt-6 flex justify-end gap-3">
+            <SecondaryButton onClick={() => setShowLogoutModal(false)}>
+              Batal
+            </SecondaryButton>
+            <DangerButton onClick={handleLogout}>
+              Ya, Keluar
+            </DangerButton>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 }

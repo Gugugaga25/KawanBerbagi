@@ -486,8 +486,8 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-extrabold text-xs text-[#124354] truncate">{activeChat.shelter.nama_yayasan}</h4>
-                      <p className="text-[9px] text-gray-400 font-medium">
+                      <h4 className="font-extrabold text-sm text-[#124354] truncate">{activeChat.shelter.nama_yayasan}</h4>
+                      <p className="text-xs text-gray-400 font-medium">
                         {isAiSelected ? 'Online' : `@${activeChat.shelter.username}`}
                       </p>
                     </div>
@@ -496,7 +496,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                   {/* Chat Messages List */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
                     {loadingMessages ? (
-                      <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+                      <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
                         Memuat riwayat chat...
                       </div>
                     ) : messages.length > 0 ? (
@@ -508,7 +508,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                             className={`flex flex-col max-w-[75%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
                           >
                             <div 
-                              className={`p-3 rounded-2xl text-xs font-semibold shadow-xs ${
+                              className={`p-3 rounded-2xl text-sm font-semibold shadow-xs ${
                                 isMe 
                                   ? 'bg-[#083A4F] text-white rounded-tr-none' 
                                   : 'bg-white text-[#124354] border border-gray-100 rounded-tl-none'
@@ -519,7 +519,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                               {/* Render Interactive Recommended Shelters Cards */}
                               {msg.shelters && msg.shelters.length > 0 && (
                                 <div className="mt-3 space-y-3 w-full max-w-sm text-left">
-                                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Rekomendasi Panti Asuhan:</p>
+                                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Rekomendasi Panti Asuhan:</p>
                                   <div className="grid grid-cols-1 gap-2.5">
                                     {msg.shelters.map((shelter) => (
                                       <div 
@@ -535,14 +535,14 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                                             )}
                                           </div>
                                           <div className="min-w-0 flex-1">
-                                            <h5 className="font-extrabold text-[11px] text-[#124354] truncate">{shelter.nama_yayasan}</h5>
-                                            <p className="text-[9px] text-gray-400 truncate">{shelter.alamat}</p>
+                                            <h5 className="font-extrabold text-xs text-[#124354] truncate">{shelter.nama_yayasan}</h5>
+                                            <p className="text-[10px] text-gray-400 truncate">{shelter.alamat}</p>
                                           </div>
                                         </div>
 
                                         {/* Panti Specific Needs */}
                                         {shelter.needs && shelter.needs.length > 0 && (
-                                          <div className="bg-white border border-gray-100 p-2 rounded-xl text-[10px]">
+                                          <div className="bg-white border border-gray-100 p-2 rounded-xl text-xs">
                                             <p className="font-bold text-gray-600 mb-1">Kebutuhan terdeteksi:</p>
                                             <ul className="space-y-0.5 text-gray-500 font-semibold">
                                               {shelter.needs.map((need: any) => (
@@ -560,7 +560,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                                         <button
                                           type="button"
                                           onClick={() => router.visit(route('donatur.panti.show', { id: shelter.id_shelter }))}
-                                          className="w-full py-1.5 bg-[#083A4F] hover:bg-[#124354] text-white text-[10px] font-bold rounded-xl transition text-center shadow-xs"
+                                          className="w-full py-1.5 bg-[#083A4F] hover:bg-[#124354] text-white text-xs font-bold rounded-xl transition text-center shadow-xs"
                                         >
                                           Kunjungi Profil
                                         </button>
@@ -571,7 +571,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                               )}
                             </div>
                             <div className="flex items-center gap-1 mt-1 px-1">
-                              <span className="text-[8px] text-gray-400">
+                              <span className="text-xs text-gray-400">
                                 {formatTime(msg.created_at)}
                               </span>
                               {isMe && !isAiSelected && (
@@ -588,14 +588,14 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
                         <MessageSquare size={36} className="mb-2 opacity-30 text-[#124354]" />
-                        <p className="text-xs font-bold">Kirim pesan pertama Anda</p>
-                        <p className="text-[10px] mt-1">Mulailah obrolan hangat dengan {activeChat.shelter.nama_yayasan}.</p>
+                        <p className="text-sm font-bold">Kirim pesan pertama Anda</p>
+                        <p className="text-xs mt-1">Mulailah obrolan hangat dengan {activeChat.shelter.nama_yayasan}.</p>
                       </div>
                     )}
                     {isBotTyping && (
                       <div className="flex flex-col max-w-[75%] self-start items-start">
-                        <div className="p-3 rounded-2xl text-xs font-semibold shadow-xs bg-white text-[#124354] border border-gray-100 rounded-tl-none flex items-center gap-1.5">
-                          <span className="text-[10px] text-gray-400 animate-pulse font-semibold">Mengetik</span>
+                        <div className="p-3 rounded-2xl text-sm font-semibold shadow-xs bg-white text-[#124354] border border-gray-100 rounded-tl-none flex items-center gap-1.5">
+                          <span className="text-xs text-gray-400 animate-pulse font-semibold">Mengetik</span>
                           <span className="flex gap-1">
                             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                             <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -614,7 +614,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Tulis pesan..."
-                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-xs outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
+                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-sm outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
                     />
                     <button
                       type="submit"

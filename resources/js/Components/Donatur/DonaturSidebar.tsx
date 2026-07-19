@@ -8,6 +8,9 @@ import {
   LogOut,
   MessageCircle,
 } from 'lucide-react';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
 
 const COLORS = {
   navy: '#083A4F',
@@ -106,8 +109,14 @@ export default function DonaturSidebar({
     };
   }, []);
 
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+
   const handleLogout = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    setShowLogoutModal(true);
+  };
+
+  const executeLogout = () => {
     router.post('/logout');
   };
 
@@ -144,11 +153,30 @@ export default function DonaturSidebar({
       <div className="p-4 border-t border-gray-100 space-y-1">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left"
         >
           <LogOut size={18} /> Keluar
         </button>
       </div>
+
+      <Modal show={showLogoutModal} onClose={() => setShowLogoutModal(false)} maxWidth="sm">
+        <div className="p-6">
+          <h2 className="text-lg font-bold text-[#124354]">
+            Konfirmasi Keluar
+          </h2>
+          <p className="mt-2 text-sm text-gray-500 font-medium">
+            Apakah Anda yakin ingin keluar?
+          </p>
+          <div className="mt-6 flex justify-end gap-3">
+            <SecondaryButton onClick={() => setShowLogoutModal(false)}>
+              Batal
+            </SecondaryButton>
+            <DangerButton onClick={executeLogout}>
+              Ya, Keluar
+            </DangerButton>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 }

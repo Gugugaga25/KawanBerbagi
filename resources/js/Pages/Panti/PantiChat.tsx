@@ -328,15 +328,15 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-extrabold text-xs text-[#124354] truncate">{activeChat.donor.nama_lengkap}</h4>
-                      <p className="text-[9px] text-gray-400 font-medium">Donatur</p>
+                      <h4 className="font-extrabold text-sm text-[#124354] truncate">{activeChat.donor.nama_lengkap}</h4>
+                      <p className="text-xs text-gray-400 font-medium">Donatur</p>
                     </div>
                   </div>
 
                   {/* Chat Messages List */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
                     {loadingMessages ? (
-                      <div className="flex-1 flex items-center justify-center text-xs text-gray-400">
+                      <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
                         Memuat riwayat chat...
                       </div>
                     ) : messages.length > 0 ? (
@@ -348,7 +348,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                             className={`flex flex-col max-w-[75%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
                           >
                             <div 
-                              className={`p-3 rounded-2xl text-xs font-semibold shadow-xs ${
+                              className={`p-3 rounded-2xl text-sm font-semibold shadow-xs ${
                                 isMe 
                                   ? 'bg-[#083A4F] text-white rounded-tr-none' 
                                   : 'bg-white text-[#124354] border border-gray-100 rounded-tl-none'
@@ -357,7 +357,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                               <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>
                             </div>
                             <div className="flex items-center gap-1 mt-1 px-1">
-                              <span className="text-[8px] text-gray-400">
+                              <span className="text-xs text-gray-400">
                                 {formatTime(msg.created_at)}
                               </span>
                               {isMe && (
@@ -374,7 +374,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
                         <MessageSquare size={36} className="mb-2 opacity-30 text-[#124354]" />
-                        <p className="text-xs font-bold">Belum ada percakapan</p>
+                        <p className="text-sm font-bold">Belum ada percakapan</p>
                       </div>
                     )}
                     <div ref={messagesEndRef} />
@@ -387,7 +387,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Tulis pesan..."
-                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-xs outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
+                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-sm outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
                     />
                     <button
                       type="submit"
