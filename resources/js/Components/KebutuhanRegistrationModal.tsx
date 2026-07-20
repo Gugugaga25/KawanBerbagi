@@ -1,6 +1,9 @@
 import React, { FormEventHandler } from 'react';
-import { X, Building2 } from 'lucide-react';
+import { X, Building2, ChevronDown, Search, Check } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
+import CharCounter from '@/Components/Form/CharCounter';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast } from '@/Components/UI/Toast';
 
 interface KebutuhanRegistrationModalProps {
   isOpen: boolean;
@@ -10,6 +13,7 @@ interface KebutuhanRegistrationModalProps {
 }
 
 export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShelters = [], editData = null }: KebutuhanRegistrationModalProps) {
+  const { showToast } = useToast();
   const { data, setData, post, patch, processing, errors, reset, clearErrors } = useForm({
     id_shelter: '',
     nama_kebutuhan: '',
@@ -18,10 +22,15 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
     is_mendesak: false,
   });
 
+  const [shelterSearch, setShelterSearch] = React.useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
     if (editData && isOpen) {
       // Cari ID panti berdasarkan nama yayasan jika tidak ada id
-      const shelterId = activeShelters.find(s => s.nama === editData.panti)?.id || '';
+      const shelter = activeShelters.find(s => s.nama === editData.panti);
+      const shelterId = shelter?.id || '';
       
       setData({
         id_shelter: shelterId.toString(),
@@ -30,10 +39,33 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
         satuan: editData.satuan,
         is_mendesak: editData.mendesak,
       });
+      if (shelter) setShelterSearch(shelter.nama);
     } else {
       reset();
+      setShelterSearch('');
     }
   }, [editData, isOpen]);
+
+  React.useEffect(() => {
+    if (data.id_shelter) {
+      const selected = activeShelters.find(s => s.id.toString() === data.id_shelter.toString());
+      if (selected) setShelterSearch(selected.nama);
+    }
+  }, [data.id_shelter, activeShelters]);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredShelters = activeShelters.filter(shelter =>
+    shelter.nama.toLowerCase().includes(shelterSearch.toLowerCase())
+  );
 
   if (!isOpen) return null;
 
@@ -42,18 +74,26 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
     if (editData) {
       patch(route('admin.kebutuhan.update', editData.id), {
         onSuccess: () => {
+          showToast(`Kebutuhan barang "${data.nama_kebutuhan}" berhasil diperbarui.`, 'success', 'Pembaruan Sukses');
           reset();
           clearErrors();
           onClose();
         },
+        onError: () => {
+          showToast('Gagal memperbarui kebutuhan barang. Periksa kembali form.', 'error', 'Pembaruan Gagal');
+        }
       });
     } else {
       post(route('admin.kebutuhan.store'), {
         onSuccess: () => {
+          showToast(`Kebutuhan barang "${data.nama_kebutuhan}" berhasil ditambahkan.`, 'success', 'Penambahan Sukses');
           reset();
           clearErrors();
           onClose();
         },
+        onError: () => {
+          showToast('Gagal menambahkan kebutuhan barang baru. Periksa kembali form.', 'error', 'Penambahan Gagal');
+        }
       });
     }
   };
@@ -96,43 +136,97 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
         <div className="p-6 overflow-y-auto">
           <form id="kebutuhan-form" onSubmit={handleSubmit} className="space-y-6">
             
-            {/* Panti Asuhan */}
-            <div className="space-y-2">
+            {/* Panti Asuhan Searchable Dropdown */}
+            <div className="space-y-2 relative" ref={dropdownRef}>
               <label className="text-sm font-semibold text-[#124354]">
                 Pilih Panti Asuhan <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  <Building2 size={18} />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                  <Building2 size={18} className="text-[#124354]/60" />
                 </div>
-                <select
-                  required
-                  value={data.id_shelter}
-                  onChange={e => setData('id_shelter', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm appearance-none bg-white"
+                <input
+                  type="text"
+                  required={!data.id_shelter}
+                  value={shelterSearch}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  onChange={(e) => {
+                    setShelterSearch(e.target.value);
+                    setIsDropdownOpen(true);
+                    const match = activeShelters.find(s => s.nama.toLowerCase() === e.target.value.toLowerCase());
+                    if (match) {
+                      setData('id_shelter', match.id.toString());
+                    } else {
+                      setData('id_shelter', '');
+                    }
+                  }}
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm font-semibold text-[#124354] bg-white placeholder:text-gray-400"
+                  placeholder="Cari atau pilih nama Panti Asuhan..."
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#124354] transition-colors"
+                  title="Tampilkan daftar panti"
                 >
-                  <option value="" disabled>-- Pilih Panti --</option>
-                  {activeShelters.map((shelter) => (
-                    <option key={shelter.id} value={shelter.id}>
-                      {shelter.nama}
-                    </option>
-                  ))}
-                </select>
+                  <ChevronDown size={18} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-[#124354]' : ''}`} />
+                </button>
               </div>
+
+              {/* Floating Dropdown List */}
+              {isDropdownOpen && (
+                <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-2xl shadow-xl max-h-44 overflow-y-auto py-1 space-y-0.5 border border-gray-100">
+                  {filteredShelters.length > 0 ? (
+                    filteredShelters.map((shelter) => {
+                      const isSelected = data.id_shelter.toString() === shelter.id.toString();
+                      return (
+                        <button
+                          key={shelter.id}
+                          type="button"
+                          onClick={() => {
+                            setData('id_shelter', shelter.id.toString());
+                            setShelterSearch(shelter.nama);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`w-full px-4 py-2.5 text-left text-xs font-semibold flex items-center justify-between transition-colors ${
+                            isSelected 
+                              ? 'bg-[#124354]/10 text-[#124354] font-bold' 
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Building2 size={14} className={isSelected ? 'text-[#124354]' : 'text-gray-400'} />
+                            <span className="truncate">{shelter.nama}</span>
+                          </div>
+                          {isSelected && <Check size={14} className="text-[#124354] shrink-0" />}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="px-4 py-3 text-xs text-gray-400 text-center flex items-center justify-center gap-1.5">
+                      <Search size={14} /> Panti asuhan tidak ditemukan
+                    </div>
+                  )}
+                </div>
+              )}
               {errors.id_shelter && <p className="text-red-500 text-xs mt-1">{errors.id_shelter}</p>}
             </div>
 
             {/* Nama Barang */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-[#124354]">
-                Nama Barang <span className="text-red-500">*</span>
-              </label>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-[#124354]">
+                  Nama Barang <span className="text-red-500">*</span>
+                </label>
+                <CharCounter current={data.nama_kebutuhan.length} max={60} />
+              </div>
               <input
                 type="text"
                 required
+                maxLength={60}
                 value={data.nama_kebutuhan}
                 onChange={e => setData('nama_kebutuhan', e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm font-medium"
                 placeholder="Contoh: Beras, Susu Bayi, Selimut"
               />
               {errors.nama_kebutuhan && <p className="text-red-500 text-xs mt-1">{errors.nama_kebutuhan}</p>}
@@ -158,15 +252,19 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
 
               {/* Satuan */}
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#124354]">
-                  Satuan <span className="text-red-500">*</span>
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-semibold text-[#124354]">
+                    Satuan <span className="text-red-500">*</span>
+                  </label>
+                  <CharCounter current={data.satuan.length} max={20} />
+                </div>
                 <input
                   type="text"
                   required
+                  maxLength={20}
                   value={data.satuan}
                   onChange={e => setData('satuan', e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm font-medium"
                   placeholder="Contoh: kg, kaleng, dus"
                 />
                 {errors.satuan && <p className="text-red-500 text-xs mt-1">{errors.satuan}</p>}
@@ -201,14 +299,24 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
           >
             Batal
           </button>
-          <button
-            type="submit"
-            form="kebutuhan-form"
-            disabled={processing}
-            className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#124354] hover:bg-[#0E3544] transition-colors shadow-sm disabled:opacity-50"
-          >
-            {processing ? 'Menyimpan...' : (editData ? 'Simpan Perubahan' : 'Simpan Kebutuhan')}
-          </button>
+          {(() => {
+            const isFormValid = Boolean(data.id_shelter && data.nama_kebutuhan && data.jumlah && data.satuan);
+            return (
+              <button
+                type="submit"
+                form="kebutuhan-form"
+                disabled={processing || !isFormValid}
+                className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2 ${
+                  isFormValid 
+                    ? 'bg-[#124354] hover:bg-[#0E3544] text-white cursor-pointer' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
+              >
+                {processing && <InlineSpinner color="white" size="sm" />}
+                <span>{processing ? 'Menyimpan...' : (editData ? 'Simpan Perubahan' : 'Simpan Kebutuhan')}</span>
+              </button>
+            );
+          })()}
         </div>
       </div>
     </div>

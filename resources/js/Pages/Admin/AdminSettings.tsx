@@ -1,6 +1,12 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 import { User, Lock, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import PasswordChecklist from '@/Components/Form/PasswordChecklist';
+import CharCounter from '@/Components/Form/CharCounter';
+import { validatePasswordRequirements } from '@/Utils/formUtils';
+import { useToast } from '@/Components/UI/Toast';
+import InlineError from '@/Components/UI/InlineError';
 
 export default function AdminSettings({ auth }: { auth: any }) {
   // Form Info Profil
@@ -35,15 +41,24 @@ export default function AdminSettings({ auth }: { auth: any }) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
+  const { showToast } = useToast();
+
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    patchProfile(route('profile.update'));
+    patchProfile(route('profile.update'), {
+      onSuccess: () => {
+        showToast('Informasi profil Anda berhasil diperbarui.', 'success', 'Profil Diperbarui');
+      }
+    });
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     putPassword(route('password.update'), {
-      onSuccess: () => resetPassword(),
+      onSuccess: () => {
+        resetPassword();
+        showToast('Kata sandi Anda berhasil diperbarui.', 'success', 'Keamanan Terjaga');
+      },
     });
   };
 
@@ -80,38 +95,51 @@ export default function AdminSettings({ auth }: { auth: any }) {
 
             <form onSubmit={handleProfileSubmit} className="space-y-5">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#124354] uppercase tracking-wider pl-1">Nama Tampilan</label>
+                <div className="flex justify-between items-center pl-1">
+                  <label className="text-xs font-bold text-[#124354] uppercase tracking-wider">Nama Tampilan</label>
+                  <CharCounter current={profileData.name.length} max={50} />
+                </div>
                 <input 
                   type="text" 
                   required
+                  maxLength={50}
                   value={profileData.name}
                   onChange={e => setProfileData('name', e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all font-semibold"
+                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 transition-all font-semibold ${
+                    profileErrors.name ? 'border-red-400 bg-red-50/20' : 'border-gray-200 focus:border-[#407E8C]'
+                  }`}
                   placeholder="Nama Admin..."
                 />
-                {profileErrors.name && <p className="text-red-500 text-xs mt-1">{profileErrors.name}</p>}
+                <InlineError message={profileErrors.name} />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#124354] uppercase tracking-wider pl-1">Alamat Email</label>
+                <div className="flex justify-between items-center pl-1">
+                  <label className="text-xs font-bold text-[#124354] uppercase tracking-wider">Alamat Email</label>
+                  <CharCounter current={profileData.email.length} max={80} />
+                </div>
                 <input 
                   type="email" 
                   required
+                  maxLength={80}
                   value={profileData.email}
                   onChange={e => setProfileData('email', e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all font-semibold"
+                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 transition-all font-semibold ${
+                    profileErrors.email ? 'border-red-400 bg-red-50/20' : 'border-gray-200 focus:border-[#407E8C]'
+                  }`}
                   placeholder="Email Admin..."
                 />
-                {profileErrors.email && <p className="text-red-500 text-xs mt-1">{profileErrors.email}</p>}
+                <InlineError message={profileErrors.email} />
               </div>
 
               <div className="pt-4">
                 <button
                   type="submit"
                   disabled={profileProcessing}
-                  className="px-6 py-3 bg-[#124354] hover:bg-[#0c2e3a] text-white font-bold rounded-xl transition duration-150 shadow-md shadow-[#124354]/10 disabled:opacity-50"
+                  className="px-6 py-3 bg-[#124354] hover:bg-[#0c2e3a] text-white font-bold rounded-xl transition duration-150 shadow-md shadow-[#124354]/10 disabled:opacity-50 flex items-center gap-2"
                 >
-                  {profileProcessing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                  {profileProcessing && <InlineSpinner color="white" size="sm" />}
+                  <span>{profileProcessing ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
                 </button>
               </div>
             </form>
@@ -205,14 +233,32 @@ export default function AdminSettings({ auth }: { auth: any }) {
                 {passwordErrors.password_confirmation && <p className="text-red-500 text-xs mt-1">{passwordErrors.password_confirmation}</p>}
               </div>
 
+              {/* Password Requirements Checklist */}
+              <PasswordChecklist 
+                password={passwordData.password} 
+                confirmation={passwordData.password_confirmation} 
+              />
+
               <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={passwordProcessing}
-                  className="px-6 py-3 bg-[#A58D66] hover:bg-[#8e7651] text-white font-bold rounded-xl transition duration-150 shadow-md shadow-[#A58D66]/10 disabled:opacity-50"
-                >
-                  {passwordProcessing ? 'Menyimpan...' : 'Perbarui Sandi'}
-                </button>
+                {(() => {
+                  const reqs = validatePasswordRequirements(passwordData.password, passwordData.password_confirmation);
+                  const isFormValid = Boolean(passwordData.current_password && reqs.minLength && reqs.hasNumber && reqs.hasUpper && reqs.passwordsMatch);
+
+                  return (
+                    <button
+                      type="submit"
+                      disabled={passwordProcessing || !isFormValid}
+                      className={`px-6 py-3 font-bold rounded-xl transition duration-150 shadow-md flex items-center gap-2 ${
+                        isFormValid 
+                          ? 'bg-[#A58D66] hover:bg-[#8e7651] text-white shadow-[#A58D66]/10' 
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                      }`}
+                    >
+                      {passwordProcessing && <InlineSpinner color="white" size="sm" />}
+                      <span>{passwordProcessing ? 'Menyimpan...' : 'Perbarui Sandi'}</span>
+                    </button>
+                  );
+                })()}
               </div>
             </form>
           </div>

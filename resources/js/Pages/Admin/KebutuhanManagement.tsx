@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { Plus, Filter, Package, AlertCircle, CheckCircle2, Trash2, Info, Edit } from 'lucide-react';
+import { Plus, Package, AlertCircle, CheckCircle2, Trash2, Info, Edit, Search, PackageSearch } from 'lucide-react';
 import KebutuhanRegistrationModal from '@/Components/KebutuhanRegistrationModal';
 import KebutuhanDetailModal from '@/Components/KebutuhanDetailModal';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 import { useForm } from '@inertiajs/react';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast } from '@/Components/UI/Toast';
+import CriticalErrorModal from '@/Components/UI/CriticalErrorModal';
+import EmptyState from '@/Components/UI/EmptyState';
 
 export default function KebutuhanManagement({ needs = [], activeShelters = [] }: { needs?: any[], activeShelters?: any[] }) {
+  const [localNeeds, setLocalNeeds] = useState(needs);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
 
@@ -16,7 +21,21 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteData, setDeleteData] = useState<any>(null);
-  const { delete: destroy } = useForm();
+  const { delete: destroy, processing: isDeleting } = useForm();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mendesakFilter, setMendesakFilter] = useState('semua');
+
+  const filteredNeeds = localNeeds.filter(item => {
+    const matchesSearch = (item.barang || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (item.panti || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesMendesak = mendesakFilter === 'semua' || 
+                            (mendesakFilter === 'mendesak' && item.mendesak) ||
+                            (mendesakFilter === 'normal' && !item.mendesak);
+    return matchesSearch && matchesMendesak;
+  });
+
+  const { showToast } = useToast();
+  const [criticalError, setCriticalError] = useState<{ isOpen: boolean; retryAction?: () => void }>({ isOpen: false });
 
   const openAddModal = () => {
     setEditData(null);
@@ -40,10 +59,21 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
   const executeDelete = () => {
     if (deleteData) {
-      destroy(`/admin/kebutuhan/${deleteData.id}`, {
-        onSuccess: () => {
-          setIsDeleteModalOpen(false);
-          setDeleteData(null);
+      const itemToDelete = deleteData;
+      // Optimistic UI: remove item locally immediately
+      setLocalNeeds(prev => prev.filter(i => i.id !== itemToDelete.id));
+      setIsDeleteModalOpen(false);
+      setDeleteData(null);
+      showToast(`Kebutuhan barang "${itemToDelete.barang}" berhasil dihapus.`, 'success', 'Penghapusan Sukses');
+
+      destroy(`/admin/kebutuhan/${itemToDelete.id}`, {
+        onError: () => {
+          // Automatic rollback on failure
+          setLocalNeeds(prev => [...prev, itemToDelete]);
+          setCriticalError({
+            isOpen: true,
+            retryAction: () => executeDelete()
+          });
         }
       });
     }
@@ -57,13 +87,33 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
           <h3 className="text-2xl font-bold text-[#124354]">Manajemen Kebutuhan</h3>
           <p className="text-sm text-gray-500 mt-1">Verifikasi dan pantau progres pengumpulan barang kebutuhan panti.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-[#F4F3EF] text-[#124354] rounded-xl text-sm font-medium hover:bg-[#EAE8E3] transition-colors">
-            <Filter size={16} /> Filter Kategori
-          </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {/* Search Input */}
+          <div className="relative flex-1 sm:w-64">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cari nama barang/panti..."
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 focus:border-[#407E8C] transition-all"
+            />
+          </div>
+
+          {/* Priority Filter */}
+          <select
+            value={mendesakFilter}
+            onChange={e => setMendesakFilter(e.target.value)}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 transition-all cursor-pointer"
+          >
+            <option value="semua">Semua Prioritas</option>
+            <option value="mendesak">Kebutuhan Mendesak</option>
+            <option value="normal">Normal</option>
+          </select>
+
           <button 
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#124354] text-white rounded-xl text-sm font-medium hover:bg-[#0E3544] transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#124354] text-white rounded-xl text-xs font-bold hover:bg-[#0E3544] transition-colors shadow-sm"
           >
             <Plus size={16} /> Tambah Kebutuhan
           </button>
@@ -72,12 +122,24 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
       {/* Grid Kebutuhan */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {needs.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-gray-500">
-            Belum ada data kebutuhan.
+        {filteredNeeds.length === 0 ? (
+          <div className="col-span-full">
+            <EmptyState
+              mode={searchQuery || mendesakFilter !== 'semua' ? 'search' : 'empty'}
+              icon={PackageSearch}
+              title={searchQuery || mendesakFilter !== 'semua' ? 'Kebutuhan Barang Tidak Ditemukan' : 'Belum Ada Kebutuhan Barang'}
+              description="Daftarkan target kebutuhan barang panti baru untuk menggalang bantuan donasi dari masyarakat."
+              searchQuery={searchQuery}
+              onResetSearch={() => {
+                setSearchQuery('');
+                setMendesakFilter('semua');
+              }}
+              onAction={openAddModal}
+              actionLabel="Tambah Kebutuhan Pertama"
+            />
           </div>
         ) : (
-          needs.map((item) => {
+          filteredNeeds.map((item) => {
             const persentase = item.target > 0 ? Math.min(Math.round((item.terkumpul / item.target) * 100), 100) : 0;
             const isSelesai = item.status === "Terpenuhi";
 
@@ -169,14 +231,23 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
           <p className="mt-1 text-sm text-gray-600">
             Data kebutuhan <strong>{deleteData?.barang}</strong> akan dihapus secara permanen beserta data riwayat donasinya. Tindakan ini tidak dapat dibatalkan.
           </p>
-          <div className="mt-6 flex justify-end">
-            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)}>Batal</SecondaryButton>
-            <DangerButton className="ml-3" onClick={executeDelete}>
-              Hapus Data
+          <div className="mt-6 flex justify-end items-center gap-3">
+            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting}>Batal</SecondaryButton>
+            <DangerButton onClick={executeDelete} disabled={isDeleting} className="flex items-center gap-2">
+              {isDeleting && <InlineSpinner color="white" size="sm" />}
+              <span>{isDeleting ? 'Menghapus...' : 'Hapus Data'}</span>
             </DangerButton>
           </div>
         </div>
       </Modal>
+
+      <CriticalErrorModal 
+        isOpen={criticalError.isOpen}
+        title="Gagal Menghapus Kebutuhan Barang"
+        message="Server mengalami gangguan saat memproses penghapusan data kebutuhan. Data telah dikembalikan seperti semula."
+        onRetry={criticalError.retryAction}
+        onClose={() => setCriticalError({ isOpen: false })}
+      />
     </div>
   );
 }

@@ -8,8 +8,14 @@ import {
   Clock, 
   RefreshCw,
   FileSearch,
-  Zap
+  Zap,
+  Building2, 
+  Users, 
+  Flag, 
+  ChevronRight
 } from 'lucide-react';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
   navy: "#083A4F",
@@ -30,6 +36,8 @@ const INITIAL_QUEUE = [
 export default function DashboardOverview() {
   const [queue, setQueue] = useState(INITIAL_QUEUE);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const currentItem = queue[currentIndex];
 
   // Fungsi buat pindah ke antrean berikutnya
   const handleSkip = () => {
@@ -38,14 +46,16 @@ export default function DashboardOverview() {
 
   // Fungsi simulasi pas tombol "Review Verifikasi" dipencet
   const handleReview = () => {
-    const newQueue = queue.filter((_, index) => index !== currentIndex);
-    setQueue(newQueue);
-    if (currentIndex >= newQueue.length) {
-      setCurrentIndex(0);
-    }
+    setIsProcessing(true);
+    setTimeout(() => {
+      const newQueue = queue.filter((_, index) => index !== currentIndex);
+      setQueue(newQueue);
+      if (currentIndex >= newQueue.length) {
+        setCurrentIndex(0);
+      }
+      setIsProcessing(false);
+    }, 400);
   };
-
-  const currentItem = queue[currentIndex];
 
   return (
     // FIX: Menggunakan space-y-6, menghapus double padding (px-6/pt-6) dan max-w yang bikin sempit
@@ -99,7 +109,14 @@ export default function DashboardOverview() {
         
         {/* Kiri: Tumpukan Panti Butuh Review */}
         <div className="lg:w-1/2 flex flex-col">
-          {queue.length > 0 ? (
+          {queue.length === 0 ? (
+            <EmptyState
+              mode="accomplishment"
+              title="Semua Beres! 🎉"
+              description="Seluruh antrean berkas verifikasi panti asuhan telah selesai Anda periksa."
+              className="h-full"
+            />
+          ) : (
             <div className="relative h-full">
               {/* Efek tumpukan kertas */}
               {queue.length > 1 && (
@@ -109,11 +126,9 @@ export default function DashboardOverview() {
                 <div className="absolute inset-0 bg-white rounded-[2rem] border opacity-70 transform -rotate-2 translate-y-1" style={{ borderColor: COLORS.mist }}></div>
               )}
               
-              {/* Card Utama - FIX: rounded disamakan pakai [2rem] */}
-              <div className="relative h-full bg-white rounded-[2rem] p-6 md:p-8 border shadow-sm flex flex-col" style={{ borderColor: COLORS.mist }}>
-                
+              {/* Card Utama */}
+              <div className="relative h-full bg-white rounded-[2rem] p-6 md:p-8 border shadow-sm flex flex-col justify-between" style={{ borderColor: COLORS.mist }}>
                 {/* Header Card */}
-                {/* FIX: mb-6 biar gak terlalu turun ke bawah */}
                 <div className="flex justify-between items-start mb-6 pb-4 border-b border-gray-100">
                   <div>
                     <h2 className="text-lg font-bold" style={{ color: COLORS.navy }}>Antrean Review</h2>
@@ -150,31 +165,26 @@ export default function DashboardOverview() {
                 <div className="flex flex-col sm:flex-row gap-3 mt-auto">
                   <button 
                     onClick={handleReview}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold text-white transition-transform hover:scale-[1.01]" 
+                    disabled={isProcessing}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold text-white transition-transform hover:scale-[1.01] disabled:opacity-60" 
                     style={{ backgroundColor: COLORS.navy }}
                   >
-                    <FileSearch size={16} /> Review Verifikasi
+                    {isProcessing ? <InlineSpinner color="white" size="sm" /> : <FileSearch size={16} />}
+                    <span>{isProcessing ? 'Memproses...' : 'Review Verifikasi'}</span>
                   </button>
                   
                   {queue.length > 1 && (
                     <button 
                       onClick={handleSkip}
-                      className="sm:w-1/3 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold border transition-colors hover:bg-gray-50" 
+                      disabled={isProcessing}
+                      className="sm:w-1/3 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold border transition-colors hover:bg-gray-50 disabled:opacity-60" 
                       style={{ borderColor: COLORS.mist, color: COLORS.navy }}
                     >
-                      Berikutnya <RefreshCw size={14} />
+                      Skip <ChevronRight size={14} />
                     </button>
                   )}
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-[2rem] p-8 h-full flex flex-col items-center justify-center text-center border border-dashed" style={{ borderColor: COLORS.mist }}>
-              <div className="w-12 h-12 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-3">
-                <CheckCircle2 size={24} className="text-emerald-500" />
-              </div>
-              <h3 className="text-lg font-bold" style={{ color: COLORS.navy }}>Semua Beres!</h3>
-              <p className="text-xs mt-1 opacity-70" style={{ color: COLORS.navy }}>Tidak ada antrean yayasan yang perlu direview saat ini.</p>
             </div>
           )}
         </div>

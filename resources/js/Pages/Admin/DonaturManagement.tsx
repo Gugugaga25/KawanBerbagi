@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
-import { Filter, Plus, Mail, Award, MoreVertical, Edit, Trash2, MessageSquare } from 'lucide-react';
+import { Search, Filter, Plus, Mail, Award, MoreVertical, Edit, Trash2, MessageSquare, UserCheck } from 'lucide-react';
 import { useForm, router } from '@inertiajs/react';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast } from '@/Components/UI/Toast';
+import CriticalErrorModal from '@/Components/UI/CriticalErrorModal';
+import EmptyState from '@/Components/UI/EmptyState';
 import DonaturRegistrationModal from '@/Components/DonaturRegistrationModal';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
@@ -21,7 +25,25 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteData, setDeleteData] = useState<any>(null);
-  const { delete: destroy } = useForm();
+  const { delete: destroy, processing: isDeleting } = useForm();
+  const [localDonaturs, setLocalDonaturs] = useState<any[]>(donaturs || []);
+
+  React.useEffect(() => {
+    setLocalDonaturs(donaturs || []);
+  }, [donaturs]);
+
+  const { showToast } = useToast();
+  const [criticalError, setCriticalError] = useState<{ isOpen: boolean; retryAction?: () => void }>({ isOpen: false });
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tierFilter, setTierFilter] = useState('semua');
+
+  const filteredDonaturs = localDonaturs.filter((donor: any) => {
+    const matchesSearch = (donor.nama || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (donor.email || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTier = tierFilter === 'semua' || donor.tier === tierFilter;
+    return matchesSearch && matchesTier;
+  });
 
   const openAddModal = () => {
     setEditData(null);
@@ -40,10 +62,21 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
 
   const executeDelete = () => {
     if (deleteData) {
-      destroy(`/admin/donatur/${deleteData.id}`, {
-        onSuccess: () => {
-          setIsDeleteModalOpen(false);
-          setDeleteData(null);
+      const donorToDelete = deleteData;
+      // Optimistic UI: remove item locally immediately
+      setLocalDonaturs(prev => prev.filter(d => d.id !== donorToDelete.id));
+      setIsDeleteModalOpen(false);
+      setDeleteData(null);
+      showToast(`Data donatur "${donorToDelete.nama}" berhasil dihapus.`, 'success', 'Penghapusan Sukses');
+
+      destroy(`/admin/donatur/${donorToDelete.id}`, {
+        onError: () => {
+          // Automatic rollback on failure
+          setLocalDonaturs(prev => [...prev, donorToDelete]);
+          setCriticalError({
+            isOpen: true,
+            retryAction: () => executeDelete()
+          });
         }
       });
     }
@@ -57,13 +90,35 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
         <h3 className="text-2xl font-bold text-[#124354]">Data Donatur</h3>
           <p className="text-sm text-[#5A7C85] mt-1">Kelola data donatur dan riwayat donasinya</p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-[#5A7C85] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
-            <Filter size={16} /> Filter Tier
-          </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {/* Search Input */}
+          <div className="relative flex-1 sm:w-64">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cari nama/email donatur..."
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 focus:border-[#407E8C] transition-all"
+            />
+          </div>
+
+          {/* Tier Filter */}
+          <select
+            value={tierFilter}
+            onChange={e => setTierFilter(e.target.value)}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 transition-all cursor-pointer"
+          >
+            <option value="semua">Semua Tier</option>
+            <option value="Sultan">Sultan</option>
+            <option value="Setia">Setia</option>
+            <option value="Dermawan">Dermawan</option>
+            <option value="Baru">Baru</option>
+          </select>
+
           <button 
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#124354] text-white rounded-xl text-sm font-medium hover:bg-[#0E3544] transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#124354] text-white rounded-xl text-xs font-bold hover:bg-[#0E3544] transition-colors shadow-sm"
           >
             <Plus size={16} /> Tambah Donatur
           </button>
@@ -84,12 +139,26 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
               </tr>
             </thead>
             <tbody>
-              {donaturs.length === 0 ? (
+              {filteredDonaturs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500 border-b border-gray-100">Belum ada data donatur.</td>
+                  <td colSpan={5} className="p-0 border-b border-gray-100">
+                    <EmptyState
+                      mode={searchQuery || tierFilter !== 'semua' ? 'search' : 'empty'}
+                      icon={UserCheck}
+                      title={searchQuery || tierFilter !== 'semua' ? 'Donatur Tidak Ditemukan' : 'Belum Ada Donatur Terdaftar'}
+                      description="Mulai tambahkan donatur baru untuk mengelola riwayat donasi dan peringkat tier."
+                      searchQuery={searchQuery}
+                      onResetSearch={() => {
+                        setSearchQuery('');
+                        setTierFilter('semua');
+                      }}
+                      onAction={openAddModal}
+                      actionLabel="Tambah Donatur Pertama"
+                    />
+                  </td>
                 </tr>
               ) : (
-                donaturs.map((donor) => (
+                filteredDonaturs.map((donor) => (
                   <tr key={donor.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 border-b border-gray-100">
                       <div className="flex items-center gap-3">
@@ -177,14 +246,23 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
           <p className="mt-1 text-sm text-gray-600">
             Data donatur <strong>{deleteData?.nama}</strong> dan akun penggunanya akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
           </p>
-          <div className="mt-6 flex justify-end">
-            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)}>Batal</SecondaryButton>
-            <DangerButton className="ml-3" onClick={executeDelete}>
-              Hapus Data
+          <div className="mt-6 flex justify-end items-center gap-3">
+            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting}>Batal</SecondaryButton>
+            <DangerButton onClick={executeDelete} disabled={isDeleting} className="flex items-center gap-2">
+              {isDeleting && <InlineSpinner color="white" size="sm" />}
+              <span>{isDeleting ? 'Menghapus...' : 'Hapus Data'}</span>
             </DangerButton>
           </div>
         </div>
       </Modal>
+
+      <CriticalErrorModal 
+        isOpen={criticalError.isOpen}
+        title="Gagal Menghapus Data Donatur"
+        message="Server mengalami gangguan saat memproses penghapusan data donatur. Data donatur telah dikembalikan seperti semula."
+        onRetry={criticalError.retryAction}
+        onClose={() => setCriticalError({ isOpen: false })}
+      />
     </div>
   );
 }

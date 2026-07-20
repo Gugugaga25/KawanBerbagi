@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import { MoreVertical, Filter, Plus, Building2, CheckCircle, Clock, Edit, Trash2, CheckCircle2, XCircle, MessageSquare } from 'lucide-react';
+import { Search, Filter, Plus, Building2, MoreVertical, Edit, Trash2, MessageSquare, RotateCcw, CheckCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import PantiRegistrationModal from '@/Components/PantiRegistrationModal';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 import { useForm, router } from '@inertiajs/react';
-
-const DATA_PANTI = [
-  { id: 1, nama: "Yayasan Kasih Ibu", alamat: "Bandung, Jawa Barat", status: "Terverifikasi", pimpinan: "H. Ahmad", anak: 45 },
-  { id: 2, nama: "Panti Nurul Iman", alamat: "Jakarta Timur", status: "Pending", pimpinan: "Siti Aminah", anak: 32 },
-  { id: 3, nama: "Rumah Yatim Cahaya", alamat: "Surabaya, Jawa Timur", status: "Terverifikasi", pimpinan: "Budi Santoso", anak: 60 },
-  { id: 4, nama: "Panti Wreda Bahagia", alamat: "Yogyakarta", status: "Terverifikasi", pimpinan: "Lestari", anak: 28 },
-];
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast } from '@/Components/UI/Toast';
+import CriticalErrorModal from '@/Components/UI/CriticalErrorModal';
+import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
   navy: '#083A4F',
@@ -27,10 +24,28 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteData, setDeleteData] = useState<any>(null);
-  const { delete: destroy } = useForm();
+  const { delete: destroy, processing: isDeleting } = useForm();
+  const [localPantis, setLocalPantis] = useState<any[]>(pantis || []);
 
-  // Hapus fallback DATA_PANTI, langsung gunakan properti pantis
-  const displayData = pantis || [];
+  React.useEffect(() => {
+    setLocalPantis(pantis || []);
+  }, [pantis]);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('semua');
+
+  const filteredPantis = localPantis.filter(panti => {
+    const matchesSearch = (panti.nama || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (panti.pimpinan || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (panti.alamat || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'semua' || panti.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const displayData = filteredPantis;
+
+  const { showToast } = useToast();
+  const [criticalError, setCriticalError] = useState<{ isOpen: boolean; retryAction?: () => void }>({ isOpen: false });
 
   const openAddModal = () => {
     setEditData(null);
@@ -49,10 +64,21 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
 
   const executeDelete = () => {
     if (deleteData) {
-      destroy(`/admin/panti/${deleteData.id}`, {
-        onSuccess: () => {
-          setIsDeleteModalOpen(false);
-          setDeleteData(null);
+      const pantiToDelete = deleteData;
+      // Optimistic UI: remove item locally immediately
+      setLocalPantis(prev => prev.filter(p => p.id !== pantiToDelete.id));
+      setIsDeleteModalOpen(false);
+      setDeleteData(null);
+      showToast(`Data panti "${pantiToDelete.nama}" berhasil dihapus.`, 'success', 'Penghapusan Sukses');
+
+      destroy(`/admin/panti/${pantiToDelete.id}`, {
+        onError: () => {
+          // Automatic rollback on failure
+          setLocalPantis(prev => [...prev, pantiToDelete]);
+          setCriticalError({
+            isOpen: true,
+            retryAction: () => executeDelete()
+          });
         }
       });
     }
@@ -66,13 +92,33 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
           <h3 className="text-2xl font-bold text-[#124354]">Manajemen Panti Asuhan</h3>
           <p className="text-sm text-gray-500 mt-1">Kelola verifikasi dan data panti yang terdaftar di sistem.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-[#5A7C85] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">
-            <Filter size={16} /> Filter Status
-          </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          {/* Search Input */}
+          <div className="relative flex-1 sm:w-64">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Cari nama panti/lokasi..."
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 focus:border-[#407E8C] transition-all"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 transition-all cursor-pointer"
+          >
+            <option value="semua">Semua Status</option>
+            <option value="Terverifikasi">Terverifikasi</option>
+            <option value="Pending">Pending</option>
+          </select>
+
           <button 
             onClick={openAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#124354] text-white rounded-xl text-sm font-medium hover:bg-[#0E3544] transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#124354] text-white rounded-xl text-xs font-bold hover:bg-[#0E3544] transition-colors shadow-sm"
           >
             <Plus size={16} /> Daftarkan Panti
           </button>
@@ -96,12 +142,20 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
             <tbody className="text-[#124354] text-sm">
               {displayData.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 border-b border-gray-100">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <Building2 size={32} className="text-gray-300" />
-                      <p className="font-medium">Tidak ada data panti</p>
-                      <p className="text-xs text-gray-400">Silakan daftarkan panti baru untuk mulai mengelola.</p>
-                    </div>
+                  <td colSpan={6} className="p-0 border-b border-gray-100">
+                    <EmptyState
+                      mode={searchQuery || statusFilter !== 'semua' ? 'search' : 'empty'}
+                      icon={Building2}
+                      title={searchQuery || statusFilter !== 'semua' ? 'Panti Asuhan Tidak Ditemukan' : 'Belum Ada Panti Terdaftar'}
+                      description="Silakan daftarkan panti asuhan baru untuk mulai mengelola data verifikasi."
+                      searchQuery={searchQuery}
+                      onResetSearch={() => {
+                        setSearchQuery('');
+                        setStatusFilter('semua');
+                      }}
+                      onAction={openAddModal}
+                      actionLabel="Daftarkan Panti Pertama"
+                    />
                   </td>
                 </tr>
               ) : (
@@ -188,14 +242,23 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
           <p className="mt-1 text-sm text-gray-600">
             Data panti <strong>{deleteData?.nama}</strong> dan akun penggunanya akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
           </p>
-          <div className="mt-6 flex justify-end">
-            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)}>Batal</SecondaryButton>
-            <DangerButton className="ml-3" onClick={executeDelete}>
-              Hapus Data
+          <div className="mt-6 flex justify-end items-center gap-3">
+            <SecondaryButton onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting}>Batal</SecondaryButton>
+            <DangerButton onClick={executeDelete} disabled={isDeleting} className="flex items-center gap-2">
+              {isDeleting && <InlineSpinner color="white" size="sm" />}
+              <span>{isDeleting ? 'Menghapus...' : 'Hapus Data'}</span>
             </DangerButton>
           </div>
         </div>
       </Modal>
+
+      <CriticalErrorModal 
+        isOpen={criticalError.isOpen}
+        title="Gagal Menghapus Data Panti"
+        message="Server mengalami gangguan saat memproses penghapusan data panti. Data panti telah dikembalikan seperti semula."
+        onRetry={criticalError.retryAction}
+        onClose={() => setCriticalError({ isOpen: false })}
+      />
     </div>
   );
 }

@@ -5,6 +5,10 @@ import {
 } from 'lucide-react';
 import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
+import { SkeletonChat } from '@/Components/UI/Skeleton';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast, ToastProvider } from '@/Components/UI/Toast';
+import EmptyState from '@/Components/UI/EmptyState';
 
 interface ChatItem {
   id_chat: number;
@@ -42,7 +46,7 @@ const COLORS = {
   cream: '#E5E1DD',
 };
 
-export default function AdminChat({ chats: initialChats, activeChatId: initialActiveChatId, auth }: AdminChatProps) {
+function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChatId, auth }: AdminChatProps) {
   const [chats, setChats] = useState<ChatItem[]>(initialChats);
   const [activeChatId, setActiveChatId] = useState<number | null>(initialActiveChatId);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -135,12 +139,29 @@ export default function AdminChat({ chats: initialChats, activeChatId: initialAc
     window.history.pushState({ path: newUrl }, '', newUrl);
   };
 
+  const { showToast } = useToast();
+  const [isSending, setIsSending] = useState(false);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !activeChatId) return;
+    if (!inputMessage.trim() || !activeChatId || isSending) return;
 
     const messageText = inputMessage;
     setInputMessage('');
+    setIsSending(true);
+
+    // Optimistic UI: insert temp message immediately
+    const tempId = 'temp-' + Date.now();
+    const tempMsg: Message = {
+      id_message: tempId,
+      id_chat: activeChatId,
+      id_sender: auth.user.id_user,
+      message: messageText,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
+
+    setMessages(prev => [...prev, tempMsg]);
 
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -154,6 +175,7 @@ export default function AdminChat({ chats: initialChats, activeChatId: initialAc
         },
         body: JSON.stringify({ message: messageText }),
       });
+
       if (response.status === 401) {
         window.location.href = '/login';
         return;
@@ -161,8 +183,8 @@ export default function AdminChat({ chats: initialChats, activeChatId: initialAc
 
       if (response.ok) {
         const data = await response.json();
-        // Append sent message
-        setMessages(prev => [...prev, data.message]);
+        // Replace temp message with server confirmed message
+        setMessages(prev => prev.map(m => m.id_message === tempId ? data.message : m));
         
         // Update last message in the chat list
         setChats(prevChats => 
@@ -176,9 +198,18 @@ export default function AdminChat({ chats: initialChats, activeChatId: initialAc
             return timeB - timeA;
           })
         );
+      } else {
+        // Rollback on error
+        setMessages(prev => prev.filter(m => m.id_message !== tempId));
+        showToast('Gagal mengirim pesan chat. Silakan periksa koneksi Anda.', 'error', 'Pesan Gagal Terkirim');
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Rollback on error
+      setMessages(prev => prev.filter(m => m.id_message !== tempId));
+      showToast('Terjadi kesalahan jaringan saat mengirim pesan.', 'error', 'Pesan Gagal Terkirim');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -351,9 +382,7 @@ export default function AdminChat({ chats: initialChats, activeChatId: initialAc
                   {/* Chat Messages List */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
                     {loadingMessages ? (
-                      <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
-                        Memuat riwayat chat...
-                      </div>
+                      <SkeletonChat />
                     ) : messages.length > 0 ? (
                       messages.map((msg) => {
                         const isMe = msg.id_sender === auth.user.id_user;
@@ -407,30 +436,36 @@ export default function AdminChat({ chats: initialChats, activeChatId: initialAc
                     />
                     <button
                       type="submit"
-                      disabled={!inputMessage.trim()}
+                      disabled={!inputMessage.trim() || isSending}
                       className="w-10 h-10 rounded-xl bg-[#083A4F] hover:bg-[#124354] text-white flex items-center justify-center transition shadow-sm disabled:opacity-50"
                     >
-                      <Send size={16} />
+                      {isSending ? <InlineSpinner color="white" size="sm" /> : <Send size={16} />}
                     </button>
                   </form>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-gray-400 h-full">
-                  <div className="w-16 h-16 rounded-full bg-[#407E8C]/10 flex items-center justify-center text-[#407E8C] mb-4">
-                    <MessageSquare size={32} />
-                  </div>
-                  <h3 className="font-extrabold text-sm text-[#124354]">Pesan Obrolan Admin</h3>
-                  <p className="text-xs text-gray-500 mt-1 max-w-sm">
-                    Pilih salah satu percakapan di sebelah kiri untuk mulai mengobrol atau hubungi panti/donatur langsung dari panel manajemen mereka.
-                  </p>
-                </div>
+                <EmptyState
+                  mode="accomplishment"
+                  icon={MessageSquare}
+                  title="Pesan Obrolan Admin"
+                  description="Pilih salah satu percakapan di sebelah kiri untuk mulai mengobrol atau hubungi panti/donatur langsung dari tombol pesan di samping daftar nama mereka."
+                  className="h-full border-none"
+                />
               )}
             </div>
 
           </div>
         </div>
 
-      </main>
-    </div>
+        </main>
+      </div>
+  );
+}
+
+export default function AdminChat(props: AdminChatProps) {
+  return (
+    <ToastProvider>
+      <AdminChatContent {...props} />
+    </ToastProvider>
   );
 }

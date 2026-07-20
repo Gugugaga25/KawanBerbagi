@@ -8,7 +8,11 @@ import {
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
+import ProgressBar from '@/Components/UI/ProgressBar';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast } from '@/Components/UI/Toast';
+import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
   navy: "#083A4F",
@@ -38,9 +42,16 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
+  const [localReports, setLocalReports] = useState<Report[]>(reports || []);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+
+  React.useEffect(() => {
+    setLocalReports(reports || []);
+  }, [reports]);
+
   // Filter Data
-  const safeReports = reports || [];
-  const filteredReports = safeReports.filter(report => {
+  const filteredReports = localReports.filter(report => {
     const matchesTab = activeTab === 'semua' || report.status === activeTab;
     const matchesSearch = 
       (report.terlapor_nama || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,16 +65,50 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
     setIsDetailModalOpen(true);
   };
 
-  const handleUpdateStatus = (id: string, newStatus: 'diproses' | 'selesai' | 'ditolak') => {
-    import('@inertiajs/react').then(({ router }) => {
-      router.patch(route('admin.laporan.status', id), { status: newStatus }, {
-        preserveScroll: true,
-        onSuccess: () => {
-          if (selectedReport?.id === id) {
-            setSelectedReport(prev => prev ? { ...prev, status: newStatus } : null);
-          }
+  const { showToast } = useToast();
+
+  const handleExportData = () => {
+    setIsExporting(true);
+    setExportProgress(0);
+
+    const interval = setInterval(() => {
+      setExportProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsExporting(false);
+            showToast('Dokumen laporan data berhasil diekspor.', 'success', 'Ekspor Sukses');
+          }, 500);
+          return 100;
         }
+        return prev + 25;
       });
+    }, 300);
+  };
+
+  const handleUpdateStatus = (id: string, newStatus: 'diproses' | 'selesai' | 'ditolak') => {
+    const targetReport = localReports.find(r => r.id === id);
+    if (!targetReport) return;
+
+    const oldStatus = targetReport.status;
+
+    // Optimistic UI: update local state immediately
+    setLocalReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    if (selectedReport?.id === id) {
+      setSelectedReport(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+    showToast(`Status laporan ${id} diperbarui menjadi ${newStatus.toUpperCase()}.`, 'info', 'Status Diperbarui');
+
+    router.patch(route('admin.laporan.status', id), { status: newStatus }, {
+      preserveScroll: true,
+      onError: () => {
+        // Automatic rollback on failure
+        setLocalReports(prev => prev.map(r => r.id === id ? { ...r, status: oldStatus } : r));
+        if (selectedReport?.id === id) {
+          setSelectedReport(prev => prev ? { ...prev, status: oldStatus } : null);
+        }
+        showToast('Gagal memperbarui status laporan pada server.', 'error', 'Pembaruan Gagal');
+      }
     });
   };
 
@@ -107,6 +152,13 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
           </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <button 
+            onClick={handleExportData}
+            className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#083A4F] text-white hover:bg-[#124354] transition-colors"
+          >
+            Ekspor Laporan
+          </button>
+          
           {/* Tabs Filter */}
           <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 w-full sm:w-auto">
             {(['semua', 'pending', 'diproses', 'selesai'] as const).map((tab) => (
@@ -130,19 +182,19 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Total Aduan</p>
-          <p className="text-2xl font-black mt-1 text-[#124354]">{safeReports.length}</p>
+          <p className="text-2xl font-black mt-1 text-[#124354]">{localReports.length}</p>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-amber-600 font-bold uppercase tracking-wide">Menunggu</p>
-          <p className="text-2xl font-black mt-1 text-amber-600">{safeReports.filter(r => r.status === 'pending').length}</p>
+          <p className="text-2xl font-black mt-1 text-amber-600">{localReports.filter((r: Report) => r.status === 'pending').length}</p>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-blue-600 font-bold uppercase tracking-wide">Diproses</p>
-          <p className="text-2xl font-black mt-1 text-blue-600">{safeReports.filter(r => r.status === 'diproses').length}</p>
+          <p className="text-2xl font-black mt-1 text-blue-600">{localReports.filter((r: Report) => r.status === 'diproses').length}</p>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-green-600 font-bold uppercase tracking-wide">Selesai</p>
-          <p className="text-2xl font-black mt-1 text-green-600">{safeReports.filter(r => r.status === 'selesai').length}</p>
+          <p className="text-2xl font-black mt-1 text-green-600">{localReports.filter((r: Report) => r.status === 'selesai').length}</p>
         </div>
       </div>
 
@@ -163,12 +215,18 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
             <tbody className="text-[#124354] text-sm">
               {filteredReports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 border-b border-gray-100">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <Flag size={32} className="text-gray-300" />
-                      <p className="font-medium">Tidak ada laporan ditemukan</p>
-                      <p className="text-xs text-gray-400">Belum ada aduan yang sesuai dengan filter atau pencarian Anda.</p>
-                    </div>
+                  <td colSpan={6} className="p-0 border-b border-gray-100">
+                    <EmptyState
+                      mode={searchQuery ? 'search' : 'accomplishment'}
+                      icon={Flag}
+                      title={searchQuery ? 'Laporan Tidak Ditemukan' : 'Semua Beres! 🎉'}
+                      description={searchQuery ? undefined : 'Seluruh aduan dan laporan dari pengguna pada status ini telah berhasil Anda tangani.'}
+                      searchQuery={searchQuery}
+                      onResetSearch={() => {
+                        setSearchQuery('');
+                        setActiveTab('semua');
+                      }}
+                    />
                   </td>
                 </tr>
               ) : (
@@ -380,6 +438,13 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
           </div>
         )}
       </Modal>
+
+      <ProgressBar 
+        isVisible={isExporting} 
+        progress={exportProgress} 
+        label="Mengekspor Laporan Data" 
+        sublabel="Menyiapkan berkas dokumen laporan untuk diunduh..." 
+      />
 
     </div>
   );
