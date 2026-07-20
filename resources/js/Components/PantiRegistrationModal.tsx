@@ -26,11 +26,11 @@ import InlineSpinner from "@/Components/UI/InlineSpinner";
 import { useToast } from "@/Components/UI/Toast";
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 function Field({

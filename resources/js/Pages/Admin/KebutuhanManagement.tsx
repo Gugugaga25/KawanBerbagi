@@ -113,7 +113,7 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
           <button 
             onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#124354] text-white rounded-xl text-xs font-bold hover:bg-[#0E3544] transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#4274D9] text-white rounded-xl text-xs font-bold hover:bg-[#293681] transition-colors shadow-sm cursor-pointer"
           >
             <Plus size={16} /> Tambah Kebutuhan
           </button>
@@ -147,7 +147,7 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
               <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden">
                 {/* Top Bar Status */}
                 <div className="flex justify-between items-start mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#F4F3EF] text-[#124354] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-[#D0E7E6] text-[#4274D9] flex items-center justify-center">
                     <Package size={20} />
                   </div>
                   <div className="flex gap-1.5">
@@ -166,19 +166,19 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
                 {/* Content */}
                 <div className="mb-6">
-                  <h4 className="text-lg font-bold text-[#124354] mb-1">{item.barang}</h4>
+                  <h4 className="text-lg font-bold text-[#293681] mb-1">{item.barang}</h4>
                   <p className="text-xs text-gray-500 font-medium">{item.panti}</p>
                 </div>
 
                 {/* Progress */}
                 <div>
-                  <div className="flex justify-between text-xs font-bold text-[#124354] mb-2">
+                  <div className="flex justify-between text-xs font-bold text-[#293681] mb-2">
                     <span>Progres ({persentase}%)</span>
                     <span>{item.terkumpul} / {item.target} {item.satuan}</span>
                   </div>
-                  <div className="w-full bg-[#F4F3EF] rounded-full h-2.5 mb-6 overflow-hidden">
+                  <div className="w-full bg-[#ECFEFF] border border-[#95CCDD]/30 rounded-full h-2.5 mb-6 overflow-hidden">
                     <div 
-                      className={`h-full rounded-full transition-all duration-500 ${isSelesai ? 'bg-green-600' : 'bg-[#124354]'}`}
+                      className={`h-full rounded-full transition-all duration-500 ${isSelesai ? 'bg-green-600' : 'bg-[#4274D9]'}`}
                       style={{ width: `${persentase}%` }}
                     ></div>
                   </div>
@@ -186,13 +186,13 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
                   <div className="flex gap-2">
                     <button 
                       onClick={() => openEditModal(item)}
-                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#F4F3EF] hover:bg-[#EAE8E3] text-[#124354] py-2 rounded-xl text-xs font-bold transition-colors"
+                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#D0E7E6] hover:bg-[#95CCDD]/40 text-[#293681] py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                     >
                       <Edit size={14} /> Edit
                     </button>
                     <button 
                       onClick={() => openDetailModal(item)}
-                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#124354] hover:bg-[#0E3544] text-white py-2 rounded-xl text-xs font-bold transition-colors"
+                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#4274D9] hover:bg-[#293681] text-white py-2 rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer"
                     >
                       <Info size={14} /> Detail
                     </button>

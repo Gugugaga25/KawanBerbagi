@@ -35,10 +35,10 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
   return (
     <header className="h-20 bg-white border-b border-gray-200/80 flex items-center justify-between px-8 z-10 shrink-0">
       <div className="flex items-center gap-3">
-        <span className="text-xs font-bold text-[#4A828F] uppercase tracking-wider bg-[#F4F3EF] px-2.5 py-1 rounded-md">
+        <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#D0E7E6]/40 px-2.5 py-1 rounded-md">
           Admin Panel
         </span>
-        <h2 className="text-lg font-bold text-[#124354] capitalize">
+        <h2 className="text-lg font-bold text-[#293681] capitalize">
           {activeTab === 'dashboard' ? 'Dashboard Admin' : `Manajemen ${activeTab}`}
         </h2>
       </div>

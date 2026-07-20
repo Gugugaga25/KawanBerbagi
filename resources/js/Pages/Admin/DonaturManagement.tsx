@@ -12,11 +12,11 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] }) {
@@ -87,7 +87,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-        <h3 className="text-2xl font-bold text-[#124354]">Data Donatur</h3>
+          <h3 className="text-2xl font-extrabold text-[#293681]">Data Donatur</h3>
           <p className="text-sm text-[#5A7C85] mt-1">Kelola data donatur dan riwayat donasinya</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -118,7 +118,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
 
           <button 
             onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#124354] text-white rounded-xl text-xs font-bold hover:bg-[#0E3544] transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#4274D9] text-white rounded-xl text-xs font-bold hover:bg-[#293681] transition-colors shadow-sm cursor-pointer"
           >
             <Plus size={16} /> Tambah Donatur
           </button>
@@ -131,11 +131,11 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
           <table className="w-full text-left border-separate border-spacing-0">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-2xl" style={{background: COLORS.navy}}>Informasi Donatur</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.navy}}>Total Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.navy}}>Tier</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.navy}}>Terakhir Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-2xl" style={{background: COLORS.navy}}>Aksi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-2xl" style={{background: COLORS.teal}}>Informasi Donatur</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.teal}}>Total Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.teal}}>Tier</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.teal}}>Terakhir Donasi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
             </thead>
             <tbody>

@@ -67,7 +67,7 @@ export default function AdminSettings({ auth }: { auth: any }) {
       
       {/* ================= HEADER ================= */}
       <div>
-        <h1 className="text-3xl font-extrabold text-[#124354] tracking-tight">Pengaturan Akun</h1>
+        <h1 className="text-3xl font-extrabold text-[#293681] tracking-tight">Pengaturan Akun</h1>
         <p className="text-gray-500 mt-1">Kelola data profil pengguna Anda dan ubah pengaturan keamanan sandi.</p>
       </div>
 
@@ -77,11 +77,11 @@ export default function AdminSettings({ auth }: { auth: any }) {
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#124354] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#293681] text-white flex items-center justify-center">
                 <User size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#124354]">Informasi Pengguna</h3>
+                <h3 className="text-lg font-bold text-[#293681]">Informasi Pengguna</h3>
                 <p className="text-xs text-gray-400">Perbarui nama tampilan dan alamat email akun Anda.</p>
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function AdminSettings({ auth }: { auth: any }) {
             <form onSubmit={handleProfileSubmit} className="space-y-5">
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center pl-1">
-                  <label className="text-xs font-bold text-[#124354] uppercase tracking-wider">Nama Tampilan</label>
+                  <label className="text-xs font-bold text-[#293681] uppercase tracking-wider">Nama Tampilan</label>
                   <CharCounter current={profileData.name.length} max={50} />
                 </div>
                 <input 
@@ -105,8 +105,8 @@ export default function AdminSettings({ auth }: { auth: any }) {
                   maxLength={50}
                   value={profileData.name}
                   onChange={e => setProfileData('name', e.target.value)}
-                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 transition-all font-semibold ${
-                    profileErrors.name ? 'border-red-400 bg-red-50/20' : 'border-gray-200 focus:border-[#407E8C]'
+                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-[#293681] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 transition-all font-semibold ${
+                    profileErrors.name ? 'border-red-400 bg-red-50/20' : 'border-gray-200 focus:border-[#4274D9]'
                   }`}
                   placeholder="Nama Admin..."
                 />
@@ -115,7 +115,7 @@ export default function AdminSettings({ auth }: { auth: any }) {
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center pl-1">
-                  <label className="text-xs font-bold text-[#124354] uppercase tracking-wider">Alamat Email</label>
+                  <label className="text-xs font-bold text-[#293681] uppercase tracking-wider">Alamat Email</label>
                   <CharCounter current={profileData.email.length} max={80} />
                 </div>
                 <input 
@@ -124,8 +124,8 @@ export default function AdminSettings({ auth }: { auth: any }) {
                   maxLength={80}
                   value={profileData.email}
                   onChange={e => setProfileData('email', e.target.value)}
-                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 transition-all font-semibold ${
-                    profileErrors.email ? 'border-red-400 bg-red-50/20' : 'border-gray-200 focus:border-[#407E8C]'
+                  className={`w-full bg-gray-50 border rounded-xl px-4 py-3 text-[#293681] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 transition-all font-semibold ${
+                    profileErrors.email ? 'border-red-400 bg-red-50/20' : 'border-gray-200 focus:border-[#4274D9]'
                   }`}
                   placeholder="Email Admin..."
                 />
@@ -136,7 +136,7 @@ export default function AdminSettings({ auth }: { auth: any }) {
                 <button
                   type="submit"
                   disabled={profileProcessing}
-                  className="px-6 py-3 bg-[#124354] hover:bg-[#0c2e3a] text-white font-bold rounded-xl transition duration-150 shadow-md shadow-[#124354]/10 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-3 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition duration-150 shadow-md shadow-[#4274D9]/10 disabled:opacity-50 flex items-center gap-2"
                 >
                   {profileProcessing && <InlineSpinner color="white" size="sm" />}
                   <span>{profileProcessing ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
@@ -150,11 +150,11 @@ export default function AdminSettings({ auth }: { auth: any }) {
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#A58D66] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#4274D9] text-white flex items-center justify-center">
                 <Lock size={20} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-[#124354]">Keamanan Sandi</h3>
+                <h3 className="text-lg font-bold text-[#293681]">Keamanan Sandi</h3>
                 <p className="text-xs text-gray-400">Pastikan akun Anda menggunakan kata sandi yang kuat.</p>
               </div>
             </div>
@@ -168,14 +168,14 @@ export default function AdminSettings({ auth }: { auth: any }) {
 
             <form onSubmit={handlePasswordSubmit} className="space-y-5">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#124354] uppercase tracking-wider pl-1">Kata Sandi Saat Ini</label>
+                <label className="text-xs font-bold text-[#293681] uppercase tracking-wider pl-1">Kata Sandi Saat Ini</label>
                 <div className="relative">
                   <input 
                     type={showCurrentPassword ? 'text' : 'password'} 
                     required
                     value={passwordData.current_password}
                     onChange={e => setPasswordData('current_password', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all font-semibold"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#293681] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all font-semibold"
                     placeholder="Masukkan sandi saat ini..."
                   />
                   <button 
@@ -190,14 +190,14 @@ export default function AdminSettings({ auth }: { auth: any }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#124354] uppercase tracking-wider pl-1">Kata Sandi Baru</label>
+                <label className="text-xs font-bold text-[#293681] uppercase tracking-wider pl-1">Kata Sandi Baru</label>
                 <div className="relative">
                   <input 
                     type={showPassword ? 'text' : 'password'} 
                     required
                     value={passwordData.password}
                     onChange={e => setPasswordData('password', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all font-semibold"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#293681] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all font-semibold"
                     placeholder="Masukkan sandi baru..."
                   />
                   <button 
@@ -212,14 +212,14 @@ export default function AdminSettings({ auth }: { auth: any }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-[#124354] uppercase tracking-wider pl-1">Konfirmasi Kata Sandi Baru</label>
+                <label className="text-xs font-bold text-[#293681] uppercase tracking-wider pl-1">Konfirmasi Kata Sandi Baru</label>
                 <div className="relative">
                   <input 
                     type={showConfirmPassword ? 'text' : 'password'} 
                     required
                     value={passwordData.password_confirmation}
                     onChange={e => setPasswordData('password_confirmation', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all font-semibold"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#293681] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all font-semibold"
                     placeholder="Ulangi sandi baru..."
                   />
                   <button 
@@ -250,7 +250,7 @@ export default function AdminSettings({ auth }: { auth: any }) {
                       disabled={passwordProcessing || !isFormValid}
                       className={`px-6 py-3 font-bold rounded-xl transition duration-150 shadow-md flex items-center gap-2 ${
                         isFormValid 
-                          ? 'bg-[#A58D66] hover:bg-[#8e7651] text-white shadow-[#A58D66]/10' 
+                          ? 'bg-[#4274D9] hover:bg-[#293681] text-white shadow-[#4274D9]/10' 
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                       }`}
                     >

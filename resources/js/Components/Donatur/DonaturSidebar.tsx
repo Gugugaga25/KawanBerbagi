@@ -13,9 +13,9 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 
 const COLORS = {
-  navy: '#083A4F',
-  teal: '#407E8C',
-  mist: '#C0D5D6',
+  navy: '#293681',
+  teal: '#4274D9',
+  mist: '#D0E7E6',
 };
 
 export type DonaturTabType = 'dashboard' | 'cari' | 'donasi' | 'dampak' | 'profil' | 'pengaturan' | 'chat';

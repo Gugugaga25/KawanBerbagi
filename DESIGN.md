@@ -17,26 +17,20 @@ Karakteristik utama:
 
 ## 2. Warna (Color Tokens)
 
-### Warna Inti
-| Token | Hex | Penggunaan |
-|---|---|---|
-| `primary` | `#002433` | Teks judul utama, footer background, tombol filter aktif |
-| `primary-container` | `#083A4F` | Border utama (`border-dark`), background modul gelap |
-| `secondary` | `#256674` | Aksen sekunder |
-| `btn-primary` / `cta-primary` | `#407E8C` | Tombol CTA utama, progress bar fill |
-| `accent-ochre` / `accent-gold` | `#A58D66` | Label kategori/tag, ikon aksen |
-| `bg-card` | `#C0D5D6` | Background kartu bernuansa (hover state, quote box) |
-| `background` | `#FDF9F4` | Background section terang, navbar |
-| `page-bg` | `#E5E1DD` | Background body utama (off-white hangat) |
-| `on-surface` | `#1C1B19` | Teks body di atas surface terang |
-| `on-surface-variant` | `#41484C` | Teks sekunder/deskripsi |
-| `error` | `#BA1A1A` | Status error |
-| `border-dark` | `#083A4F` | Semua garis border struktural |
+### Palet Warna Utama (Indigo & Blue Theme)
+| Token | Hex | Nama Warna | Penggunaan System |
+|---|---|---|---|
+| `primary` / `navy` | `#293681` | Deep Indigo | Teks Judul Utama, Header, & Wordmark Brand |
+| `btn-primary` / `teal` | `#4274D9` | Vibrant Electric Blue | Tombol CTA Utama, Progress Bar, & Element Aktif |
+| `secondary` / `sky` | `#95CCDD` | Soft Sky Blue | State Hover, Border Aksen, & Sub-element |
+| `bg-card` / `mist` | `#D0E7E6` | Pale Ice Mist | Latar Belakang Kartu Terang, Badge, & Surface |
+| `background` / `cream` | `#F8FAFC` | Clean Light Canvas | Latar Belakang Utama Body & Halaman |
+| `accent-gold` | `#F59E0B` | Warm Amber Gold | Penanda Status Mendesak, Tag, & Rating |
 
 ### Prinsip Warna
-- Base warna netral hangat (`#E5E1DD`, `#FDF9F4`) dikombinasikan dengan **teal gelap** (`#002433`–`#083A4F`) sebagai warna dominan brand.
-- Ochre/gold (`#A58D66`) dipakai konsisten sebagai penanda kategori/label (overline tags).
-- Foto selalu **grayscale/duotone dengan kontras tinggi**, dilunakkan dengan hover reveal (`grayscale → grayscale-0`).
+- **Royal & Trustworthy**: Kombinasi **Deep Indigo (`#293681`)** dan **Vibrant Electric Blue (`#4274D9`)** membangun kesan modern, profesional, dan tepercaya untuk platform berbagi.
+- **Light & Refreshing**: Latar belakang kartu bernuansa **Pale Ice Mist (`#D0E7E6`)** memberikan atmosfer bersih, tenang, dan segar.
+- **High Legibility**: Teks judul dan deskripsi bertinta **Deep Indigo (`#293681`)** menjamin keterbacaan yang tajam di atas surface terang.
 
 ---
 

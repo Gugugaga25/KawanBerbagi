@@ -39,11 +39,11 @@ interface AdminChatProps {
 }
 
 const COLORS = {
-  navy: '#083A4F',
-  gold: '#A58D66',
-  mist: '#C0D5D6',
-  teal: '#407E8C',
-  cream: '#E5E1DD',
+  navy: '#293681',
+  gold: '#F59E0B',
+  mist: '#D0E7E6',
+  teal: '#4274D9',
+  cream: '#F8FAFC',
 };
 
 function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChatId, auth }: AdminChatProps) {
@@ -249,10 +249,10 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F4F3EF]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F8FAFC]">
         
         {/* Header Mobile */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30 text-white shadow-md">
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30 text-white shadow-md">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
@@ -275,9 +275,9 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
             
             {/* Left Column: Chat List */}
             <div className={`w-full md:w-80 flex flex-col border-r border-gray-100 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
-              <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-[#F4F3EF]/30">
-                <h3 className="font-extrabold text-sm text-[#124354]">Percakapan</h3>
-                <span className="text-[10px] bg-[#083A4F] text-white px-2 py-0.5 rounded-full font-bold">
+              <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-[#F8FAFC]">
+                <h3 className="font-extrabold text-sm text-[#293681]">Percakapan</h3>
+                <span className="text-[10px] bg-[#4274D9] text-white px-2 py-0.5 rounded-full font-bold">
                   {chats.length} Obrolan
                 </span>
               </div>
@@ -292,11 +292,11 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                         onClick={() => handleSelectChat(chat.id_chat)}
                         className={`w-full p-4 flex items-start gap-3 text-left transition-all ${
                           isSelected 
-                            ? 'bg-[#407E8C]/10 border-l-4 border-[#407E8C]' 
-                            : 'hover:bg-gray-50 border-l-4 border-transparent'
+                            ? 'bg-[#D0E7E6] border-l-4 border-[#4274D9]' 
+                            : 'hover:bg-[#ECFEFF] border-l-4 border-transparent'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-[#293681] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
                           {chat.participant.foto_profil ? (
                             <img src={chat.participant.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                           ) : (
@@ -394,8 +394,8 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                             <div 
                               className={`p-3 rounded-2xl text-sm font-semibold shadow-xs ${
                                 isMe 
-                                  ? 'bg-[#083A4F] text-white rounded-tr-none' 
-                                  : 'bg-white text-[#124354] border border-gray-100 rounded-tl-none'
+                                  ? 'bg-[#4274D9] text-white rounded-tr-none shadow-sm shadow-[#4274D9]/20' 
+                                  : 'bg-white text-[#293681] border border-gray-200/80 rounded-tl-none'
                               }`}
                             >
                               <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>
@@ -417,7 +417,7 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                       })
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
-                        <MessageSquare size={36} className="mb-2 opacity-30 text-[#124354]" />
+                        <MessageSquare size={36} className="mb-2 opacity-30 text-[#293681]" />
                         <p className="text-sm font-bold">Kirim pesan pertama Anda</p>
                         <p className="text-xs mt-1">Mulailah obrolan hangat dengan {activeChat.participant.name}.</p>
                       </div>
@@ -432,12 +432,12 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Tulis pesan..."
-                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-sm outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
+                      className="flex-1 px-4 py-2.5 bg-gray-50 rounded-xl text-sm outline-none text-[#293681] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 transition-all font-semibold"
                     />
                     <button
                       type="submit"
                       disabled={!inputMessage.trim() || isSending}
-                      className="w-10 h-10 rounded-xl bg-[#083A4F] hover:bg-[#124354] text-white flex items-center justify-center transition shadow-sm disabled:opacity-50"
+                      className="w-10 h-10 rounded-xl bg-[#4274D9] hover:bg-[#293681] text-white flex items-center justify-center transition shadow-md shadow-[#4274D9]/20 disabled:opacity-50 cursor-pointer"
                     >
                       {isSending ? <InlineSpinner color="white" size="sm" /> : <Send size={16} />}
                     </button>

@@ -12,8 +12,8 @@ const TAB_LABEL: Record<string, string> = {
 };
 
 const COLORS = {
-  navy: '#083A4F',
-  mist: '#C0D5D6',
+  navy: '#293681',
+  mist: '#D0E7E6',
 };
 
 interface DonaturHeaderProps {

@@ -18,11 +18,11 @@ import InlineSpinner from '@/Components/UI/InlineSpinner';
 import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 // Data dummy antrean verifikasi
@@ -62,40 +62,37 @@ export default function DashboardOverview() {
     <div className="space-y-6 w-full">
       
       {/* ================= HEADER & STATS ================= */}
-      {/* FIX: rounded disamakan jadi [2rem], padding disesuaikan agar tidak terlalu memakan space */}
-      <div className="relative bg-[#083A4F] rounded-[2rem] p-8 md:p-10 overflow-hidden shadow-sm">
+      <div className="relative bg-[#4274D9] rounded-[2rem] p-8 md:p-10 overflow-hidden shadow-lg shadow-[#4274D9]/20">
         {/* Dekorasi abstrak */}
-        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] bg-[#407E8C] rounded-full mix-blend-screen filter blur-[100px] opacity-40"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#A58D66] rounded-full mix-blend-screen filter blur-[80px] opacity-20 translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute -top-32 -right-32 w-[30rem] h-[30rem] bg-white rounded-full mix-blend-overlay filter blur-[90px] opacity-25"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#293681] rounded-full mix-blend-multiply filter blur-[80px] opacity-30 translate-y-1/2 -translate-x-1/2"></div>
         
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 bg-white/10 border border-white/20 backdrop-blur-sm">
-            <Zap size={12} className="text-[#A58D66]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 bg-white/15 border border-white/25 backdrop-blur-sm">
+            <Zap size={12} className="text-[#F59E0B]" />
             <span className="text-[10px] font-bold tracking-wider uppercase text-white">
               Pusat Kendali Admin
             </span>
           </div>
           
-          {/* FIX: Mengurangi margin bottom dari mb-10 ke mb-6 agar lebih padat */}
           <h1 className="text-2xl md:text-3xl font-extrabold leading-tight mb-6 max-w-3xl text-white">
-            Halo, Admin. Hari ini ada <span className="text-[#A58D66]">{queue.length} Yayasan</span> yang menunggu proses verifikasi Anda.
+            Halo, Admin. Hari ini ada <span className="text-[#F59E0B] font-extrabold underline decoration-[#F59E0B]/40">{queue.length} Yayasan</span> yang menunggu proses verifikasi Anda.
           </h1>
 
           {/* Stats Section */}
-          {/* FIX: pt-6 menyesuaikan ritme padding baru */}
-          <div className="flex flex-wrap gap-6 items-center border-t border-white/10 pt-6">
+          <div className="flex flex-wrap gap-6 items-center border-t border-white/20 pt-6">
             {[
               { icon: ShieldCheck, label: "Yayasan Aktif", value: "324" },
               { icon: Heart, label: "Donatur Aktif", value: "5.2K" },
               { icon: Package, label: "Barang Tersalurkan", value: "18.4K" },
             ].map((stat, idx) => (
               <div key={idx} className="flex items-center gap-4 flex-1 min-w-[180px]">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/10 border border-white/10 backdrop-blur-sm">
-                  <stat.icon size={20} className="text-[#C0D5D6]" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-white/15 border border-white/20 backdrop-blur-sm">
+                  <stat.icon size={20} className="text-white" />
                 </div>
                 <div>
                   <p className="text-2xl font-extrabold text-white">{stat.value}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#C0D5D6] opacity-80">{stat.label}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">{stat.label}</p>
                 </div>
               </div>
             ))}

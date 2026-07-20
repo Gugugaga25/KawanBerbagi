@@ -12,10 +12,10 @@ import CriticalErrorModal from '@/Components/UI/CriticalErrorModal';
 import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
-  navy: '#083A4F',
-  gold: '#A58D66',
-  mist: '#C0D5D6',
-  teal: '#407E8C',
+  navy: '#293681',
+  gold: '#F59E0B',
+  mist: '#D0E7E6',
+  teal: '#4274D9',
 };
 
 export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
@@ -89,7 +89,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h3 className="text-2xl font-bold text-[#124354]">Manajemen Panti Asuhan</h3>
+          <h3 className="text-2xl font-extrabold text-[#293681]">Manajemen Panti Asuhan</h3>
           <p className="text-sm text-gray-500 mt-1">Kelola verifikasi dan data panti yang terdaftar di sistem.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -118,7 +118,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
 
           <button 
             onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#124354] text-white rounded-xl text-xs font-bold hover:bg-[#0E3544] transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#4274D9] text-white rounded-xl text-xs font-bold hover:bg-[#293681] transition-colors shadow-sm cursor-pointer"
           >
             <Plus size={16} /> Daftarkan Panti
           </button>
@@ -131,12 +131,12 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
           <table className="w-full text-left border-separate border-spacing-0">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.navy}}>Nama Panti</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Pimpinan</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Lokasi</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Jml. Anak</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Status</th>
-                <th className="px-6 py-4 font-bold text-right rounded-tr-2xl" style={{background: COLORS.navy}}>Aksi</th>
+                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.teal}}>Nama Panti</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Pimpinan</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Lokasi</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Jml. Anak</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Status</th>
+                <th className="px-6 py-4 font-bold text-right rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
             </thead>
             <tbody className="text-[#124354] text-sm">

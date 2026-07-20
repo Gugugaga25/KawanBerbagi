@@ -15,10 +15,10 @@ import { useToast } from '@/Components/UI/Toast';
 import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
 };
 
 // Interface Data Laporan
@@ -133,8 +133,8 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
       {/* Header & Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h3 className="text-2xl font-bold text-[#124354] flex items-center gap-2">
-            <Flag size={24} className="text-[#083A4F]" /> Manajemen Laporan
+          <h3 className="text-2xl font-extrabold text-[#293681] flex items-center gap-2">
+            <Flag size={24} className="text-[#4274D9]" /> Manajemen Laporan
           </h3>
           <p className="text-sm text-gray-500 mt-1">Pantau, moderasi, dan verifikasi aduan dari pengguna KawanBerbagi.</p>
         </div>
@@ -147,14 +147,14 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
               placeholder="Cari ID atau pihak terlapor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#407E8C]/20 focus:border-[#407E8C] transition-all"
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#4274D9]/20 focus:border-[#4274D9] transition-all font-semibold"
             />
           </div>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <button 
             onClick={handleExportData}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#083A4F] text-white hover:bg-[#124354] transition-colors"
+            className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#4274D9] text-white hover:bg-[#293681] transition-colors shadow-sm cursor-pointer"
           >
             Ekspor Laporan
           </button>
@@ -204,12 +204,12 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
           <table className="w-full text-left border-separate border-spacing-0">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.navy}}>ID Laporan</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Objek Terlapor</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Pelapor</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Alasan Singkat</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.navy}}>Status</th>
-                <th className="px-6 py-4 font-bold text-center rounded-tr-2xl" style={{background: COLORS.navy}}>Aksi</th>
+                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.teal}}>ID Laporan</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Objek Terlapor</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Pelapor</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Alasan Singkat</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Status</th>
+                <th className="px-6 py-4 font-bold text-center rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
             </thead>
             <tbody className="text-[#124354] text-sm">

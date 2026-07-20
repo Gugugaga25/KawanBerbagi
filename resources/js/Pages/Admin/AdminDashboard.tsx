@@ -92,7 +92,7 @@ export default function AdminDashboard({
 
   return (
     <ToastProvider>
-      <div className="flex h-screen bg-[#F4F3EF] font-sans antialiased overflow-hidden">
+      <div className="flex h-screen bg-[#F8FAFC] font-sans antialiased overflow-hidden">
         {/* Sidebar Desktop & Mobile */}
         <AdminSidebar 
           activeTab={activeTab} 
@@ -103,7 +103,7 @@ export default function AdminDashboard({
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           
           {/* Header Khusus Mobile */}
-          <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30">
+          <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30">
             <div className="flex items-center gap-3 text-white">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
