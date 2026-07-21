@@ -10,27 +10,6 @@ import PantiProfile from './PantiProfile';
 import PantiDonasiMasuk from './PantiDonasiMasuk';
 import PantiSettings from './PantiSettings';
 
-const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
-};
-
-function ComingSoon({ title }: { title: string }) {
-  return (
-    <div className="rounded-[2rem] p-10 flex flex-col items-center justify-center text-center bg-white border border-gray-100 shadow-sm">
-      <p className="text-sm font-bold mb-1" style={{ color: COLORS.navy }}>
-        {title}
-      </p>
-      <p className="text-xs text-[#5A7C85]">
-        Halaman ini sedang dalam pengembangan.
-      </p>
-    </div>
-  );
-}
-
 export default function PantiDashboard({ auth, pantiData, needs = [], donations = [] }: { auth: any, pantiData?: any, needs?: any[], donations?: any[] }) {
   const [activeTab, setActiveTab] = useState<PantiTabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -66,6 +45,19 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
     window.history.pushState({ path: newUrl }, '', newUrl);
   };
 
+  // Helper Judul Dinamis untuk Header Mobile
+  const getMobileTitle = (tab: string) => {
+    switch (tab) {
+      case 'dashboard': return 'Dashboard';
+      case 'kebutuhan': return 'Kebutuhan & Wishlist';
+      case 'chat': return 'Pesan Chat';
+      case 'donasi': return 'Donasi Masuk';
+      case 'profil': return 'Profil Panti';
+      case 'pengaturan': return 'Pengaturan';
+      default: return 'Dashboard';
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'kebutuhan': return <PantiWishlist needs={needs} />;
@@ -79,7 +71,7 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
   };
 
   return (
-    <div className="flex h-screen font-sans bg-white text-[#124354] overflow-hidden">
+    <div className="flex h-screen font-sans bg-white text-[#293681] overflow-hidden">
       
       {/* ================= OVERLAY MOBILE ================= */}
       {isMobileMenuOpen && (
@@ -98,35 +90,38 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F4F3EF]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F8FAFC]">
         
-        {/* Header Khusus Mobile (Warna Navy sesuai desain Admin) */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30">
-          <div className="flex items-center gap-3 text-white">
+        {/* ================= MOBILE HEADER ================= */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-white z-30 shadow-md border-b border-gray-100">
+          <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+              className="p-2 rounded-xl bg-[#4274D9] text-white hover:bg-[#293681] active:scale-95 transition-all"
             >
               <Menu size={20} />
             </button>
-            <span className="font-extrabold tracking-wide uppercase text-sm">Dashboard Yayasan</span>
+            <span className="font-extrabold text-[#293681] tracking-wide uppercase text-sm">
+              {getMobileTitle(activeTab)}
+            </span>
+          </div>
+
+          {/* Indikator Inisial Panti Mobile */}
+          <div className="w-9 h-9 rounded-full bg-[#4274D9] flex items-center justify-center font-extrabold text-xs text-white shadow-xs">
+            {pantiData?.nama_yayasan ? pantiData.nama_yayasan.charAt(0).toUpperCase() : 'P'}
           </div>
         </div>
 
-        {/* Header Desktop Asli */}
+        {/* Header Desktop */}
         <div className="hidden lg:block">
-          <PantiHeader activeTab={activeTab} />
+          <PantiHeader activeTab={activeTab} orgName={pantiData?.nama_yayasan} />
         </div>
 
-        {/* ================= AREA KONTEN YANG DIPERBARUI ================= */}
-        {/* Jika tab aktif adalah profil, hilangkan padding (p-0). Jika bukan, pakai padding bawaan */}
+        {/* Area Konten */}
         <div className={`flex-1 overflow-y-auto ${activeTab === 'profil' ? 'p-0' : 'p-4 md:p-8'}`}>
-          
-          {/* Jika tab aktif adalah profil, gunakan w-full agar melebar penuh. Jika bukan, batasi lebar maksimalnya */}
           <div className={`${activeTab === 'profil' ? 'w-full' : 'max-w-7xl mx-auto space-y-6'}`}>
             {renderContent()}
           </div>
-
         </div>
       </main>
     </div>

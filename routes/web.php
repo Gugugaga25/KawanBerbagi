@@ -147,12 +147,41 @@ Route::middleware('auth')->group(function () {
             ];
         });
 
+        $pendingPantis = \App\Models\Shelter::where('status', 'Pending')
+            ->latest()
+            ->get()
+            ->map(function ($shelter) {
+                // Cek dokumen apa saja yang sudah di-upload
+                $docs = [];
+                if ($shelter->akta_yayasan) $docs[] = 'Akta Notaris';
+                if ($shelter->sk_kemenkumham) $docs[] = 'SK Kemenkumham';
+                if ($shelter->izin_operasional) $docs[] = 'Izin Operasional';
+                if ($shelter->npwp_yayasan) $docs[] = 'NPWP';
+
+                return [
+                    'id' => $shelter->id_shelter, 
+                    'name' => $shelter->nama_yayasan,
+                    'info' => ($shelter->jumlah_anak ?? 0) . ' Penerima • ' . \Illuminate\Support\Str::limit($shelter->alamat, 20),
+                    'docs' => $docs,
+                ];
+            });
+
+        // 2. TAMBAHKAN KODE INI UNTUK STATISTIK DI HEADER
+        $stats = [
+            'yayasanAktif' => \App\Models\Shelter::where('status', 'Active')->count(),
+            'donaturAktif' => \App\Models\Donor::count(),
+            // Asumsi Donasi sukses menggunakan model Donation dan status 'Diterima' atau 'Sukses'
+            'barangTersalurkan' => \App\Models\Donation::whereIn('status', ['Diterima', 'Sukses'])->count(), 
+        ];
+
         return Inertia::render('Admin/AdminDashboard', [
             'pantis' => $pantis,
             'donaturs' => $donaturs,
             'needs' => $needs,
             'activeShelters' => $activeShelters,
             'laporans' => $laporans,
+            'pendingPantis' => $pendingPantis,
+            'stats' => $stats,
         ]);
     })->name('admin.dashboard');
 
@@ -364,6 +393,28 @@ Route::middleware('auth')->group(function () {
                     'jumlah_anak' => $p->jumlah_anak ?? 0,
                 ];
             });
+
+            // ================= TAMBAHKAN QUERY KISAH DAMPAK DI SINI =================
+            $impactStories = \App\Models\Donation::with(['need.shelter'])
+                ->where('id_donor', $donatur->id_donor) // <-- TAMBAHKAN BARIS INI
+                ->whereNotNull('ucapan_terimakasih')
+                ->where('ucapan_terimakasih', '!=', '')
+                ->where('ucapan_terimakasih', '!=', '-')
+                ->latest()
+                ->take(5)
+                ->get()
+                ->map(function ($d) {
+                    return [
+                        'id' => $d->id_donation,
+                        'quote' => $d->ucapan_terimakasih,
+                        'author' => $d->need && $d->need->shelter && $d->need->shelter->nama_penanggung_jawab 
+                            ? $d->need->shelter->nama_penanggung_jawab 
+                            : 'Pengurus Panti',
+                        'panti' => $d->need && $d->need->shelter 
+                            ? $d->need->shelter->nama_yayasan 
+                            : 'Panti Asuhan',
+                    ];
+                })->values();
         }
 
         return Inertia::render('Donatur/DonaturDashboard', [
@@ -385,7 +436,8 @@ Route::middleware('auth')->group(function () {
                 'pantiTerbantu' => $pantiTerbantu ?? 0,
             ],
             'needsResi'       => $needsResi ?? [],
-            'pantis' => $pantis,
+            'pantis'          => $pantis ?? [],
+            'impactStories'   => $impactStories ?? [], // <-- Kirimkan props ini
         ]);
     })->name('donatur.dashboard');
 

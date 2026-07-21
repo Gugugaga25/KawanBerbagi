@@ -26,8 +26,8 @@ const SidebarItem = ({ icon: Icon, label, tabId, activeTab, onClick, unreadCount
     <button
       onClick={() => onClick(tabId)}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${active
-        ? 'bg-[#4274D9] text-white font-extrabold shadow-md shadow-[#4274D9]/25'
-        : 'text-[#293681] font-semibold hover:bg-[#D0E7E6]/40 hover:text-[#4274D9]'
+        ? 'bg-[#4274D9] text-white font-bold shadow-md shadow-[#4274D9]/25'
+        : 'text-[#293681] font-medium hover:bg-[#4274D9]/10 hover:text-[#4274D9]'
         }`}
     >
       <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ export default function AdminSidebar({ activeTab, onTabChange }: AdminSidebarPro
           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-semibold transition-all text-sm ${
             activeTab === 'pengaturan'
               ? 'bg-[#4274D9] text-white font-extrabold shadow-md shadow-[#4274D9]/25'
-              : 'text-[#293681] hover:bg-[#D0E7E6]/40 hover:text-[#4274D9]'
+              : 'text-[#293681] hover:bg-[#4274D9]/10 hover:text-[#4274D9]'
           }`}
         >
           <Settings size={18} /> Pengaturan

@@ -11,13 +11,43 @@ const COLORS = {
   navy: "#083A4F",
   gold: "#A58D66",
   mist: "#C0D5D6",
-  teal: "#407E8C",
+  teal: "#4274D9",
   cream: "#E5E1DD",
 };
 
 export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiData?: any, needs?: any[] }) {
   // ================= STATES UNTUK TABS & MODALS =================
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
+
+  // Tambahkan state ini untuk notifikasi
+  const [notification, setNotification] = useState({ show: false, message: '' });
+
+  const [deleteModal, setDeleteModal] = useState({
+      isOpen: false,
+      url: '',
+      title: '',
+      message: '',
+      successMsg: ''
+    });
+    
+    // Fungsi untuk mengeksekusi penghapusan
+    const executeDelete = () => {
+      router.delete(deleteModal.url, {
+        preserveScroll: true,
+        onSuccess: () => {
+          setDeleteModal(prev => ({ ...prev, isOpen: false })); // Tutup modal
+          showNotification(deleteModal.successMsg); // Munculkan notifikasi sukses
+        }
+      });
+    };
+
+  // Fungsi untuk memunculkan notifikasi selama 3 detik
+  const showNotification = (message: string) => {
+  setNotification({ show: true, message });
+  setTimeout(() => {
+      setNotification({ show: false, message: '' });
+  }, 3000); // Notifikasi hilang otomatis setelah 3 detik
+  };
 
   // Modals State
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
@@ -65,7 +95,10 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
     e.preventDefault();
     post('/panti/kebutuhan', {
       preserveScroll: true,
-      onSuccess: () => handleCloseModal()
+      onSuccess: () => {
+        handleCloseModal();
+        showNotification('Kebutuhan baru berhasil diterbitkan!');
+      }
     });
   };
 
@@ -101,37 +134,82 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
   // 4. Update handleCreatePost
   const handleCreatePost = () => {
     if (!newPostContent.trim() && !imageFile) return;
-
+  
     const fd = new FormData();
     fd.append('content', newPostContent);
     if (imageFile) fd.append('image', imageFile);
-
+  
     router.post('/panti/posts', fd, {
       preserveScroll: true,
       onSuccess: () => {
         setNewPostContent('');
         removeImage();
+        showNotification('Postingan berhasil dibagikan!');
       }
     });
   };
 
   const handleDeletePost = (id: number) => {
-    if (confirm('Hapus postingan ini?')) {
-      router.delete(`/panti/posts/${id}`, { preserveScroll: true });
-    }
+    setDeleteModal({
+      isOpen: true,
+      url: `/panti/posts/${id}`,
+      title: 'Hapus Postingan',
+      message: 'Apakah kamu yakin ingin menghapus postingan ini? Postingan yang dihapus tidak dapat dikembalikan.',
+      successMsg: 'Postingan berhasil dihapus!'
+    });
+  };
+  
+  const handleDeleteNeed = (id: number) => {
+    setDeleteModal({
+      isOpen: true,
+      url: `/panti/kebutuhan/${id}`,
+      title: 'Hapus Kebutuhan',
+      message: 'Kebutuhan barang ini akan dihapus dari daftar. Lanjutkan?',
+      successMsg: 'Target kebutuhan berhasil dihapus!'
+    });
   };
 
-  const handleDeleteNeed = (id: number) => {
-    if (confirm('Hapus kebutuhan ini?')) {
-      router.delete(`/panti/kebutuhan/${id}`, { preserveScroll: true });
-    }
+  const handleDeleteAudit = (id: number) => {
+    setDeleteModal({
+      isOpen: true,
+      url: `/panti/audits/${id}`,
+      title: 'Hapus Laporan Keuangan',
+      message: 'Apakah kamu yakin ingin menghapus laporan keuangan ini? Dokumen yang dihapus tidak dapat diakses lagi oleh donatur.',
+      successMsg: 'Laporan keuangan berhasil dihapus!'
+    });
+  };
+
+  // HANDLER HAPUS FOTO HEADER & PROFIL
+  const handleDeleteBanner = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDeleteModal({
+      isOpen: true,
+      url: `/panti/profil/banner`, // Sesuaikan dengan route DELETE backend Anda
+      title: 'Hapus Cover Panti',
+      message: 'Apakah kamu yakin ingin menghapus foto cover/banner ini?',
+      successMsg: 'Foto cover berhasil dihapus!'
+    });
+  };
+
+  const handleDeleteProfilePhoto = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setDeleteModal({
+      isOpen: true,
+      url: `/panti/profil/foto`, // Sesuaikan dengan route DELETE backend Anda
+      title: 'Hapus Foto Profil',
+      message: 'Apakah kamu yakin ingin menghapus foto profil ini?',
+      successMsg: 'Foto profil berhasil dihapus!'
+    });
   };
 
   const submitProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     profileForm.post('/panti/profil', {
       preserveScroll: true,
-      onSuccess: () => setIsEditProfileModalOpen(false)
+      onSuccess: () => {
+        setIsEditProfileModalOpen(false);
+        showNotification('Profil panti berhasil diperbarui!');
+      }
     });
   };
 
@@ -159,6 +237,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
       onSuccess: () => {
         setIsPengurusModalOpen(false);
         formPengurus.reset();
+        showNotification('Pengurus berhasil ditambahkan!');
       }
     });
   };
@@ -171,6 +250,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
       onSuccess: () => {
         setIsAuditModalOpen(false);
         formAudit.reset();
+        showNotification('Laporan audit berhasil diunggah!');
       }
     });
   };
@@ -189,44 +269,66 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
       {/* ================= BANNER & PROFIL ================= */}
       <div className="relative">
         {/* Cover Image */}
-        <div className="h-40 md:h-60 w-full relative group overflow-hidden" style={{ backgroundColor: COLORS.teal }}>
+        <div className="h-40 md:h-60 w-full relative group overflow-hidden bg-[#4274D9]/70">
 
           {/* Gambar hanya akan dirender JIKA ada foto_banner */}
           {pantiData?.foto_banner && (
             <img src={'/storage/' + pantiData.foto_banner} alt="Cover" className="w-full h-full object-cover" />
           )}
 
-          <label className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-            <div className="bg-white/90 backdrop-blur px-5 py-2.5 rounded-full text-sm font-bold text-[#124354] flex items-center gap-2 hover:bg-white transition-all shadow-lg">
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+            <label className="bg-white/90 backdrop-blur px-5 py-2.5 rounded-full text-sm font-bold text-[#124354] flex items-center gap-2 hover:bg-white transition-all shadow-lg cursor-pointer">
               <Camera size={16} /> Ubah Cover Panti
-            </div>
-            <input type="file" accept="image/*" className="hidden" onChange={handleUploadBanner} />
-          </label>
+              <input type="file" accept="image/*" className="hidden" onChange={handleUploadBanner} />
+            </label>
+            
+            {pantiData?.foto_banner && (
+              <button 
+                onClick={handleDeleteBanner}
+                className="bg-red-500/90 backdrop-blur px-5 py-2.5 rounded-full text-sm font-bold text-white flex items-center gap-2 hover:bg-red-500 transition-all shadow-lg"
+              >
+                <Trash2 size={16} /> Hapus
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="px-5 md:px-8 pb-4">
           <div className="flex justify-between items-start">
 
-            {/* Foto Profil */}
-            <label className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#083A4F] text-white font-black text-5xl overflow-hidden relative z-10 group cursor-pointer">
-              {pantiData?.foto_profil ? (
-                <img src={'/storage/' + pantiData.foto_profil} className="w-full h-full object-cover" />
-              ) : (
-                <span>{getInitials(pantiData?.nama_yayasan)}</span>
-              )}
-              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white gap-1">
-                <Camera size={24} />
-                <span className="text-[10px] font-bold">Ubah Foto</span>
+            {/* Foto Profil Wrapper */}
+            <div className="-mt-14 md:-mt-20 relative z-10 w-fit">
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#4274D9] text-white font-black text-5xl overflow-hidden relative group">
+                {pantiData?.foto_profil ? (
+                  <img src={'/storage/' + pantiData.foto_profil} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{getInitials(pantiData?.nama_yayasan)}</span>
+                )}
+                
+                {/* Aksi Foto Profil (Ubah & Hapus) */}
+                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                  <label className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/40 rounded-full cursor-pointer transition-colors text-white text-[11px] font-bold">
+                    <Camera size={14} /> Ubah
+                    <input type="file" accept="image/*" className="hidden" onChange={handleUploadProfil} />
+                  </label>
+                  
+                  {pantiData?.foto_profil && (
+                    <button 
+                      onClick={handleDeleteProfilePhoto}
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-500/80 hover:bg-red-500 rounded-full transition-colors text-white text-[11px] font-bold"
+                    >
+                      <Trash2 size={14} /> Hapus
+                    </button>
+                  )}
+                </div>
               </div>
-              <input type="file" accept="image/*" className="hidden" onChange={handleUploadProfil} />
-            </label>
+            </div>
 
             {/* Tombol Aksi Kanan */}
             <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
               <button
                 onClick={() => setIsEditProfileModalOpen(true)}
-                className="px-5 py-2 md:px-4 md:py-2 hover:bg-gray-100 text-white rounded-full font-bold shadow-sm transition-colors flex items-center gap-2 text-[14px]"
-                style={{ backgroundColor: COLORS.navy }}
+                className="px-5 py-2 md:px-4 md:py-2 bg-[#4274D9] hover:bg-[#083A4F] text-white rounded-full font-bold shadow-sm transition-colors flex items-center gap-2 text-[14px]"
               >
                 <Edit2 size={16} /> Edit Profil
               </button>
@@ -243,7 +345,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
           <div className="mt-3 text-[15px] text-gray-700 leading-relaxed max-w-4xl whitespace-pre-line group relative w-fit">
             {pantiData?.deskripsi || 'Belum ada deskripsi untuk panti ini.'}
-            <button onClick={() => setIsEditProfileModalOpen(true)} className="absolute -right-8 top-0 p-1.5 text-gray-400 hover:text-[#407E8C] opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-gray-50">
+            <button onClick={() => setIsEditProfileModalOpen(true)} className="absolute -right-8 top-0 p-1.5 text-gray-400 hover:text-[#4274D9] opacity-0 group-hover:opacity-100 transition-opacity rounded-md hover:bg-gray-50">
               <Edit2 size={16} />
             </button>
           </div>
@@ -251,31 +353,31 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
           {/* Dokumen Resmi (Editable) */}
           <div className="mt-4 flex flex-wrap gap-3 mb-2 items-center">
             {pantiData?.akta_yayasan && (
-            <a href={'/storage/' + pantiData.akta_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+            <a href={'/storage/' + pantiData.akta_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
               <FileText size={14} /> Akta Pendirian
             </a>
             )}
             {pantiData?.sk_kemenkumham && (
-            <a href={'/storage/' + pantiData.sk_kemenkumham} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+            <a href={'/storage/' + pantiData.sk_kemenkumham} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
               <FileText size={14} /> SK Kemenkumham
             </a>
             )}
             {pantiData?.izin_operasional && (
-            <a href={'/storage/' + pantiData.izin_operasional} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+            <a href={'/storage/' + pantiData.izin_operasional} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
               <FileText size={14} /> Izin Operasional
             </a>
             )}
             {pantiData?.npwp_yayasan && (
-            <a href={'/storage/' + pantiData.npwp_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#407E8C] hover:text-white hover:border-[#407E8C] transition-colors">
+            <a href={'/storage/' + pantiData.npwp_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
               <FileText size={14} /> NPWP Yayasan
             </a>
             )}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-medium text-gray-500">
-            <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#407E8C]" /> {pantiData?.alamat}</span>
-            <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#407E8C]" /> {pantiData?.website || '-'}</span>
-            <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#407E8C]" /> Berdiri {pantiData?.tahun_berdiri || '-'}</span>
+            <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#4274D9]" /> {pantiData?.alamat}</span>
+            <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#4274D9]" /> {pantiData?.website || '-'}</span>
+            <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#4274D9]" /> Berdiri {pantiData?.tahun_berdiri || '-'}</span>
           </div>
         </div>
       </div>
@@ -290,7 +392,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
               }`}
           >
             {tab.label}
-            {activeProfileTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#407E8C] rounded-t-full" />}
+            {activeProfileTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#4274D9] rounded-t-full" />}
           </button>
         ))}
       </div>
@@ -304,7 +406,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
             {/* Create Post Area */}
             <div className="p-4 md:p-6 border-b border-gray-100 flex gap-3 md:gap-4 bg-gray-50/30">
-              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#083A4F] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
+              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#4274D9] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
                 {getInitials(pantiData?.nama_yayasan)}
               </div>
               <div className="flex-1">
@@ -345,7 +447,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-[#407E8C] hover:bg-blue-50 p-2 rounded-full transition-colors flex items-center gap-2 text-sm font-bold"
+                    className="text-[#4274D9] hover:bg-blue-50 p-2 rounded-full transition-colors flex items-center gap-2 text-sm font-bold"
                   >
                     <ImageIcon size={20} /> <span className="hidden md:block">Lampirkan Foto</span>
                   </button>
@@ -353,7 +455,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                   <button
                     onClick={handleCreatePost}
                     disabled={!newPostContent.trim() && !imagePreview} // Tombol aktif jika ada teks ATAU ada gambar
-                    className="bg-[#083A4F] text-[15px] text-white px-6 py-2 rounded-full font-bold hover:bg-[#124354] transition-colors disabled:opacity-50"
+                    className="bg-[#4274D9] hover:bg-[#083A4F] text-[15px] text-white px-6 py-2 rounded-full font-bold transition-colors disabled:opacity-50"
                   >
                     Posting
                   </button>
@@ -366,7 +468,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
               {posts.length > 0 ? posts.map((post: any) => (
                 <div key={post.id} className="p-4 md:p-6 hover:bg-gray-50 transition relative group">
                   <div className="flex gap-3 md:gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#083A4F] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#4274D9] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
                       {getInitials(pantiData?.nama_yayasan)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -379,7 +481,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
                         {/* CRUD Action for Post */}
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button className="p-1.5 text-gray-400 hover:text-[#407E8C] hover:bg-blue-50 rounded-full transition-colors">
+                          <button className="p-1.5 text-gray-400 hover:text-[#4274D9] hover:bg-blue-50 rounded-full transition-colors">
                             <Edit2 size={16} />
                           </button>
                           <button onClick={() => handleDeletePost(post.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
@@ -410,11 +512,11 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
           <div className="p-5 md:p-8 max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-black flex items-center gap-2 text-[#124354]">
-                <Package size={20} className="text-[#407E8C]" /> Kelola Target Kebutuhan
+                <Package size={20} className="text-[#4274D9]" /> Kelola Target Kebutuhan
               </h3>
               <button
                 onClick={() => setIsNeedModalOpen(true)}
-                className="px-4 py-2 bg-[#083A4F] text-white text-xs md:text-sm font-bold rounded-lg flex items-center gap-2 hover:bg-[#124354] transition-colors"
+                className="px-4 py-2 bg-[#4274D9] hover:bg-[#083A4F] text-white text-xs md:text-sm font-bold rounded-lg flex items-center gap-2 transition-colors"
               >
                 <Plus size={16} /> Tambah Kebutuhan
               </button>
@@ -429,7 +531,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                 const isUrgent = need.is_mendesak;
 
                 return (
-                  <div key={idx} className={`border ${isUrgent ? 'border-red-200' : 'border-gray-200'} rounded-xl p-5 bg-white hover:border-[#407E8C] transition-all flex flex-col justify-between shadow-sm group relative overflow-hidden`}>
+                  <div key={idx} className={`border ${isUrgent ? 'border-red-200' : 'border-gray-200'} rounded-xl p-5 bg-white hover:border-[#4274D9] transition-all flex flex-col justify-between shadow-sm group relative overflow-hidden`}>
                     {isUrgent && (
                       <div className="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-black uppercase px-2 py-1 rounded-bl-lg">
                         Mendesak
@@ -448,7 +550,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                       </span>
 
                       <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-1.5">
-                        <div className="h-full bg-[#407E8C] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                        <div className="h-full bg-[#4274D9] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                       </div>
                       <div className="flex justify-between text-[11px] text-gray-500 font-medium">
                         <span>Terkumpul: {terkumpulVal}</span>
@@ -475,9 +577,9 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-black text-[#124354] flex items-center gap-2">
-                    <Map size={20} className="text-[#407E8C]" /> Lokasi & Kontak
+                    <Map size={20} className="text-[#4274D9]" /> Lokasi & Kontak
                   </h3>
-                  <button onClick={() => setIsEditProfileModalOpen(true)} className="text-xs font-bold text-[#407E8C] hover:underline flex items-center gap-1">
+                  <button onClick={() => setIsEditProfileModalOpen(true)} className="text-xs font-bold text-[#4274D9] hover:underline flex items-center gap-1">
                     <Edit2 size={12} /> Edit Detail
                   </button>
                 </div>
@@ -527,7 +629,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
                 <div className="grid grid-cols-2 gap-4">
                   {pengurus.length > 0 ? pengurus.map((p: any) => (
-                    <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#407E8C] transition-colors relative group">
+                    <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#4274D9] transition-colors relative group">
                       <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => router.delete(`/panti/pengurus/${p.id}`, { preserveScroll: true })} className="p-1 bg-white shadow-sm rounded border border-gray-100 text-gray-500 hover:text-red-500"><Trash2 size={12} /></button>
                       </div>
@@ -555,7 +657,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
           <div className="p-5 md:p-8 max-w-4xl mx-auto space-y-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-black text-[#124354]">Riwayat Laporan</h3>
-              <button onClick={() => setIsAuditModalOpen(true)} className="px-4 py-2 bg-[#083A4F] text-white text-xs font-bold rounded-lg flex items-center gap-2 hover:bg-[#124354] transition-colors">
+              <button onClick={() => setIsAuditModalOpen(true)} className="px-4 py-2 bg-[#4274D9] hover:bg-[#083A4F] text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
                 <Plus size={16} /> Unggah Laporan
               </button>
             </div>
@@ -576,7 +678,13 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                     Lihat File
                   </a>
                   <div className="flex gap-2 w-full sm:w-auto">
-                    <button onClick={() => router.delete(`/panti/audits/${audit.id}`, { preserveScroll: true })} className="flex-1 sm:flex-none p-2.5 flex justify-center items-center rounded-lg border border-gray-200 text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors"><Trash2 size={16} /></button>
+                    <button 
+                    onClick={() => handleDeleteAudit(audit.id)} 
+                    className="flex-1 sm:flex-none p-2.5 flex justify-center items-center rounded-lg border border-gray-200 text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    title="Hapus Laporan"
+                    >
+                    <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -584,7 +692,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
               <div className="text-center text-sm text-gray-500 py-4">Belum ada laporan audit.</div>
             )}
 
-            <p className="text-xs text-gray-400 mt-6 flex items-center gap-1.5"><CheckCircle2 size={14} /> Berikan transparansi terbaik kepada donatur dengan selalu mengunggah laporan dana per kuartal.</p>
+            <p className="text-xs text-gray-400 mt-6 flex justify-center items-center gap-1.5"><CheckCircle2 size={14} /> Berikan transparansi terbaik kepada donatur dengan selalu mengunggah laporan dana per kuartal.</p>
           </div>
         )}
 
@@ -645,7 +753,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
               <div className="sticky bottom-0 bg-white p-5 border-t border-gray-100 flex gap-3 z-10 justify-end -mx-8 -mb-8 mt-5 rounded-b-[2rem]">
                 <button type="button" onClick={() => setIsEditProfileModalOpen(false)} className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all">Batal</button>
-                <button type="submit" disabled={profileForm.processing} className="px-8 py-3 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] transition-all disabled:opacity-50">Simpan Perubahan</button>
+                <button type="submit" disabled={profileForm.processing} className="px-8 py-3 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-all disabled:opacity-50">Simpan Perubahan</button>
               </div>
             </form>
           </div>
@@ -679,7 +787,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                   placeholder="Cth: Beras Premium, Susu Formula..."
                   value={data.nama_kebutuhan}
                   onChange={(e) => setData('nama_kebutuhan', e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                 />
                 {errors.nama_kebutuhan && <p className="text-red-500 text-xs mt-1">{errors.nama_kebutuhan}</p>}
               </div>
@@ -690,7 +798,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                 <select
                   value={data.kategori}
                   onChange={(e) => setData('kategori', e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                 >
                   <option value="Pangan">Pangan (Sembako, Minuman)</option>
                   <option value="Sandang">Sandang (Pakaian, Selimut)</option>
@@ -711,7 +819,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                     placeholder="0"
                     value={data.jumlah}
                     onChange={(e) => setData('jumlah', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                   />
                   {errors.jumlah && <p className="text-red-500 text-xs mt-1">{errors.jumlah}</p>}
                 </div>
@@ -722,7 +830,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                     placeholder="Cth: kg, L, pcs"
                     value={data.satuan}
                     onChange={(e) => setData('satuan', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                   />
                   {errors.satuan && <p className="text-red-500 text-xs mt-1">{errors.satuan}</p>}
                 </div>
@@ -741,7 +849,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                     checked={data.is_mendesak}
                     onChange={e => setData('is_mendesak', e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#407E8C]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#4274D9]/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                 </label>
               </div>
 
@@ -757,7 +865,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                 <button
                   type="submit"
                   disabled={processing}
-                  className="flex-1 py-3 bg-[#124354] text-white font-bold rounded-xl hover:bg-[#0E3544] transition-all shadow-md disabled:opacity-50"
+                  className="flex-1 py-3 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
                 >
                   {processing ? 'Menyimpan...' : 'Terbitkan Kebutuhan'}
                 </button>
@@ -774,7 +882,15 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
           <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-black text-[#124354]">Tambah Pengurus</h3>
-              <button onClick={() => setIsPengurusModalOpen(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+              <button 
+                onClick={() => {
+                    setIsPengurusModalOpen(false);
+                    formPengurus.reset();
+                }} 
+                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-full"
+                >
+                <X size={20} />
+                </button>
             </div>
             <form onSubmit={submitPengurus} className="space-y-4">
               <div className="flex justify-center mb-4">
@@ -795,7 +911,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">Jabatan / Posisi</label>
                 <input type="text" value={formPengurus.data.jabatan} onChange={e => formPengurus.setData('jabatan', e.target.value)} required className="w-full p-3 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none" />
               </div>
-              <button type="submit" disabled={formPengurus.processing} className="w-full py-3 mt-4 bg-[#083A4F] text-white font-bold rounded-xl disabled:opacity-50">Simpan Profil Pengurus</button>
+              <button type="submit" disabled={formPengurus.processing} className="w-full py-3 mt-4 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-colors disabled:opacity-50">Simpan Profil Pengurus</button>
             </form>
           </div>
         </div>
@@ -807,24 +923,124 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
           <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-black text-[#124354]">Unggah Laporan Keuangan</h3>
-              <button onClick={() => setIsAuditModalOpen(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-full"><X size={20} /></button>
+              <button 
+                onClick={() => {
+                    setIsAuditModalOpen(false);
+                    formAudit.reset();        
+                }} 
+                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-full"
+                >
+                <X size={20} />
+                </button>
             </div>
             <form onSubmit={submitAudit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">Judul Laporan</label>
                 <input type="text" value={formAudit.data.judul} onChange={e => formAudit.setData('judul', e.target.value)} required className="w-full p-3 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none" placeholder="Cth: Laporan Keuangan Q1 2026" />
               </div>
-              <label className="border-2 border-dashed border-gray-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-gray-50 hover:bg-gray-100 cursor-pointer">
-                <UploadCloud size={28} className="text-gray-400 mb-2" />
-                <p className="text-sm font-bold text-[#124354]">
-                  {formAudit.data.file_pdf ? formAudit.data.file_pdf.name : 'Pilih File PDF/Excel'}
-                </p>
-                <p className="text-xs text-gray-500">Maksimal ukuran file 10MB</p>
-                <input type="file" accept=".pdf,.xls,.xlsx" className="hidden" onChange={e => formAudit.setData('file_pdf', e.target.files?.[0] || null)} required />
-              </label>
-              <button type="submit" disabled={formAudit.processing} className="w-full py-3 mt-4 bg-[#083A4F] text-white font-bold rounded-xl disabled:opacity-50">Unggah Dokumen</button>
+              <div className="flex flex-col gap-2">
+                {!formAudit.data.file_pdf ? (
+                    // TAMPILAN 1: BELUM ADA FILE (Area Dropzone)
+                    <label className="border-2 border-dashed border-gray-300 hover:border-[#4274D9] bg-gray-50/50 hover:bg-[#4274D9]/5 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group text-center">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-gray-400 group-hover:text-[#4274D9] group-hover:scale-110 transition-all mb-3">
+                        <UploadCloud size={24} />
+                    </div>
+                    <span className="text-sm font-bold text-gray-600 group-hover:text-[#124354] transition-colors">
+                        Pilih atau Seret Dokumen
+                    </span>
+                    <span className="text-xs text-gray-400 mt-1">
+                        File PDF/Excel (Maks. 10MB)
+                    </span>
+                    
+                    <input 
+                        type="file" 
+                        accept=".pdf,.xls,.xlsx"
+                        className="hidden" 
+                        onChange={(e) => formAudit.setData('file_pdf', e.target.files?.[0] || null)}
+                        required 
+                    />
+                    </label>
+                ) : (
+                    // TAMPILAN 2: FILE SUDAH DIPILIH (Card Sukses)
+                    <div className="border border-emerald-200 bg-emerald-50/40 rounded-2xl p-4 flex items-center justify-between animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                        {/* Ikon File */}
+                        <div className="w-12 h-12 bg-emerald-500 text-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-md shadow-emerald-500/20">
+                        <FileText size={24} />
+                        </div>
+                        
+                        {/* Info File */}
+                        <div className="min-w-0">
+                        <p className="text-sm font-black text-[#124354] truncate pr-2">
+                            {formAudit.data.file_pdf.name}
+                        </p>
+                        <p className="text-xs text-emerald-600 font-bold mt-0.5 flex items-center gap-1.5">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            {(formAudit.data.file_pdf.size / (1024 * 1024)).toFixed(2)} MB • Siap diunggah
+                        </p>
+                        </div>
+                    </div>
+
+                    {/* Tombol Batal Pilih */}
+                    <button
+                        type="button"
+                        onClick={() => formAudit.setData('file_pdf', null)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all flex-shrink-0"
+                        title="Batalkan pilihan file"
+                    >
+                        <X size={18} />
+                    </button>
+                    </div>
+                )}
+                </div>
+              <button type="submit" disabled={formAudit.processing} className="w-full py-3 mt-4 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-colors disabled:opacity-50">Unggah Dokumen</button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ================= MODAL KONFIRMASI HAPUS ================= */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#124354]/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-sm shadow-2xl text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border-4 border-red-100">
+              <Trash2 size={28} />
+            </div>
+            
+            <h3 className="text-xl font-black text-[#124354] mb-2">{deleteModal.title}</h3>
+            <p className="text-sm text-gray-500 mb-6 leading-relaxed">{deleteModal.message}</p>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))} 
+                className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={executeDelete} 
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-all shadow-md shadow-red-500/20"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= NOTIFIKASI TOAST (DIPINDAH KE TENGAH ATAS) ================= */}
+      {notification.show && (
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[100] bg-[#124354] text-white px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-5 fade-in duration-300 border border-white/10">
+          <div className="bg-[#4274D9] rounded-full p-1">
+            <CheckCircle2 size={16} className="text-white" />
+          </div>
+          <span className="font-bold text-[14px] whitespace-nowrap">{notification.message}</span>
+          <button 
+            onClick={() => setNotification({ show: false, message: '' })} 
+            className="ml-2 p-1 text-gray-300 hover:text-white hover:bg-white/20 rounded-full transition-colors"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
 

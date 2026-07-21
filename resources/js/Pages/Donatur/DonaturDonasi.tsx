@@ -147,7 +147,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
   const [filter, setFilter] = useState<FilterId>('semua');
   const [query, setQuery] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [resiInput, setResiInput] = useState({ courier: 'Antar Mandiri', number: '' }); // Set default sesuai kebutuhan
+  const [resiInput, setResiInput] = useState({ courier: 'Antar Mandiri', number: '' });
 
   const donationsList = useMemo(() => {
     return myDonations.map((d: any) => {
@@ -238,7 +238,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                 onClick={() => setFilter(f.id)}
                 className="text-xs font-bold px-4 py-2.5 rounded-xl transition-all whitespace-nowrap"
                 style={{
-                  backgroundColor: filter === f.id ? COLORS.navy : 'transparent',
+                  backgroundColor: filter === f.id ? COLORS.teal : 'transparent',
                   color: filter === f.id ? '#ffffff' : COLORS.navy,
                 }}
               >
@@ -257,16 +257,19 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
       {filtered.length > 0 ? (
         <div className="flex flex-col gap-4">
           {filtered.map((d) => {
-            const badge = STAGE_BADGE[d.stage];
-            return (
-              <div key={d.id} className={`bg-white rounded-[1.5rem] border overflow-hidden transition-shadow hover:shadow-sm ${(d.stage === 2 || d.status === 'Batal') ? 'opacity-50' : ''}`} style={{ borderColor: COLORS.mist }}>
+            const isCompletedOrCanceled = d.stage === 2 || d.status === 'Batal';
 
+            return (
+              <div 
+                key={d.id} 
+                className="bg-white rounded-[1.5rem] border overflow-hidden transition-shadow hover:shadow-sm" 
+                style={{ borderColor: COLORS.mist }}
+              >
                 <div className="p-5 md:p-6 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
-                  <div className="flex items-start gap-4 lg:w-[280px] shrink-0">
-                    <div
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: COLORS.mist }}
-                    >
+                  
+                  {/* Info Barang & Panti (Diberi opacity halus jika selesai/batal) */}
+                  <div className={`flex items-start gap-4 lg:w-[280px] shrink-0 ${isCompletedOrCanceled ? 'opacity-60' : ''}`}>
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border border-[#4274D9]/70">
                       {d.type === 'Dana' ? <Wallet size={20} color={COLORS.teal} /> : <Package size={20} color={COLORS.teal} />}
                     </div>
                     <div className="min-w-0">
@@ -282,8 +285,8 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                     </div>
                   </div>
 
-                  {/* Stepper (Tengah di mobile) */}
-                  <div className="flex-1 w-full flex justify-center py-2 lg:py-0">
+                  {/* Stepper (Tengah di mobile, diberi opacity halus jika selesai/batal) */}
+                  <div className={`flex-1 w-full flex justify-center py-2 lg:py-0 ${isCompletedOrCanceled ? 'opacity-80' : ''}`}>
                     {d.status === 'Batal' ? (
                       <span className="text-red-500 font-extrabold uppercase tracking-wider text-[10px] bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 shadow-xs">
                         Donasi Batal (Expired)
@@ -301,11 +304,11 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                     )}
                   </div>
 
-                  {/* Resi & Detail - Disetel justify-between di mobile */}
+                  {/* Resi & Tombol Detail (Tetap 100% Opacity & Tegas) */}
                   <div className="shrink-0 flex items-center justify-between w-full lg:w-auto lg:justify-end gap-5 lg:mt-0">
                     <div className="flex items-center">
                       {d.method && (
-                        <span className="text-[13px] font-semibold" style={{ color: COLORS.navy, opacity: 0.45 }}>
+                        <span className="text-[13px] font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
                           {d.method}
                         </span>
                       )}
@@ -314,7 +317,7 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                       d.status === 'Pending' ? (
                         <Link
                           href={`/donatur/donasi-uang/bayar/${d.id}`}
-                          className="flex items-center justify-center text-white gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold border transition-all shrink-0 bg-[#A58D66]"
+                          className="flex items-center justify-center text-white gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold border transition-all shrink-0 bg-[#A58D66] shadow-xs hover:brightness-110"
                         >
                           Bayar
                         </Link>
@@ -326,8 +329,8 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                     ) : (
                       <Link
                         href={`/donasi/${d.id}`}
-                        className="flex items-center justify-center text-white gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold border transition-colors hover:bg-black/[0.02] group shrink-0"
-                        style={{ backgroundColor: COLORS.navy }}
+                        className="flex items-center justify-center text-white gap-1.5 px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs hover:brightness-110 shrink-0"
+                        style={{ backgroundColor: COLORS.teal }}
                       >
                         Detail
                       </Link>
@@ -375,7 +378,6 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
                             style={{ borderColor: COLORS.mist, color: COLORS.navy }}
                           />
                         ) : (
-                          // Spacer kosong agar saat mode desktop, tombol tetap terdorong ke kanan
                           <div className="hidden md:block flex-1"></div>
                         )}
                         

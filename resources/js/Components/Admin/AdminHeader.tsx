@@ -1,7 +1,17 @@
 import React from 'react';
-import { Search, Bell, Flag, Building2 } from 'lucide-react';
+import { Bell, Flag, Building2 } from 'lucide-react';
 import Dropdown from '@/Components/Dropdown';
 import { Link } from '@inertiajs/react';
+
+const TAB_LABEL: Record<string, string> = {
+  dashboard: 'Dashboard Admin',
+  panti: 'Manajemen Panti',
+  donatur: 'Manajemen Donatur',
+  kebutuhan: 'Manajemen Kebutuhan',
+  laporan: 'Laporan Masuk',
+  chat: 'Pesan Chat Admin',
+  pengaturan: 'Pengaturan Akun',
+};
 
 interface AdminHeaderProps {
   activeTab: string;
@@ -34,20 +44,24 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
 
   return (
     <header className="h-20 bg-white border-b border-gray-200/80 flex items-center justify-between px-8 z-10 shrink-0">
+      
+      {/* Sisi Kiri: Badge Panel & Judul Tab Aktif */}
       <div className="flex items-center gap-3">
-        <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#D0E7E6]/40 px-2.5 py-1 rounded-md">
+        <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#4274D9]/20 px-2.5 py-1 rounded-md">
           Admin Panel
         </span>
-        <h2 className="text-lg font-bold text-[#293681] capitalize">
-          {activeTab === 'dashboard' ? 'Dashboard Admin' : `Manajemen ${activeTab}`}
+        <h2 className="text-lg font-bold text-[#293681]">
+          {TAB_LABEL[activeTab] ?? 'Dashboard Admin'}
         </h2>
       </div>
       
+      {/* Sisi Kanan: Notifikasi & Profil Admin */}
       <div className="flex items-center gap-5">
         
+        {/* Dropdown Notifikasi */}
         <Dropdown>
           <Dropdown.Trigger>
-            <button className="relative p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
+            <button className="relative p-2 text-gray-400 hover:text-[#293681] hover:bg-gray-100 rounded-full transition-colors">
               <Bell size={20} />
               {notifications.length > 0 && (
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
@@ -57,7 +71,7 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
 
           <Dropdown.Content align="right" width="64" contentClasses="py-2 bg-white border border-gray-100 shadow-xl rounded-xl z-50">
             <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
-              <p className="text-sm font-bold text-[#124354]">Notifikasi Admin</p>
+              <p className="text-sm font-bold text-[#293681]">Notifikasi Admin</p>
               <span className="text-xs font-bold text-white bg-red-500 px-2 py-0.5 rounded-full">{notifications.length}</span>
             </div>
             <div className="max-h-64 overflow-y-auto">
@@ -79,7 +93,7 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
                         {notif.icon}
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-[#124354] line-clamp-1">{notif.title}</p>
+                        <p className="text-xs font-bold text-[#293681] line-clamp-1">{notif.title}</p>
                         <p className="text-[10px] text-gray-500 mt-0.5 line-clamp-2">{notif.desc}</p>
                       </div>
                     </div>
@@ -95,15 +109,17 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
           </Dropdown.Content>
         </Dropdown>
         
+        {/* Identitas Admin */}
         <div className="flex items-center gap-3 border-l border-gray-200 pl-5">
-          <div className="w-9 h-9 bg-[#4274D9] text-white rounded-full flex items-center justify-center font-extrabold text-sm shadow-sm shadow-[#4274D9]/20">
+          <div className="w-9 h-9 bg-[#4274D9] text-white rounded-full flex items-center justify-center font-extrabold text-[12pt] shadow-sm shadow-[#4274D9]/20">
             A
           </div>
           <div className="hidden lg:block">
-            <p className="text-xs font-extrabold text-[#293681] leading-none">Admin Utama</p>
-            <p className="text-[10px] text-gray-400 font-medium mt-1 leading-none">Superadmin</p>
+            <p className="text-[10pt] font-extrabold text-[#293681] leading-none">Admin Utama</p>
+            <p className="text-[11px] text-gray-400 font-medium mt-1.5 leading-none">Superadmin</p>
           </div>
         </div>
+
       </div>
     </header>
   );

@@ -3,11 +3,11 @@ import { Search, Filter, Download, X, Package, Wallet, UploadCloud, ImageIcon, C
 import { useForm } from '@inertiajs/react';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
@@ -75,10 +75,10 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
     <div className="space-y-6 pb-20 text-sm relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#124354] tracking-tight">Donasi Masuk</h1>
+          <h1 className="text-3xl font-extrabold text-[#293681] tracking-tight">Donasi Masuk</h1>
           <p className="text-gray-500 mt-1">Riwayat lengkap penerimaan donasi dana maupun barang.</p>
         </div>
-        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-gray-200 text-[#124354] text-sm font-semibold hover:bg-gray-50 transition-all shrink-0 shadow-sm">
+        <button className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-white border border-gray-200 text-[#293681] text-sm font-semibold hover:bg-gray-50 transition-all shrink-0 shadow-sm">
           <Download size={16} /> Unduh Laporan
         </button>
       </div>
@@ -92,25 +92,25 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
             placeholder="Cari nama donatur atau ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full py-2.5 pl-3 text-sm bg-transparent border-0 focus:ring-0 outline-none text-[#124354] placeholder-gray-400"
+            className="w-full py-2.5 pl-3 text-sm bg-transparent border-0 focus:ring-0 outline-none text-[#293681] placeholder-gray-400"
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar w-full sm:w-auto">
           <button 
             onClick={() => setTypeFilter('Semua')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Semua' ? 'bg-[#083A4F] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Semua' ? 'bg-[#4274D9] hover:bg-[#293681] text-white shadow-md shadow-[#4274D9]/20' : 'text-gray-500 hover:bg-gray-50'}`}
           >
             Semua
           </button>
           <button 
             onClick={() => setTypeFilter('Dana')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Dana' ? 'bg-[#083A4F] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Dana' ? 'bg-[#4274D9] hover:bg-[#293681] text-white shadow-md shadow-[#4274D9]/20' : 'text-gray-500 hover:bg-gray-50'}`}
           >
             Dana
           </button>
           <button 
             onClick={() => setTypeFilter('Barang')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Barang' ? 'bg-[#083A4F] text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${typeFilter === 'Barang' ? 'bg-[#4274D9] hover:bg-[#293681] text-white shadow-md shadow-[#4274D9]/20' : 'text-gray-500 hover:bg-gray-50'}`}
           >
             Barang
           </button>
@@ -124,7 +124,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-gray-100 text-xs text-white uppercase tracking-wider" style={{background: COLORS.navy}}>
+              <tr className="border-b border-gray-100 text-xs text-white uppercase tracking-wider bg-[#4274D9]">
                 <th className="px-6 py-4 font-bold">Tanggal</th>
                 <th className="px-6 py-4 font-bold">Donatur</th>
                 <th className="px-6 py-4 font-bold">Jenis</th>
@@ -134,7 +134,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                 <th className="px-6 py-4 font-bold text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="text-[#124354]">
+            <tbody className="text-[#293681]">
               {filteredData.length > 0 ? (
                 filteredData.map((row, i) => (
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
@@ -167,7 +167,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                       {(row.status === 'Dikirim' || row.status === 'Menunggu Konfirmasi Jemput' || row.status === 'Akan Dijemput') ? (
                         <button 
                           onClick={() => { reset(); setSelectedTx(row); }}
-                          className="relative inline-flex items-center justify-center px-4 py-2 bg-[#407E8C] text-white hover:bg-[#083A4F] rounded-xl text-xs font-bold transition-all shadow-sm"
+                          className="relative inline-flex items-center justify-center px-4 py-2 bg-[#4274D9] text-white hover:bg-[#293681] rounded-xl text-xs font-bold transition-all shadow-sm"
                         >
                           Tinjau
                           <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -178,7 +178,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                       ) : (
                         <button 
                           onClick={() => { reset(); setSelectedTx(row); }}
-                          className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-[#124354] hover:bg-gray-50 rounded-xl text-xs font-bold transition-all shadow-sm"
+                          className="inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-200 text-[#293681] hover:bg-gray-50 rounded-xl text-xs font-bold transition-all shadow-sm"
                         >
                           Detail
                         </button>
@@ -200,26 +200,26 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
 
       {/* ================= MODAL DETAIL & KONFIRMASI ================= */}
       {selectedTx && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-all">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-sm transition-all">
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto hide-scrollbar">
             
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-[#124354]">Detail Donasi</h3>
-              <button onClick={() => setSelectedTx(null)} className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-full transition-colors">
+              <h3 className="text-xl font-black text-[#293681]">Detail Donasi</h3>
+              <button onClick={() => setSelectedTx(null)} className="p-2 text-gray-400 hover:text-[#293681] hover:bg-gray-100 rounded-full transition-colors">
                 <X size={20} />
               </button>
             </div>
             
             <div className="space-y-6">
               {/* Info Header */}
-              <div className="flex items-center justify-between p-4 bg-[#F4F3EF] rounded-2xl border border-gray-200/50">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-200/50">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#407E8C] shadow-sm">
+                  <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#4274D9] shadow-sm">
                     {selectedTx.type === 'Dana' ? <Wallet size={24} /> : <Package size={24} />}
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-bold mb-0.5 uppercase tracking-wider">Donasi {selectedTx.type}</p>
-                    <p className="text-xl font-black text-[#124354] leading-none">{selectedTx.val}</p>
+                    <p className="text-xl font-black text-[#293681] leading-none">{selectedTx.val}</p>
                   </div>
                 </div>
                 <span className={`border text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg ${getStatusBadge(selectedTx.status)}`}>
@@ -231,19 +231,19 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
               <div className="grid grid-cols-2 gap-4 px-1">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">ID Transaksi</p>
-                  <p className="text-sm font-bold text-[#124354]">{selectedTx.id}</p>
+                  <p className="text-sm font-bold text-[#293681]">{selectedTx.id}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Donatur</p>
-                  <p className="text-sm font-bold text-[#124354]">{selectedTx.name}</p>
+                  <p className="text-sm font-bold text-[#293681]">{selectedTx.name}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Layanan Logistik</p>
-                  <p className="text-sm font-bold text-[#124354]">{selectedTx.detail.kurir}</p>
+                  <p className="text-sm font-bold text-[#293681]">{selectedTx.detail.kurir}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nomor Resi</p>
-                  <p className="text-sm font-bold text-[#407E8C]">{selectedTx.detail.resi}</p>
+                  <p className="text-sm font-bold text-[#4274D9]">{selectedTx.detail.resi}</p>
                 </div>
                 <div className="col-span-2 mt-2">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pesan Donatur</p>
@@ -269,7 +269,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                     {data.bukti_penerimaan ? (
                       <div className="border border-emerald-100 bg-emerald-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
                         <CheckCircle2 className="text-emerald-500 mb-2" size={32} />
-                        <p className="text-sm font-bold text-[#124354]">{data.bukti_penerimaan.name}</p>
+                        <p className="text-sm font-bold text-[#293681]">{data.bukti_penerimaan.name}</p>
                         <button 
                           type="button" 
                           onClick={() => setData('bukti_penerimaan', null)} 
@@ -281,12 +281,12 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                     ) : (
                       <div 
                         onClick={handleBoxClick}
-                        className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors cursor-pointer group"
+                        className="border-2 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:bg-[#4274D9]/5 hover:border-[#4274D9] transition-colors cursor-pointer group"
                       >
-                        <div className="w-12 h-12 bg-[#F4F3EF] text-[#407E8C] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 bg-gray-100 text-[#4274D9] rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                           <UploadCloud size={24} />
                         </div>
-                        <p className="text-sm font-bold text-[#124354]">Pilih atau tarik foto ke sini</p>
+                        <p className="text-sm font-bold text-[#293681]">Pilih atau tarik foto ke sini</p>
                         <p className="text-xs text-gray-500 mt-1">Maksimal ukuran file 5MB (JPG/PNG)</p>
                       </div>
                     )}
@@ -301,13 +301,13 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                     {errors.bukti_penerimaan && <p className="text-red-500 text-xs mt-1">{errors.bukti_penerimaan}</p>}
 
                     <div>
-                      <label className="block text-xs font-bold text-[#124354] uppercase tracking-wider mb-1.5 ml-1">
+                      <label className="block text-xs font-bold text-[#293681] uppercase tracking-wider mb-1.5 ml-1">
                         Pesan Ucapan Terima Kasih (Opsional)
                       </label>
                       <textarea 
                         value={data.ucapan_terimakasih}
                         onChange={e => setData('ucapan_terimakasih', e.target.value)}
-                        className="w-full p-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#124354] focus:bg-white transition-colors text-[#124354] font-medium resize-none h-20" 
+                        className="w-full p-3 py-2 text-xs rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 focus:bg-white transition-all text-[#293681] font-medium resize-none h-20" 
                         placeholder="Tulis pesan ucapan terima kasih kepada donatur..."
                       />
                       {errors.ucapan_terimakasih && <p className="text-red-500 text-xs mt-1">{errors.ucapan_terimakasih}</p>}
@@ -320,7 +320,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                       <button 
                         type="submit"
                         disabled={processing}
-                        className="flex-1 py-3 bg-[#407E8C] text-white font-bold rounded-xl hover:bg-[#083A4F] transition-all flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+                        className="flex-1 py-3 bg-[#4274D9] text-white font-bold rounded-xl hover:bg-[#293681] transition-all flex items-center justify-center gap-2 shadow-md shadow-[#4274D9]/20 disabled:opacity-50"
                       >
                         <CheckCircle2 size={18} /> {processing ? 'Memproses...' : 'Konfirmasi Terima Barang'}
                       </button>
@@ -351,7 +351,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                             }
                           });
                         }}
-                        className="flex-1 py-3 bg-[#083A4F] text-white font-bold rounded-xl hover:bg-[#124354] transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+                        className="flex-1 py-3 bg-[#4274D9] text-white font-bold rounded-xl hover:bg-[#293681] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#4274D9]/20 disabled:opacity-50"
                       >
                         Konfirmasi Penjemputan
                       </button>
@@ -386,7 +386,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
                       </div>
                     )}
                     
-                    <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#124354] text-white font-bold rounded-xl transition-all hover:bg-[#083A4F]">
+                    <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#4274D9] text-white font-bold rounded-xl transition-all hover:bg-[#293681]">
                       Tutup
                     </button>
                   </div>
@@ -394,7 +394,7 @@ export default function DonasiMasuk({ donations = [] }: { donations?: any[] }) {
 
                 {/* 3. Kondisi Jika Status "Diproses" atau "Pending" */}
                 {(selectedTx.status === 'Diproses' || selectedTx.status === 'Pending') && (
-                  <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#124354] text-white font-bold rounded-xl transition-all hover:bg-[#083A4F]">
+                  <button onClick={() => setSelectedTx(null)} className="w-full py-3 bg-[#4274D9] text-white font-bold rounded-xl transition-all hover:bg-[#293681]">
                     Tutup
                   </button>
                 )}

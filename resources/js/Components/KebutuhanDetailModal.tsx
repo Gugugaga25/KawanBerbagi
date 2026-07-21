@@ -21,9 +21,9 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
     <Modal show={isOpen} onClose={onClose} maxWidth="xl">
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#D0E7E6]/30">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#4274D9]/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#D0E7E6] flex items-center justify-center text-[#4274D9]">
+            <div className="w-10 h-10 rounded-xl border border-[#4274D9]/70 flex items-center justify-center text-[#4274D9]">
               <Info size={20} />
             </div>
             <div>
@@ -85,7 +85,7 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
                 <span>Terkumpul: {data.terkumpul} {data.satuan}</span>
                 <span className="text-[#4274D9]">{persentase}%</span>
               </div>
-              <div className="w-full bg-[#ECFEFF] border border-[#95CCDD]/30 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                 <div 
                   className={`h-2.5 rounded-full transition-all duration-500 ${persentase >= 100 ? 'bg-green-500' : 'bg-[#4274D9]'}`}
                   style={{ width: `${Math.min(persentase, 100)}%` }}
@@ -107,7 +107,7 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
                 {data.donations.map((donasi: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#D0E7E6] flex items-center justify-center text-[#4274D9]">
+                      <div className="w-8 h-8 rounded-full bg-[#4274D9]/20 flex items-center justify-center text-[#4274D9]">
                         <User size={14} />
                       </div>
                       <div>

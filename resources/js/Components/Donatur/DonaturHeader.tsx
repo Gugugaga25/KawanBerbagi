@@ -12,11 +12,6 @@ const TAB_LABEL: Record<string, string> = {
   pengaturan: 'Pengaturan Akun',
 };
 
-const COLORS = {
-  navy: '#293681',
-  mist: '#D0E7E6',
-};
-
 interface DonaturHeaderProps {
   activeTab: string;
   donaturData?: {
@@ -35,7 +30,7 @@ export default function DonaturHeader({ activeTab, donaturData = null }: Donatur
       
       {/* Sisi Kiri: Badge Panel & Judul Tab Aktif */}
       <div className="flex items-center gap-3">
-        <div className="bg-[#D0E7E6]/40 text-[#4274D9] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-[#D0E7E6]">
+        <div className="bg-[#4274D9]/10 text-[#4274D9] border border-[#4274D9]/20 px-2.5 py-1 rounded-lg text-[12px] font-bold uppercase tracking-wider">
           Panel Donatur
         </div>
         <h2 className="text-lg font-bold text-[#293681]">
@@ -55,21 +50,20 @@ export default function DonaturHeader({ activeTab, donaturData = null }: Donatur
             <img
               src={foto}
               alt={namaLengkap}
-              className="w-9 h-9 rounded-full object-cover border-2 shadow-sm"
-              style={{ borderColor: COLORS.mist }}
+              className="w-9 h-9 rounded-full object-cover border-2 border-[#4274D9] shadow-sm"
             />
           ) : (
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm shadow-sm bg-[#4274D9] text-white shadow-[#4274D9]/20"
+              className="w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-[12pt] shadow-sm bg-[#4274D9] text-white shadow-[#4274D9]/20"
             >
               {initials}
             </div>
           )}
           <div className="hidden lg:block text-left">
-            <p className="text-xs font-extrabold text-[#293681] leading-tight truncate max-w-[140px]">
+            <p className="text-[10pt] font-extrabold text-[#293681] leading-tight truncate max-w-[140px]">
               {namaLengkap}
             </p>
-            <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+            <p className="text-[11px] text-gray-400 font-medium mt-0.5">
               Donatur
             </p>
           </div>

@@ -65,6 +65,22 @@ class ProfilController extends Controller
         return back()->with('success', 'Foto profil diperbarui.');
     }
 
+    // ================= FUNGSI HAPUS FOTO PROFIL =================
+    public function deleteFoto()
+    {
+        $shelter = Shelter::where('id_user', Auth::id())->firstOrFail();
+
+        if ($shelter->foto_profil) {
+            if (Storage::disk('public')->exists($shelter->foto_profil)) {
+                Storage::disk('public')->delete($shelter->foto_profil);
+            }
+            $shelter->update(['foto_profil' => null]);
+        }
+
+        return back()->with('success', 'Foto profil berhasil dihapus.');
+    }
+    // ============================================================
+
     public function updateBanner(Request $request)
     {
         $shelter = Shelter::where('id_user', Auth::id())->firstOrFail();
@@ -78,6 +94,22 @@ class ProfilController extends Controller
 
         return back()->with('success', 'Banner panti diperbarui.');
     }
+
+    // ================= FUNGSI HAPUS BANNER =================
+    public function deleteBanner()
+    {
+        $shelter = Shelter::where('id_user', Auth::id())->firstOrFail();
+
+        if ($shelter->foto_banner) {
+            if (Storage::disk('public')->exists($shelter->foto_banner)) {
+                Storage::disk('public')->delete($shelter->foto_banner);
+            }
+            $shelter->update(['foto_banner' => null]);
+        }
+
+        return back()->with('success', 'Banner panti berhasil dihapus.');
+    }
+    // =======================================================
 
     public function storePost(Request $request)
     {
@@ -95,7 +127,8 @@ class ProfilController extends Controller
 
         $newPost = [
             'id' => time(),
-            'content' => $request->content,
+            // 👇 DIGANTI MENJADI $request->input('content') BIAR TIDAK MERAH 👇
+            'content' => $request->input('content'), 
             'image' => $imagePath,
             'time' => now()->toISOString(),
             'likes' => 0,
@@ -133,8 +166,8 @@ class ProfilController extends Controller
 
         $newPengurus = [
             'id' => time(),
-            'nama' => $request->nama,
-            'jabatan' => $request->jabatan,
+            'nama' => $request->input('nama'),
+            'jabatan' => $request->input('jabatan'),
             'image' => $imagePath
         ];
         
@@ -168,7 +201,7 @@ class ProfilController extends Controller
 
         $newAudit = [
             'id' => time(),
-            'judul' => $request->judul,
+            'judul' => $request->input('judul'),
             'file_pdf' => $filePath,
             'tanggal' => now()->format('d M Y')
         ];

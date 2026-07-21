@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { 
-  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Clock, User2
+  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck
 } from 'lucide-react';
 import PantiSidebar, { PantiTabType } from '@/Components/Panti/PantiSidebar';
 import PantiHeader from '@/Components/Panti/PantiHeader';
@@ -37,14 +37,6 @@ interface PantiChatProps {
   };
   auth: any;
 }
-
-const COLORS = {
-  navy: '#083A4F',
-  gold: '#A58D66',
-  mist: '#C0D5D6',
-  teal: '#407E8C',
-  cream: '#E5E1DD',
-};
 
 export default function PantiChat({ chats: initialChats, activeChatId: initialActiveChatId, pantiData, auth }: PantiChatProps) {
   const [chats, setChats] = useState<ChatItem[]>(initialChats);
@@ -111,7 +103,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
     }
     pollingIntervalRef.current = window.setInterval(() => {
       fetchMessages(chatId, true);
-    }, 3000); // Poll every 3 seconds
+    }, 3000);
   };
 
   useEffect(() => {
@@ -134,7 +126,6 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
 
   const handleSelectChat = (chatId: number) => {
     setActiveChatId(chatId);
-    // Update URL
     const newUrl = `${window.location.pathname}?active_chat=${chatId}`;
     window.history.pushState({ path: newUrl }, '', newUrl);
   };
@@ -165,10 +156,8 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
 
       if (response.ok) {
         const data = await response.json();
-        // Append sent message
         setMessages(prev => [...prev, data.message]);
         
-        // Update last message in the chat list
         setChats(prevChats => 
           prevChats.map(c => 
             c.id_chat === activeChatId 
@@ -199,7 +188,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
   };
 
   return (
-    <div className="flex h-screen font-sans bg-white text-[#124354] overflow-hidden">
+    <div className="flex h-screen font-sans bg-white text-[#293681] overflow-hidden">
       <Head title="Pesan Chat - KawanBerbagi" />
 
       {/* ================= OVERLAY MOBILE ================= */}
@@ -223,18 +212,22 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F4F3EF]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F8FAFC]">
         
-        {/* Header Mobile */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30 text-white shadow-md">
+        {/* Header Mobile Putih */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-white z-30 shadow-md border-b border-gray-100">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+              className="p-2 rounded-xl bg-[#4274D9] hover:bg-[#293681] text-white transition-colors"
             >
               <Menu size={20} />
             </button>
-            <span className="font-extrabold tracking-wide uppercase text-sm">Pesan Chat</span>
+            <span className="font-extrabold text-[#293681] tracking-wide uppercase text-sm">Pesan Chat</span>
+          </div>
+
+          <div className="w-9 h-9 rounded-full bg-[#4274D9] flex items-center justify-center font-extrabold text-xs text-white shadow-xs">
+            {pantiData?.nama_yayasan ? pantiData.nama_yayasan.charAt(0).toUpperCase() : 'P'}
           </div>
         </div>
 
@@ -249,9 +242,9 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
             
             {/* Left Column: Chat List */}
             <div className={`w-full md:w-80 flex flex-col border-r border-gray-100 ${activeChatId ? 'hidden md:flex' : 'flex'}`}>
-              <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-[#F4F3EF]/30">
-                <h3 className="font-extrabold text-sm text-[#124354]">Daftar Percakapan</h3>
-                <span className="text-[10px] bg-[#083A4F] text-white px-2 py-0.5 rounded-full font-bold">
+              <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-[#F8FAFC]">
+                <h3 className="font-extrabold text-[12pt] text-[#293681]">Daftar Percakapan</h3>
+                <span className="text-[10px] bg-[#4274D9] text-white px-2 py-0.5 rounded-full font-bold">
                   {chats.length} Donatur
                 </span>
               </div>
@@ -266,11 +259,11 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                         onClick={() => handleSelectChat(chat.id_chat)}
                         className={`w-full p-4 flex items-start gap-3 text-left transition-all ${
                           isSelected 
-                            ? 'bg-[#407E8C]/10 border-l-4 border-[#407E8C]' 
-                            : 'hover:bg-gray-50 border-l-4 border-transparent'
+                            ? 'bg-[#4274D9]/10 border-l-4 border-[#4274D9]' 
+                            : 'hover:bg-[#4274D9]/5 border-l-4 border-transparent'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-[#4274D9] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
                           {chat.donor.foto_profil ? (
                             <img src={chat.donor.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                           ) : (
@@ -279,7 +272,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-baseline mb-0.5">
-                            <h4 className="font-bold text-xs text-[#124354] truncate">{chat.donor.nama_lengkap}</h4>
+                            <h4 className="font-bold text-[10pt] text-[#293681] truncate">{chat.donor.nama_lengkap}</h4>
                             <span className="text-[9px] text-gray-400 font-medium">
                               {formatTime(chat.last_message_time)}
                             </span>
@@ -298,7 +291,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                   })
                 ) : (
                   <div className="text-center py-12 px-4 text-gray-400">
-                    <MessageSquare size={32} className="mx-auto mb-2 opacity-40 text-[#124354]" />
+                    <MessageSquare size={32} className="mx-auto mb-2 opacity-40 text-[#293681]" />
                     <p className="text-xs font-bold">Belum ada obrolan.</p>
                     <p className="text-[10px] mt-1 text-gray-500">Hanya donatur yang dapat memulai obrolan terlebih dahulu.</p>
                   </div>
@@ -314,12 +307,12 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                   <div className="h-16 px-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
                     <button 
                       onClick={() => setActiveChatId(null)}
-                      className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-[#124354]"
+                      className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-[#293681]"
                     >
                       <ArrowLeft size={20} />
                     </button>
                     
-                    <div className="w-9 h-9 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold">
+                    <div className="w-9 h-9 rounded-full bg-[#4274D9] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold shadow-xs">
                       {activeChat.donor.foto_profil ? (
                         <img src={activeChat.donor.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                       ) : (
@@ -328,15 +321,15 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-extrabold text-sm text-[#124354] truncate">{activeChat.donor.nama_lengkap}</h4>
-                      <p className="text-xs text-gray-400 font-medium">Donatur</p>
+                      <h4 className="font-extrabold text-[11pt] text-[#293681] truncate">{activeChat.donor.nama_lengkap}</h4>
+                      <p className="text-[8pt] text-gray-400 font-medium">Donatur</p>
                     </div>
                   </div>
 
                   {/* Chat Messages List */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
                     {loadingMessages ? (
-                      <div className="flex-1 flex items-center justify-center text-sm text-gray-400">
+                      <div className="flex-1 flex items-center justify-center text-sm text-gray-400 font-semibold">
                         Memuat riwayat chat...
                       </div>
                     ) : messages.length > 0 ? (
@@ -350,8 +343,8 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                             <div 
                               className={`p-3 rounded-2xl text-sm font-semibold shadow-xs ${
                                 isMe 
-                                  ? 'bg-[#083A4F] text-white rounded-tr-none' 
-                                  : 'bg-white text-[#124354] border border-gray-100 rounded-tl-none'
+                                  ? 'bg-[#4274D9] text-white rounded-tr-none shadow-sm shadow-[#4274D9]/20' 
+                                  : 'bg-white border border-gray-200/80 rounded-tl-none text-[#293681]'
                               }`}
                             >
                               <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>
@@ -373,7 +366,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                       })
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
-                        <MessageSquare size={36} className="mb-2 opacity-30 text-[#124354]" />
+                        <MessageSquare size={36} className="mb-2 opacity-30 text-[#293681]" />
                         <p className="text-sm font-bold">Belum ada percakapan</p>
                       </div>
                     )}
@@ -387,12 +380,12 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       placeholder="Tulis pesan..."
-                      className="flex-1 px-4 py-2.5 bg-[#F4F3EF] rounded-xl text-sm outline-none text-[#124354] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#407E8C] transition-all"
+                      className="flex-1 px-4 py-2.5 bg-gray-50 rounded-xl text-sm outline-none text-[#293681] placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 transition-all font-semibold"
                     />
                     <button
                       type="submit"
                       disabled={!inputMessage.trim()}
-                      className="w-10 h-10 rounded-xl bg-[#083A4F] hover:bg-[#124354] text-white flex items-center justify-center transition shadow-sm disabled:opacity-50"
+                      className="w-10 h-10 rounded-xl bg-[#4274D9] hover:bg-[#293681] text-white flex items-center justify-center transition shadow-md shadow-[#4274D9]/20 disabled:opacity-50 cursor-pointer"
                     >
                       <Send size={16} />
                     </button>
@@ -400,10 +393,10 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center p-8 text-gray-400 h-full">
-                  <div className="w-16 h-16 rounded-full bg-[#407E8C]/10 flex items-center justify-center text-[#407E8C] mb-4">
+                  <div className="w-16 h-16 rounded-full bg-[#4274D9]/10 flex items-center justify-center text-[#4274D9] mb-4">
                     <MessageSquare size={32} />
                   </div>
-                  <h3 className="font-extrabold text-sm text-[#124354]">Pesan Obrolan Anda</h3>
+                  <h3 className="font-extrabold text-sm text-[#293681]">Pesan Obrolan Anda</h3>
                   <p className="text-xs text-gray-500 mt-1 max-w-sm">
                     Pilih salah satu donatur di daftar sebelah kiri untuk mulai membaca dan mengirimkan pesan.
                   </p>

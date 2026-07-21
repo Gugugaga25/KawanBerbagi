@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Package, AlertCircle, CheckCircle2, Trash2, Info, Edit, Search, PackageSearch } from 'lucide-react';
+import { Plus, Package, AlertCircle, CheckCircle2, Trash2, Edit, Search, PackageSearch } from 'lucide-react';
 import KebutuhanRegistrationModal from '@/Components/KebutuhanRegistrationModal';
 import KebutuhanDetailModal from '@/Components/KebutuhanDetailModal';
 import Modal from '@/Components/Modal';
@@ -89,7 +89,7 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h3 className="text-2xl font-bold text-[#124354]">Manajemen Kebutuhan</h3>
+          <h3 className="text-2xl font-bold text-[#293681]">Manajemen Kebutuhan</h3>
           <p className="text-sm text-gray-500 mt-1">Verifikasi dan pantau progres pengumpulan barang kebutuhan panti.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -149,10 +149,14 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
             const isSelesai = item.status === "Terpenuhi";
 
             return (
-              <div key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden">
+              <div 
+                key={item.id} 
+                onClick={() => openDetailModal(item)}
+                className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between relative overflow-hidden cursor-pointer hover:shadow-md hover:border-[#4274D9]/30 transition-all group"
+              >
                 {/* Top Bar Status */}
                 <div className="flex justify-between items-start mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#D0E7E6] text-[#4274D9] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-[#fff] border border-[#4274D9] text-[#4274D9] flex items-center justify-center group-hover:bg-[#4274D9] group-hover:text-white transition-colors">
                     <Package size={20} />
                   </div>
                   <div className="flex gap-1.5">
@@ -171,7 +175,7 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
                 {/* Content */}
                 <div className="mb-6">
-                  <h4 className="text-lg font-bold text-[#293681] mb-1">{item.barang}</h4>
+                  <h4 className="text-lg font-bold text-[#293681] mb-1 group-hover:text-[#4274D9] transition-colors">{item.barang}</h4>
                   <p className="text-xs text-gray-500 font-medium">{item.panti}</p>
                 </div>
 
@@ -181,7 +185,7 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
                     <span>Progres ({persentase}%)</span>
                     <span>{item.terkumpul} / {item.target} {item.satuan}</span>
                   </div>
-                  <div className="w-full bg-[#ECFEFF] border border-[#95CCDD]/30 rounded-full h-2.5 mb-6 overflow-hidden">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mb-6 overflow-hidden">
                     <div 
                       className={`h-full rounded-full transition-all duration-500 ${isSelesai ? 'bg-green-600' : 'bg-[#4274D9]'}`}
                       style={{ width: `${persentase}%` }}
@@ -190,19 +194,19 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
 
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => openEditModal(item)}
-                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#D0E7E6] hover:bg-[#95CCDD]/40 text-[#293681] py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Mencegah klik menyebar ke kartu
+                        openEditModal(item);
+                      }}
+                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#4274D9]/10 hover:bg-[#4274D9]/30 text-[#4274D9] py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                     >
                       <Edit size={14} /> Edit
                     </button>
                     <button 
-                      onClick={() => openDetailModal(item)}
-                      className="flex-1 flex justify-center items-center gap-1.5 bg-[#4274D9] hover:bg-[#293681] text-white py-2 rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer"
-                    >
-                      <Info size={14} /> Detail
-                    </button>
-                    <button 
-                      onClick={() => confirmDelete(item)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Mencegah klik menyebar ke kartu
+                        confirmDelete(item);
+                      }}
                       className="flex-1 flex justify-center items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-xl text-xs font-bold transition-colors"
                     >
                       <Trash2 size={14} /> Hapus

@@ -168,7 +168,6 @@ export default function CariPanti({
   const handleSubmitBarang = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formBarang.data.metode_pengiriman) return;
-    // Asumsi ada validasi global, router juga tersedia di sini.
     formBarang.post(route('donatur.donasi.store'), {
       onSuccess: () => {
         handleCloseModalBarang();
@@ -184,55 +183,109 @@ export default function CariPanti({
         <button
           onClick={() => { setSearchMode('kebutuhan'); setQuery(''); setSelectedLocation(userCity || 'Semua'); setCategory('Semua'); }}
           className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'kebutuhan' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
-          style={{ backgroundColor: searchMode === 'kebutuhan' ? COLORS.navy : 'transparent', color: searchMode === 'kebutuhan' ? '#fff' : COLORS.navy }}
+          style={{ backgroundColor: searchMode === 'kebutuhan' ? COLORS.teal : 'transparent', color: searchMode === 'kebutuhan' ? '#fff' : COLORS.navy }}
         >
           <Package size={16} /> Kebutuhan Barang
         </button>
         <button
           onClick={() => { setSearchMode('panti'); setQuery(''); setSelectedLocation(userCity || 'Semua'); }}
           className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'panti' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
-          style={{ backgroundColor: searchMode === 'panti' ? COLORS.navy : 'transparent', color: searchMode === 'panti' ? '#fff' : COLORS.navy }}
+          style={{ backgroundColor: searchMode === 'panti' ? COLORS.teal : 'transparent', color: searchMode === 'panti' ? '#fff' : COLORS.navy }}
         >
           <Building2 size={16} /> Profil Panti
         </button>
       </div>
 
       {/* SEARCH & FILTER AREA */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* PENCARIAN */}
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={16} style={{ color: COLORS.navy, opacity: 0.4 }} />
+      <div className="flex flex-row items-center gap-2 w-full">
+        
+        {/* 1. PENCARIAN (Fleksibel mengisi ruang) */}
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: COLORS.navy, opacity: 0.4 }} />
           <input
             type="text"
-            placeholder={searchMode === 'kebutuhan' ? "Cari barang, nama panti..." : "Cari nama panti asuhan..."}
+            placeholder={searchMode === 'kebutuhan' ? "Cari barang, panti..." : "Cari nama panti..."}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none border focus:border-[#407E8C]"
+            className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm outline-none border focus:border-[#407E8C] transition-all"
             style={{ backgroundColor: '#ffffff', borderColor: COLORS.mist, color: COLORS.navy }}
           />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
-        
-        {/* DROPDOWN FILTER KATEGORI (Hanya di mode Kebutuhan) */}
+
+        {/* 2. DROPDOWN LOKASI */}
+        <div className="relative shrink-0 max-w-[110px] sm:max-w-[160px]">
+          <button
+            type="button"
+            onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
+            className="flex items-center justify-between gap-1 text-xs sm:text-sm font-semibold px-2.5 sm:px-4 py-2.5 rounded-xl border transition-all w-full truncate shadow-sm"
+            style={{ 
+              borderColor: selectedLocation === userCity && userCity ? COLORS.teal : COLORS.mist, 
+              color: selectedLocation === userCity && userCity ? COLORS.teal : COLORS.navy, 
+              backgroundColor: selectedLocation === userCity && userCity ? '#F2F8F9' : '#ffffff' 
+            }}
+          >
+            <div className="flex items-center gap-1.5 truncate">
+              <MapPin size={14} className="shrink-0" />
+              <span className="truncate">{selectedLocation === "Semua" ? "Lokasi" : selectedLocation}</span>
+            </div>
+          </button>
+          
+          {isLocationDropdownOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsLocationDropdownOpen(false)} />
+              <div className="absolute right-0 mt-2 w-48 sm:w-56 rounded-xl shadow-lg bg-white border z-20 py-1 max-h-60 overflow-y-auto animate-in fade-in" style={{ borderColor: COLORS.mist }}>
+                {locations.map((loc) => {
+                  const isUserCity = userCity && loc.toLowerCase() === userCity.toLowerCase();
+                  return (
+                    <button 
+                      key={loc} 
+                      onClick={() => { setSelectedLocation(loc); setIsLocationDropdownOpen(false); }} 
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${loc === selectedLocation ? 'font-bold' : 'font-medium'}`} 
+                      style={{ color: isUserCity ? COLORS.teal : COLORS.navy }}
+                    >
+                      <span className="flex items-center gap-2 truncate">
+                        {isUserCity && <MapPin size={14} className="shrink-0" />} 
+                        <span className="truncate">{loc} {isUserCity ? "(Kota Anda)" : ""}</span>
+                      </span>
+                      {selectedLocation === loc && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS.teal }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* 3. DROPDOWN FILTER KATEGORI (Hanya di mode Kebutuhan, Icon saja di HP) */}
         {searchMode === 'kebutuhan' && (
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               type="button"
               onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-              className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-3 rounded-xl border shrink-0 hover:bg-gray-50 transition w-full sm:w-auto justify-center"
+              className="flex items-center justify-center gap-2 text-sm font-semibold p-2.5 sm:px-4 sm:py-2.5 rounded-xl border transition-all shadow-sm"
+              title="Filter Kategori"
               style={{ 
                 borderColor: category !== "Semua" ? COLORS.teal : COLORS.mist, 
                 color: category !== "Semua" ? COLORS.teal : COLORS.navy, 
                 backgroundColor: category !== "Semua" ? '#F2F8F9' : '#ffffff' 
               }}
             >
-              <Filter size={15} /> 
-              {category === "Semua" ? "Kategori" : category}
+              <Filter size={16} /> 
+              <span className="hidden sm:inline">{category === "Semua" ? "Kategori" : category}</span>
             </button>
             
             {isCategoryDropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsCategoryDropdownOpen(false)} />
-                <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-48 rounded-xl shadow-lg bg-white border z-20 py-1 animate-in fade-in" style={{ borderColor: COLORS.mist }}>
+                <div className="absolute right-0 mt-2 w-48 rounded-xl shadow-lg bg-white border z-20 py-1 animate-in fade-in" style={{ borderColor: COLORS.mist }}>
                   {CATEGORIES.map((cat) => (
                     <button 
                       key={cat} 
@@ -249,48 +302,6 @@ export default function CariPanti({
             )}
           </div>
         )}
-
-        {/* DROPDOWN FILTER LOKASI */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsLocationDropdownOpen(!isLocationDropdownOpen)}
-            className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-3 rounded-xl border shrink-0 hover:bg-gray-50 transition w-full sm:w-auto justify-center"
-            style={{ 
-              borderColor: selectedLocation === userCity && userCity ? COLORS.teal : COLORS.mist, 
-              color: selectedLocation === userCity && userCity ? COLORS.teal : COLORS.navy, 
-              backgroundColor: selectedLocation === userCity && userCity ? '#F2F8F9' : '#ffffff' 
-            }}
-          >
-            <SlidersHorizontal size={15} /> 
-            {selectedLocation === "Semua" ? "Semua Lokasi" : `Lokasi: ${selectedLocation}`}
-          </button>
-          
-          {isLocationDropdownOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setIsLocationDropdownOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-lg bg-white border z-20 py-1 max-h-60 overflow-y-auto animate-in fade-in" style={{ borderColor: COLORS.mist }}>
-                {locations.map((loc) => {
-                  const isUserCity = userCity && loc.toLowerCase() === userCity.toLowerCase();
-                  return (
-                    <button 
-                      key={loc} 
-                      onClick={() => { setSelectedLocation(loc); setIsLocationDropdownOpen(false); }} 
-                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors flex items-center justify-between ${loc === selectedLocation ? 'font-bold' : 'font-medium'}`} 
-                      style={{ color: isUserCity ? COLORS.teal : COLORS.navy }}
-                    >
-                      <span className="flex items-center gap-2">
-                        {isUserCity && <MapPin size={14} />} 
-                        {loc} {isUserCity ? "(Kota Anda)" : ""}
-                      </span>
-                      {selectedLocation === loc && <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS.teal }} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </div>
       </div>
 
       {/* ================= RENDER KONTEN BERDASARKAN MODE ================= */}
@@ -306,7 +317,7 @@ export default function CariPanti({
                 <div key={c.id} className="rounded-2xl p-5 flex flex-col justify-between" style={{ backgroundColor: '#ffffff', border: `1px solid ${COLORS.mist}` }}>
                   <div>
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.mist }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-[#4274D9]/50">
                         <Package size={18} color={COLORS.teal} />
                       </div>
                       {c.urgent && <span className="text-[11px] font-bold px-2.5 py-1 rounded-full animate-pulse" style={{ backgroundColor: '#FBEAEA', color: '#C0392B' }}>Mendesak</span>}
@@ -320,11 +331,11 @@ export default function CariPanti({
                     <div className="flex justify-between text-xs mb-2 tabular-nums" style={{ color: COLORS.navy, opacity: 0.65 }}>
                       <span>Terpenuhi</span><span>{c.filled}/{c.total} {c.unit}</span>
                     </div>
-                    <div className="h-2 rounded-full overflow-hidden mb-4" style={{ backgroundColor: COLORS.mist }}>
+                    <div className="h-2 rounded-full overflow-hidden mb-4 bg-gray-200">
                       <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: COLORS.teal }} />
                     </div>
                     {remaining > 0 ? (
-                      <button onClick={() => handleOpenModalBarang(c)} className="text-sm font-semibold w-full py-2.5 rounded-full text-white hover:brightness-110 transition shadow-sm" style={{ backgroundColor: COLORS.navy }}>Donasi Barang</button>
+                      <button onClick={() => handleOpenModalBarang(c)} className="text-sm font-semibold w-full py-2.5 rounded-full text-white bg-[#4274D9] hover:bg-[#293681] transition shadow-sm">Donasi Barang</button>
                     ) : (
                       <button disabled className="text-sm font-semibold w-full py-2.5 rounded-full text-gray-400 bg-gray-100 cursor-not-allowed">Terpenuhi</button>
                     )}
@@ -382,7 +393,7 @@ export default function CariPanti({
                         className="w-16 h-16 rounded-full border-4 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform tracking-wider"
                         style={{ 
                           borderColor: '#ffffff', 
-                          backgroundColor: COLORS.navy,
+                          backgroundColor: COLORS.teal,
                           color: '#ffffff'
                         }}
                       >
@@ -409,7 +420,7 @@ export default function CariPanti({
                     <Link 
                       href={route('donatur.panti.show', p.id)}
                       className="block text-sm text-center text-white font-semibold w-full py-2.5 rounded-full transition shadow-sm hover:brightness-110" 
-                      style={{backgroundColor: COLORS.navy}}
+                      style={{backgroundColor: COLORS.teal}}
                     >
                       Lihat Profil
                     </Link>
@@ -428,8 +439,8 @@ export default function CariPanti({
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
             {/* Header */}
             <div className="flex justify-between items-center mb-5 shrink-0">
-              <h3 className="text-lg font-black text-[#124354] flex items-center gap-2">
-                <Package size={20} className="text-[#407E8C]" /> Donasi Sekarang
+              <h3 className="text-lg font-black text-[#293681] flex items-center gap-2">
+                <Package size={20} className="text-[#293681]" /> Donasi Sekarang
               </h3>
               <button onClick={handleCloseModalBarang} className="p-2 text-gray-400 hover:text-[#124354] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
                 <X size={18} />
@@ -438,29 +449,29 @@ export default function CariPanti({
 
             <form onSubmit={handleSubmitBarang} className="space-y-5 flex-1">
               {/* Info Campaign */}
-              <div className="rounded-2xl p-4 bg-[#F4F3EF] border border-gray-200">
+              <div className="rounded-2xl p-4 bg-[#4274D9]/10 border border-gray-200">
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#C0D5D6]">
-                    <Package size={20} color="#407E8C" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-[#4274D9]/80">
+                    <Package size={20} color="#293681" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-[#124354]">{selectedCampaign.item}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-sm font-bold text-[#293681]">{selectedCampaign.item}</p>
+                    <p className="text-xs text-[#293691]/70 mt-0.5">
                       {selectedCampaign.category} · {selectedCampaign.org}
                     </p>
                   </div>
                 </div>
-                <div className="flex justify-between text-xs mb-2 font-semibold text-[#124354]/70">
+                <div className="flex justify-between text-xs mb-2 font-semibold text-[#293681]/70">
                   <span>Terpenuhi</span>
                   <span>{selectedCampaign.filled}/{selectedCampaign.total} {selectedCampaign.unit}</span>
                 </div>
-                <div className="h-1.5 rounded-full overflow-hidden bg-[#C0D5D6]">
+                <div className="h-1.5 rounded-full overflow-hidden bg-[#4274D9]/20">
                   <div 
-                    className="h-full rounded-full bg-[#407E8C]" 
+                    className="h-full rounded-full bg-[#4274D9]" 
                     style={{ width: `${(selectedCampaign.filled / selectedCampaign.total) * 100}%` }} 
                   />
                 </div>
-                <p className="text-[11px] mt-2 text-[#124354]/60 font-semibold">
+                <p className="text-[11px] mt-2 text-[#293681]/60 font-semibold">
                   Sisa kuota tersedia: <strong>{selectedCampaign.remaining !== undefined ? selectedCampaign.remaining : (selectedCampaign.total - selectedCampaign.filled)} {selectedCampaign.unit}</strong>
                 </p>
               </div>
@@ -475,7 +486,7 @@ export default function CariPanti({
                     type="button"
                     onClick={() => adjustAmount(-1)}
                     disabled={formBarang.data.jumlah_donasi <= 1}
-                    className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#C0D5D6] text-[#083A4F]"
+                    className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#4274D9]/40 text-[#083A4F]"
                   >
                     <Minus size={16} />
                   </button>
@@ -487,7 +498,7 @@ export default function CariPanti({
                     type="button"
                     onClick={() => adjustAmount(1)}
                     disabled={formBarang.data.jumlah_donasi >= (selectedCampaign.remaining !== undefined ? selectedCampaign.remaining : (selectedCampaign.total - selectedCampaign.filled))}
-                    className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#C0D5D6] text-[#083A4F]"
+                    className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#4274D9]/40 text-[#083A4F]"
                   >
                     <Plus size={16} />
                   </button>
@@ -532,12 +543,12 @@ export default function CariPanti({
                     }}
                     className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                     style={{
-                      borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#407E8C' : '#C0D5D6',
+                      borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#C1D6FF',
                       backgroundColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? 'rgba(64,126,140,0.06)' : '#ffffff',
                     }}
                   >
-                    <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#407E8C' : '#083A4F'} className="mb-2" />
-                    <p className="text-[10px] font-extrabold text-[#083A4F]">Kirim Ekspedisi</p>
+                    <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#C1D6FF'} className="mb-2" />
+                    <p className="text-[10px] font-extrabold text-[#293681]">Kirim Ekspedisi</p>
                   </button>
 
                   <button
@@ -553,12 +564,12 @@ export default function CariPanti({
                     }}
                     className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                     style={{
-                      borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#407E8C' : '#C0D5D6',
+                      borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#C1D6FF',
                       backgroundColor: formBarang.data.metode_pengiriman === 'mandiri' ? 'rgba(64,126,140,0.06)' : '#ffffff',
                     }}
                   >
-                    <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#407E8C' : '#083A4F'} className="mb-2" />
-                    <p className="text-[10px] font-extrabold text-[#083A4F]">Antar Mandiri</p>
+                    <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#C1D6FF'} className="mb-2" />
+                    <p className="text-[10px] font-extrabold text-[#293681]">Antar Mandiri</p>
                   </button>
 
                   <button
@@ -574,12 +585,12 @@ export default function CariPanti({
                     }}
                     className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                     style={{
-                      borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#407E8C' : '#C0D5D6',
+                      borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#C1D6FF',
                       backgroundColor: formBarang.data.metode_pengiriman === 'jemput' ? 'rgba(64,126,140,0.06)' : '#ffffff',
                     }}
                   >
-                    <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#407E8C' : '#083A4F'} className="mb-2" />
-                    <p className="text-[10px] font-extrabold text-[#083A4F]">Jemput Panti</p>
+                    <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#C1D6FF'} className="mb-2" />
+                    <p className="text-[10px] font-extrabold text-[#293681]">Jemput Panti</p>
                   </button>
                 </div>
 
@@ -616,12 +627,12 @@ export default function CariPanti({
                         onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
                         className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
                       />
-                      <span className="text-[10px] font-extrabold text-[#083A4F]/85">
+                      <span className="text-[12px] font-extrabold text-[#083A4F]/85">
                         Barang sudah diserahkan ke ekspedisi sekarang
                       </span>
                     </label>
                     
-                    <p className="text-[9px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
+                    <p className="text-[11px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
                       <Clock size={11} className="shrink-0 mt-0.5" /> 
                       Belum punya resinya? Jangan khawatir - Anda punya waktu 24 jam untuk melengkapinya dari menu Riwayat Donasi agar tidak batal otomatis.
                     </p>
@@ -661,10 +672,10 @@ export default function CariPanti({
               </div>
 
               {/* Alamat Tujuan */}
-              <div className="rounded-2xl p-4 bg-[#C0D5D6] text-[#083A4F]">
+              <div className="rounded-2xl p-4 bg-[#4274D9]/10 border border-gray-200 text-[#083A4F]">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <MapPin size={14} color="#083A4F" />
-                  <span className="text-[10px] font-black uppercase tracking-wider opacity-75">
+                  <MapPin size={14} color="#4274D9" />
+                  <span className="text-[10px] font-black text-[#4274D9] uppercase tracking-wider">
                     Alamat Penerima
                   </span>
                 </div>
@@ -689,7 +700,7 @@ export default function CariPanti({
                 <button 
                   type="submit" 
                   disabled={!formBarang.data.metode_pengiriman || formBarang.processing} 
-                  className="flex-1 py-3.5 bg-[#083A4F] text-white text-xs font-extrabold rounded-xl hover:bg-[#124354] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3.5 bg-[#4274D9] text-white text-xs font-extrabold rounded-xl hover:bg-[#293681] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   <ShieldCheck size={14} /> {formBarang.processing ? 'Memproses...' : 'Kunci Donasi Ini'}
                 </button>

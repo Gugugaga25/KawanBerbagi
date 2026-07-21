@@ -9,14 +9,6 @@ import CariPanti from './DonaturSearch';
 import DonasiSaya from './DonaturDonasi';
 import ProfilSaya from './DonaturProfile';
 
-const COLORS = {
-  navy: '#083A4F',
-  gold: '#A58D66',
-  mist: '#C0D5D6',
-  teal: '#407E8C',
-  cream: '#E5E1DD',
-};
-
 export default function DonaturDashboard({ 
   needs = [], 
   pantis = [],
@@ -26,6 +18,7 @@ export default function DonaturDashboard({
   urgentNeeds = [],
   stats = { totalDonasi: 0, pantiTerbantu: 0 },
   needsResi = [],
+  impactStories = [],
 }: { 
   needs?: any[]; 
   pantis?: any[];
@@ -35,8 +28,8 @@ export default function DonaturDashboard({
   urgentNeeds?: any[];
   stats?: { totalDonasi: number; pantiTerbantu: number };
   needsResi?: any[];
+  impactStories?: any[];
 }) {
-  console.log("DonaturDashboard needs:", needs);
   const [activeTab, setActiveTab] = useState<DonaturTabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -85,17 +78,42 @@ export default function DonaturDashboard({
           urgentNeeds={urgentNeeds}
           stats={stats}
           needsResi={needsResi}
+          impactStories={impactStories}
         />;
     }
   };
 
+  // Helper untuk inisial nama donatur jika tidak ada foto profil
+  const getInitials = (name?: string) => {
+    if (!name) return 'DN';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Helper untuk judul dinamis mode Mobile
+  const getMobileTitle = (tab: string) => {
+    switch (tab) {
+      case 'dashboard': return 'Dashboard';
+      case 'cari': return 'Cari Panti';
+      case 'chat': return 'Pesan';
+      case 'donasi': return 'Donasi Saya';
+      case 'dampak': return 'Riwayat Dampak';
+      case 'profil': return 'Profil';
+      case 'pengaturan': return 'Pengaturan';
+      default: return 'Dashboard';
+    }
+  };
+
   return (
-    <div className="flex h-screen font-sans bg-white text-[#124354] overflow-hidden">
+    <div className="flex h-screen font-sans bg-white text-[#293681] overflow-hidden">
       
       {/* ================= OVERLAY MOBILE ================= */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -116,17 +134,34 @@ export default function DonaturDashboard({
       {/* ================= MAIN CONTENT ================= */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F4F3EF]">
         
-        {/* Header Khusus Mobile */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30">
-          <div className="flex items-center gap-3 text-white">
+        {/* ================= MOBILE HEADER ================= */}
+        <div className="lg:hidden flex items-center justify-between p-4 bg-white z-30 shadow-md">
+          <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+              className="p-2 rounded-xl bg-[#4274D9] text-white hover:bg-[#293681] active:scale-95 transition-all border border-black/5"
             >
               <Menu size={20} />
             </button>
-            <span className="font-extrabold tracking-wide uppercase text-sm">Dashboard Donatur</span>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-[#293681] tracking-wide uppercase text-sm">
+                {getMobileTitle(activeTab)}
+              </span>
+            </div>
           </div>
+          
+          {/* Indikator Avatar / Inisial Donatur di kanan atas mobile */}
+          {donaturData?.foto_profil ? (
+            <img 
+              src={donaturData.foto_profil} 
+              alt={donaturData.nama_lengkap || 'Donatur'} 
+              className="w-10 h-10 rounded-full object-cover border-2 border-[#4274D9]/20" 
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-[#4274D9] border-2 border-white/20 flex items-center justify-center text-[12pt] font-bold text-white shadow-inner">
+              {getInitials(donaturData?.nama_lengkap)}
+            </div>
+          )}
         </div>
 
         {/* Header Desktop Asli */}

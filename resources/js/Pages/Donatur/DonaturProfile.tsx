@@ -125,8 +125,8 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
             />
           ) : (
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-extrabold cursor-pointer select-none"
-              style={{ backgroundColor: COLORS.mist, color: COLORS.navy }}
+              className="w-20 h-20 rounded-full bg-[#4274D9]/20 flex items-center justify-center text-2xl font-extrabold cursor-pointer select-none"
+              style={{ color: COLORS.navy }}
             >
               {initials}
             </div>
@@ -134,8 +134,7 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
           <button
             type="button"
             onClick={handleFotoClick}
-            className="absolute bottom-0 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white transition-transform hover:scale-110"
-            style={{ backgroundColor: COLORS.navy }}
+            className="absolute bottom-0 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white transition-transform bg-[#4274D9] hover:bg-[#293681] hover:scale-110"
           >
             <Camera size={13} color={COLORS.cream} />
           </button>
@@ -289,8 +288,7 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
           <button
             type="submit"
             disabled={emailForm.processing}
-            className="mt-6 inline-flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white transition-all hover:brightness-110 disabled:opacity-50"
-            style={{ backgroundColor: COLORS.navy }}
+            className="mt-6 inline-flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white transition-all hover:brightness-110 disabled:opacity-50 bg-[#4274D9] hover:bg-[#293681]"
           >
             <CheckCircle2 size={16} />
             {emailForm.processing ? 'Menyimpan...' : 'Simpan Email'}
@@ -388,8 +386,7 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
           <button
             type="submit"
             disabled={passwordForm.processing}
-            className="mt-6 inline-flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white transition-all hover:brightness-110 disabled:opacity-50"
-            style={{ backgroundColor: COLORS.navy }}
+            className="mt-6 inline-flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white transition-all bg-[#4274D9] hover:bg-[#293681] disabled:opacity-50"
           >
             <Lock size={16} />
             {passwordForm.processing ? 'Memperbarui...' : 'Perbarui Kata Sandi'}

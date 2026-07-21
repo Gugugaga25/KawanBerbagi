@@ -161,7 +161,7 @@ export default function PantiRegistrationModal({
       setData({
         role: "yayasan",
         name: editData.nama || "",
-        email: editData.email || "", // Assuming email is passed, if not might need to adjust
+        email: editData.email || "", 
         phone: editData.phone || "",
         city: "",
         password: "",
@@ -185,8 +185,37 @@ export default function PantiRegistrationModal({
     }
   }, [editData, isOpen]);
 
+  // ================= KONFIGURASI LANGKAH =================
+  const stepsConfig = [
+    { num: 1, title: "Profil & Kontak", icon: Building2 },
+    { num: 2, title: "Legalitas & Berkas", icon: FileText },
+    ...(!editData ? [{ num: 3, title: "Keamanan Akun", icon: Lock }] : []),
+  ];
+  const totalSteps = stepsConfig.length;
+
+  // ================= DEKLARASI VALIDASI =================
+  const isStep1Valid = editData 
+    ? Boolean(data.orgName) 
+    : Boolean(data.orgName && data.email && data.picName && data.phone && data.address && data.beneficiaries);
+  
+  const isStep2Valid = editData ? true : Boolean(data.skDoc && data.izinDoc);
+  
+  const pReqs = validatePasswordRequirements(data.password, data.password_confirmation);
+  const isPassValid = pReqs.minLength && pReqs.hasNumber && pReqs.hasUpper && pReqs.passwordsMatch;
+  
+  // Jika Edit, abaikan validasi Step 3 dan Persetujuan
+  const isFormValid = editData 
+    ? (isStep1Valid && isStep2Valid) 
+    : (isStep1Valid && isStep2Valid && isPassValid && data.agree);
+  // =======================================================
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Guard pencegah jika posisi step belum di step terakhir
+    if (currentStep < totalSteps) return;
+    if (!isFormValid) return;
+
     const url = editData ? `/admin/panti/${editData.id}` : '/admin/panti';
     
     post(url, {
@@ -197,7 +226,7 @@ export default function PantiRegistrationModal({
         reset('password', 'password_confirmation');
       },
       onError: () => {
-        showToast('Gagal memproses pendaftaran panti. Silakan periksa form.', 'error', 'Pendaftaran Gagal');
+        showToast('Gagal memproses data. Silakan periksa form.', 'error', 'Proses Gagal');
       }
     });
   };
@@ -275,19 +304,16 @@ export default function PantiRegistrationModal({
                       {editData ? "Edit Data Panti" : "Daftarkan Panti Baru"}
                     </Dialog.Title>
                     <p className="text-xs text-gray-500 mb-6">
-                      Lengkapi 3 langkah informasi di bawah ini untuk mendaftarkan panti baru ke dalam sistem.
+                      {editData 
+                        ? "Perbarui informasi panti asuhan yang sudah ada di dalam sistem." 
+                        : "Lengkapi 3 langkah informasi di bawah ini untuk mendaftarkan panti baru ke dalam sistem."}
                     </p>
 
-                    {/* Stepper Progress Bar */}
                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-                      {[
-                        { num: 1, title: "Profil & Kontak", icon: Building2 },
-                        { num: 2, title: "Legalitas & Berkas", icon: FileText },
-                        { num: 3, title: "Keamanan Akun", icon: Lock },
-                      ].map((s) => {
-                        const StepIcon = s.icon;
+                      {stepsConfig.map((s, index) => {
                         const isCompleted = currentStep > s.num;
                         const isActive = currentStep === s.num;
+                        const isLast = index === stepsConfig.length - 1;
                         return (
                           <React.Fragment key={s.num}>
                             <div className="flex items-center gap-2">
@@ -306,7 +332,7 @@ export default function PantiRegistrationModal({
                                 {s.title}
                               </span>
                             </div>
-                            {s.num < 3 && (
+                            {!isLast && (
                               <div className={`flex-1 h-0.5 mx-2 transition-colors ${
                                 currentStep > s.num ? 'bg-[#4274D9]' : 'bg-gray-200'
                               }`} />
@@ -316,9 +342,17 @@ export default function PantiRegistrationModal({
                       })}
                     </div>
 
-                    <form onSubmit={handleSubmit} className="flex flex-col">
+                    <form 
+                      onSubmit={handleSubmit} 
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="flex flex-col"
+                    >
                       
-                      {/* ================= LANGKAH 1: PROFIL & KONTAK ================= */}
+                      {/* ================= LANGKAH 1 ================= */}
                       {currentStep === 1 && (
                         <div className="space-y-4 animate-fade-in">
                           <Field icon={Building2} label="Nama Yayasan / Panti" action={<CharCounter current={data.orgName.length} max={60} />}>
@@ -337,7 +371,7 @@ export default function PantiRegistrationModal({
                           <Field icon={Mail} label="Email Resmi Yayasan">
                             <input
                               type="email"
-                              required
+                              required={!editData}
                               placeholder="kontak@yayasan.org"
                               value={data.email}
                               onChange={(e) => setData("email", e.target.value)}
@@ -350,7 +384,7 @@ export default function PantiRegistrationModal({
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <Field icon={User} label="Nama Penanggung Jawab" action={<CharCounter current={data.picName.length} max={50} />}>
                               <input
-                                required
+                                required={!editData}
                                 maxLength={50}
                                 placeholder="Nama pengurus"
                                 value={data.picName}
@@ -362,7 +396,7 @@ export default function PantiRegistrationModal({
                             </Field>
                             <Field icon={Phone} label="No. Telepon PIC">
                               <input
-                                required
+                                required={!editData}
                                 placeholder="08xxxxxxxxxx"
                                 value={data.phone}
                                 onChange={(e) => setData("phone", e.target.value)}
@@ -376,7 +410,7 @@ export default function PantiRegistrationModal({
 
                           <Field icon={MapPin} label="Alamat Lengkap Panti" action={<CharCounter current={data.address.length} max={120} />}>
                             <input
-                              required
+                              required={!editData}
                               maxLength={120}
                               placeholder="Jl. Contoh No. 12, Kecamatan, Kota"
                               value={data.address}
@@ -391,7 +425,7 @@ export default function PantiRegistrationModal({
                             <input
                               type="number"
                               min={1}
-                              required
+                              required={!editData}
                               placeholder="Misal: 25"
                               value={data.beneficiaries}
                               onChange={(e) => setData("beneficiaries", e.target.value)}
@@ -420,184 +454,102 @@ export default function PantiRegistrationModal({
                         </div>
                       )}
 
-                      {/* ================= LANGKAH 2: LEGALITAS & BERKAS ================= */}
+                      {/* ================= LANGKAH 2 ================= */}
                       {currentStep === 2 && (
                         <div className="space-y-4 animate-fade-in">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <FileField
-                                icon={FileText}
-                                label="Akta Pendirian Yayasan (opsional)"
-                                hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
-                                file={data.aktaDoc}
-                                onChange={(f) => setData("aktaDoc", f)}
-                              />
-                              {errors.aktaDoc && <p className="text-red-500 text-xs mt-1">{errors.aktaDoc}</p>}
+                              <FileField icon={FileText} label="Akta Pendirian Yayasan (opsional)" hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"} file={data.aktaDoc} onChange={(f) => setData("aktaDoc", f)} />
                             </div>
-
                             <div>
-                              <FileField
-                                icon={FileText}
-                                label="SK Kemenkumham / Kemensos"
-                                hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
-                                required={!editData}
-                                file={data.skDoc}
-                                onChange={(f) => setData("skDoc", f)}
-                              />
-                              {errors.skDoc && <p className="text-red-500 text-xs mt-1">{errors.skDoc}</p>}
+                              <FileField icon={FileText} label="SK Kemenkumham / Kemensos" hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"} required={!editData} file={data.skDoc} onChange={(f) => setData("skDoc", f)} />
                             </div>
                           </div>
-
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <FileField
-                                icon={FileText}
-                                label="TDY / Izin Operasional"
-                                hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
-                                required={!editData}
-                                file={data.izinDoc}
-                                onChange={(f) => setData("izinDoc", f)}
-                              />
-                              {errors.izinDoc && <p className="text-red-500 text-xs mt-1">{errors.izinDoc}</p>}
+                              <FileField icon={FileText} label="TDY / Izin Operasional" hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"} required={!editData} file={data.izinDoc} onChange={(f) => setData("izinDoc", f)} />
                             </div>
-
                             <div>
-                              <FileField
-                                icon={FileText}
-                                label="NIB / NPWP Yayasan (opsional)"
-                                hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"}
-                                file={data.npwpDoc}
-                                onChange={(f) => setData("npwpDoc", f)}
-                              />
-                              {errors.npwpDoc && <p className="text-red-500 text-xs mt-1">{errors.npwpDoc}</p>}
+                              <FileField icon={FileText} label="NIB / NPWP Yayasan (opsional)" hint={editData ? "Unggah baru jika ada perubahan" : "PDF/JPG"} file={data.npwpDoc} onChange={(f) => setData("npwpDoc", f)} />
                             </div>
                           </div>
-
                           <div>
-                            <FileField
-                              icon={ImagePlus}
-                              label="Foto Panti (opsional)"
-                              hint="Membantu verifikasi"
-                              file={data.orgPhoto}
-                              onChange={(f) => setData("orgPhoto", f)}
-                            />
-                            {errors.orgPhoto && <p className="text-red-500 text-xs mt-1">{errors.orgPhoto}</p>}
+                            <FileField icon={ImagePlus} label="Foto Panti (opsional)" hint="Membantu verifikasi" file={data.orgPhoto} onChange={(f) => setData("orgPhoto", f)} />
                           </div>
                         </div>
                       )}
 
-                      {/* ================= LANGKAH 3: KEAMANAN AKUN ================= */}
-                      {currentStep === 3 && (
+                      {/* ================= LANGKAH 3 (Hanya Pendaftaran Baru) ================= */}
+                      {!editData && currentStep === 3 && (
                         <div className="space-y-4 animate-fade-in">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Field icon={Lock} label={editData ? "Kata Sandi Baru (Opsional)" : "Kata Sandi"}>
-                              <input
-                                type={showPassword ? "text" : "password"}
-                                required={!editData}
-                                placeholder={editData ? "Kosongkan jika tidak diubah" : "Minimal 8 karakter"}
-                                value={data.password}
-                                onChange={(e) => setData("password", e.target.value)}
-                                className={inputBase.replace("pr-4", "pr-12")}
-                                style={inputStyle}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70 text-gray-400"
-                              >
-                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
-                              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                            <Field icon={Lock} label="Kata Sandi">
+                              <input type={showPassword ? "text" : "password"} required placeholder="Minimal 8 karakter" value={data.password} onChange={(e) => setData("password", e.target.value)} className={inputBase.replace("pr-4", "pr-12")} style={inputStyle} />
+                              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70 text-gray-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                             </Field>
-
                             <Field icon={Lock} label="Konfirmasi Sandi">
-                              <input
-                                type={showConfirm ? "text" : "password"}
-                                required={!editData && !!data.password}
-                                placeholder="Ulangi kata sandi"
-                                value={data.password_confirmation}
-                                onChange={(e) => setData("password_confirmation", e.target.value)}
-                                className={inputBase.replace("pr-4", "pr-12")}
-                                style={inputStyle}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowConfirm(!showConfirm)}
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70 text-gray-400"
-                              >
-                                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                              </button>
+                              <input type={showConfirm ? "text" : "password"} required={!!data.password} placeholder="Ulangi kata sandi" value={data.password_confirmation} onChange={(e) => setData("password_confirmation", e.target.value)} className={inputBase.replace("pr-4", "pr-12")} style={inputStyle} />
+                              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70 text-gray-400">{showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}</button>
                             </Field>
                           </div>
-
                           <PasswordChecklist password={data.password} confirmation={data.password_confirmation} />
-
                           <label className="flex items-start gap-2.5 cursor-pointer pt-2">
-                            <input
-                              type="checkbox"
-                              required
-                              checked={data.agree}
-                              onChange={(e) => setData("agree", e.target.checked)}
-                              className="mt-0.5 rounded text-[#083A4F] focus:ring-[#083A4F]"
-                            />
-                            <span className="text-xs text-gray-600">
-                              Saya menyatakan data yang diisi benar dan sesuai dengan dokumen yang ada.
-                            </span>
+                            <input type="checkbox" required checked={data.agree} onChange={(e) => setData("agree", e.target.checked)} className="mt-0.5 rounded text-[#083A4F] focus:ring-[#083A4F]" />
+                            <span className="text-xs text-gray-600">Saya menyatakan data yang diisi benar dan sesuai.</span>
                           </label>
                         </div>
                       )}
 
-                      {/* ================= STICKY MOBILE BOTTOM ACTION BAR ================= */}
-                      {(() => {
-                        const isStep1Valid = Boolean(data.orgName && data.email && data.picName && data.phone && data.address && data.beneficiaries);
-                        const isStep2Valid = editData ? true : Boolean(data.skDoc && data.izinDoc);
-                        const pReqs = validatePasswordRequirements(data.password, data.password_confirmation);
-                        const isPassValid = editData ? (!data.password || (pReqs.minLength && pReqs.hasNumber && pReqs.hasUpper && pReqs.passwordsMatch)) : (pReqs.minLength && pReqs.hasNumber && pReqs.hasUpper && pReqs.passwordsMatch);
-                        const isFormValid = isStep1Valid && isStep2Valid && isPassValid && data.agree;
+                      {/* ================= ACTION BAR BAWAH ================= */}
+                      <div className="sm:static sticky bottom-0 z-30 bg-white/95 backdrop-blur-md pt-4 pb-2 mt-6 border-t border-gray-100 flex items-center justify-between gap-3">
+                        {currentStep > 1 ? (
+                          <button 
+                            key="btn-prev"
+                            type="button" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setCurrentStep(prev => prev - 1);
+                            }} 
+                            className="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#293681] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <ArrowLeft size={16} /> Kembali
+                          </button>
+                        ) : <div />}
 
-                        return (
-                          <div className="sm:static sticky bottom-0 z-30 bg-white/95 backdrop-blur-md pt-4 pb-2 mt-6 border-t border-gray-100 flex items-center justify-between gap-3">
-                            {currentStep > 1 ? (
-                              <button
-                                type="button"
-                                onClick={() => setCurrentStep(prev => prev - 1)}
-                                className="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#293681] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
-                              >
-                                <ArrowLeft size={16} /> Kembali
-                              </button>
-                            ) : <div />}
-
-                            {currentStep < 3 ? (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (currentStep === 1 && isStep1Valid) setCurrentStep(2);
-                                  else if (currentStep === 2 && isStep2Valid) setCurrentStep(3);
-                                }}
-                                disabled={(currentStep === 1 && !isStep1Valid) || (currentStep === 2 && !isStep2Valid)}
-                                className={`px-6 py-3 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 ${
-                                  (currentStep === 1 && isStep1Valid) || (currentStep === 2 && isStep2Valid)
-                                    ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                                }`}
-                              >
-                                <span>Lanjut ke Langkah {currentStep + 1}</span> <ArrowRight size={16} />
-                              </button>
-                            ) : (
-                              <button
-                                type="submit"
-                                disabled={processing || !isFormValid}
-                                className={`px-6 py-3 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 ${
-                                  isFormValid ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
-                                }`}
-                              >
-                                {processing ? <InlineSpinner color="white" size="sm" /> : <ShieldCheck size={16} />}
-                                <span>{processing ? "Memproses..." : (editData ? "Simpan Perubahan" : "Tambahkan Panti")}</span>
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })()}
+                        {currentStep < totalSteps ? (
+                          <button
+                            key="btn-next"
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (currentStep === 1 && isStep1Valid) setCurrentStep(2);
+                              else if (currentStep === 2 && isStep2Valid) setCurrentStep(3);
+                            }}
+                            disabled={(currentStep === 1 && !isStep1Valid) || (currentStep === 2 && !isStep2Valid)}
+                            className={`px-6 py-3 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 ${
+                              (currentStep === 1 && isStep1Valid) || (currentStep === 2 && isStep2Valid)
+                                ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                            }`}
+                          >
+                            <span>Lanjut ke Langkah {currentStep + 1}</span> <ArrowRight size={16} />
+                          </button>
+                        ) : (
+                          <button
+                            key="btn-submit"
+                            type="submit"
+                            disabled={processing || !isFormValid}
+                            className={`px-6 py-3 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 ${
+                              isFormValid ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
+                            }`}
+                          >
+                            {processing ? <InlineSpinner color="white" size="sm" /> : <ShieldCheck size={16} />}
+                            <span>{processing ? "Memproses..." : (editData ? "Simpan Perubahan" : "Tambahkan Panti")}</span>
+                          </button>
+                        )}
+                      </div>
 
                     </form>
                   </>

@@ -173,10 +173,12 @@ export default function ProfilPantiDetail({
 }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const activeSidebarTab: DonaturTabType = 'cari';
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
 
-  // Hak Akses
-  const isPantiOwner = !!auth?.user && auth?.user?.id_role_user === 'RL02PAN';
+  // Hak Akses (Cek apakah user yang login adalah panti ini sendiri)
+  const isLoggedIn = !!auth?.user;
+  const isPantiOwner = isLoggedIn && auth?.user?.id_role_user === 'RL02PAN';
   
   // States untuk Modals Barang
   const [selectedNeed, setSelectedNeed] = useState<any>(null);
@@ -238,7 +240,7 @@ export default function ProfilPantiDetail({
   };
 
   const openReportModal = (type: 'panti' | 'postingan' | 'keuangan', id: string | number, title: string) => {
-    if (!auth?.user) {
+    if (!isLoggedIn) {
       window.location.href = '/login';
       return;
     }
@@ -311,28 +313,54 @@ export default function ProfilPantiDetail({
   const auditList = panti?.laporan_audits || [];
 
   return (
-    <div className="font-sans bg-[#F4F3EF] text-[#124354] min-h-screen flex flex-col">
+    <div className={`font-sans bg-[#F8FAFC] text-[#293681] ${isLoggedIn ? "flex h-screen overflow-hidden" : "flex flex-col h-screen overflow-hidden"}`}>
       
-      {/* TAMPILKAN HEADER NAV */}
-      <Nav />
+      {/* TAMPILKAN HEADER NAV JIKA GUEST / TIDAK LOGIN */}
+      {!isLoggedIn && <Nav />}
 
       {/* LAYER PEMBUNGKUS UTAMA */}
-      <div className="flex-1 flex flex-col relative w-full">
+      <div className={`flex flex-1 min-w-0 overflow-hidden relative ${!isLoggedIn ? "flex-col" : ""}`}>
         
+        {/* SIDEBAR & MOBILE BACKDROP (HANYA MUNCUL JIKA USER LOGIN) */}
+        {isLoggedIn && (
+          <>
+            {isMobileMenuOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
+            <div className={`fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+              <DonaturSidebar activeTab={activeSidebarTab} onTabChange={handleTabChange} donaturData={donaturData} stats={stats} />
+            </div>
+          </>
+        )}
+
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-white">
+          
+          {/* HEADER DASHBOARD*/}
+          {isLoggedIn && (
+            <>
+              <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30 shadow-md">
+                <div className="flex items-center gap-3 text-white">
+                  <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10"><Menu size={18} /></button>
+                  <span className="font-extrabold tracking-wide uppercase text-sm">Detail Panti</span>
+                </div>
+              </div>
+              <div className="hidden lg:block bg-white border-b border-gray-100 z-10">
+                <DonaturHeader activeTab={activeSidebarTab} donaturData={donaturData} />
+              </div>
+            </>
+          )}
 
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
             <Head title={`Profil Panti - ${panti?.nama_yayasan || panti?.nama}`} />
 
-            <div className="sticky top-0 z-30 bg-[#083A4F] text-white px-4 h-16 flex items-center gap-4 shadow-md">
+            <div className="sticky top-0 z-30 bg-[#4274D9] text-white px-4 h-16 flex items-center gap-4 shadow-md">
                 <Link 
-                    href={route('profil-panti')} 
+                    href={`${route('donatur.dashboard')}?tab=cari&mode=panti`} 
                     className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
                 >
                     <ArrowLeft size={18} className="text-white" />
                 </Link>
                 <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
                     <h2 className="font-bold text-[16px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
-                    <p className="text-[12px] text-[#C0D5D6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
+                    <p className="text-[12px] text-[#D0E7E6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
                 </div>
                 {!isPantiOwner && (
                   <button 
@@ -349,7 +377,7 @@ export default function ProfilPantiDetail({
               
               <div className="relative">
                 {/* Cover Image */}
-                <div className="h-40 md:h-60 w-full relative overflow-hidden group" style={{backgroundColor: COLORS.teal}}>
+                <div className="h-40 md:h-60 w-full relative overflow-hidden group bg-[#4274D9]/70">
                 
                   {/* Gambar Cover dengan Opsi Hapus (Jika Panti Owner) */}
                   {(panti?.foto_banner || panti?.cover) && (
@@ -372,7 +400,7 @@ export default function ProfilPantiDetail({
                 <div className="px-5 md:px-8 pb-4">
                   <div className="flex justify-between items-start">
                     {/* Profil Image dengan Opsi Hapus */}
-                    <div className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#083A4F] text-white font-black text-5xl overflow-hidden relative z-10 group">
+                    <div className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#4274D9] text-white font-black text-5xl overflow-hidden relative z-10 group">
                       {panti?.logo_url || panti?.foto || panti?.foto_profil ? (
                         <>
                           <img src={panti.foto_profil ? '/storage/' + panti.foto_profil : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover transition-all group-hover:brightness-75" />
@@ -393,19 +421,17 @@ export default function ProfilPantiDetail({
 
                     {/* BUTTON DONASI UANG & CHAT */}
                     <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
-                    {(!auth?.user || auth?.user?.id_role_user === 'RL03DON') && (
+                    {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
                       <Link 
                       href={route('donatur.chat.init', panti?.id_shelter)} 
-                      className="px-5 py-2 md:px-6 md:py-2.5 text-white rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base"
-                      style={{ backgroundColor: '#407E8C' }}
+                      className="px-5 py-2 md:px-6 md:py-2.5 text-[#4274D9] rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base border border-[#4274D9] hover:bg-[#293681] hover:text-white"
                       >
                       <MessageCircle size={18} /> Hubungi Panti
                       </Link>
                     )}
                     <Link 
                     href={`/donatur/donasi-uang/${panti?.id_shelter}`} 
-                    className="px-5 py-2 md:px-6 md:py-2.5 hover:bg-[#2b5660] text-white rounded-full font-bold shadow-md transition-colors flex items-center gap-2 text-sm md:text-base"
-                    style={{ backgroundColor: '#083A4F' }}
+                    className="px-5 py-2 md:px-6 md:py-2.5 hover:bg-[#1A2359] text-white rounded-full font-bold shadow-md transition-colors flex items-center gap-2 text-sm md:text-base bg-[#4274D9] hover:bg-[#293681]"
                     >
                     <Wallet size={18} /> Donasi Tunai
                     </Link>
@@ -413,9 +439,9 @@ export default function ProfilPantiDetail({
                   </div>
 
                   <div className="mt-4">
-                    <h1 className="text-xl md:text-2xl font-black text-[#124354] flex items-center gap-1.5">
+                    <h1 className="text-xl md:text-2xl font-black text-[#293681] flex items-center gap-1.5">
                       {panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'} 
-                      <CheckCircle2 size={18} className="text-blue-500 fill-blue-50" />
+                      <CheckCircle2 size={18} className="text-[#4274D9] fill-blue-50" />
                     </h1>
                     <p className="text-gray-500 text-sm">@{panti?.username || panti?.user?.name || 'panti_resmi'}</p>
                   </div>
@@ -450,12 +476,12 @@ export default function ProfilPantiDetail({
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-medium text-gray-500">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#407E8C]" /> {panti?.alamat || 'Alamat belum diatur'}</span>
+                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#4274D9]" /> {panti?.alamat || 'Alamat belum diatur'}</span>
                     {panti?.website && (
-                      <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#407E8C]" /> <a href={panti.website.startsWith('http') ? panti.website : `https://${panti.website}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">{panti.website}</a></span>
+                      <span className="flex items-center gap-1.5"><Globe size={14} className="text-[#4274D9]" /> <a href={panti.website.startsWith('http') ? panti.website : `https://${panti.website}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">{panti.website}</a></span>
                     )}
                     {panti?.tahun_berdiri && (
-                      <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#407E8C]" /> Berdiri {panti.tahun_berdiri}</span>
+                      <span className="flex items-center gap-1.5"><Calendar size={14} className="text-[#4274D9]" /> Berdiri {panti.tahun_berdiri}</span>
                     )}
                   </div>
                 </div>
@@ -468,11 +494,11 @@ export default function ProfilPantiDetail({
                     key={tab.id}
                     onClick={() => setActiveProfileTab(tab.id)}
                     className={`relative px-4 md:px-5 py-3.5 text-[13px] md:text-[14px] font-bold whitespace-nowrap transition-colors hover:bg-gray-50 ${
-                      activeProfileTab === tab.id ? 'text-[#124354]' : 'text-gray-500'
+                      activeProfileTab === tab.id ? 'text-[#293681]' : 'text-gray-500'
                     }`}
                   >
                     {tab.label}
-                    {activeProfileTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#407E8C] rounded-t-full" />}
+                    {activeProfileTab === tab.id && <div className="absolute bottom-0 left-0 w-full h-1 bg-[#4274D9] rounded-t-full" />}
                   </button>
                 ))}
               </div>
@@ -485,14 +511,14 @@ export default function ProfilPantiDetail({
                     {posts.length > 0 ? posts.map((post) => (
                       <div key={post.id} className="p-4 md:p-6 hover:bg-gray-50 transition cursor-default">
                         <div className="max-w-4xl mx-auto flex gap-3 md:gap-4">
-                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#083A4F] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#4274D9] shrink-0 text-white flex items-center justify-center font-bold text-sm md:text-base">
                             {getInitials(panti?.nama_yayasan || panti?.nama || 'Yayasan')}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between mb-1">
                               <div className="flex items-center gap-1.5 flex-wrap pr-2">
                                 <span className="font-bold text-sm md:text-base truncate">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</span>
-                                <CheckCircle2 size={14} className="text-blue-500 fill-blue-50 shrink-0" />
+                                <CheckCircle2 size={14} className="text-[#4274D9] fill-blue-50 shrink-0" />
                                 <span className="text-gray-500 text-xs md:text-sm truncate">@{panti?.user?.name || 'panti_resmi'} · {new Date(post.time || Date.now()).toLocaleDateString()}</span>
                               </div>
                               
@@ -542,7 +568,7 @@ export default function ProfilPantiDetail({
                 {/* TAB 2: KEBUTUHAN BARANG */}
                 {activeProfileTab === 'kebutuhan' && (
                   <div className="p-5 md:p-8 max-w-6xl mx-auto">
-                    <h3 className="text-lg font-black mb-5 flex items-center gap-2 text-[#124354]"><Package size={20} className="text-[#407E8C]" /> Target Kebutuhan Barang</h3>
+                    <h3 className="text-lg font-black mb-5 flex items-center gap-2 text-[#293681]"><Package size={20} className="text-[#4274D9]" /> Target Kebutuhan Barang</h3>
                     {needs && needs.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                         {needs.map((need, idx) => {
@@ -552,10 +578,10 @@ export default function ProfilPantiDetail({
                           const progress = target > 0 ? Math.min((terkumpul / target) * 100, 100) : 0;
 
                           return (
-                            <div key={idx} className="border border-gray-200 rounded-xl p-5 bg-white hover:border-[#407E8C] transition-all flex flex-col justify-between shadow-sm">
+                            <div key={idx} className="border border-gray-200 rounded-xl p-5 bg-white transition-all flex flex-col justify-between shadow-sm">
                               <div>
                                 <div className="flex justify-between items-start gap-2 mb-2">
-                                  <h4 className="font-extrabold text-[15px] text-[#124354] leading-tight">
+                                  <h4 className="font-extrabold text-[15px] text-[#293681] leading-tight">
                                     {need.nama_barang || need.nama_kebutuhan || need.barang || need.item || need.nama || 'Item Kebutuhan'}
                                   </h4>
                                   <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 font-extrabold px-2 py-0.5 rounded shrink-0">
@@ -563,7 +589,7 @@ export default function ProfilPantiDetail({
                                   </span>
                                 </div>
                                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mt-4 mb-1.5">
-                                  <div className="h-full bg-[#407E8C] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                                  <div className="h-full bg-[#4274D9] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
                                 </div>
                                 <div className="flex justify-between text-[11px] text-gray-500 font-medium">
                                   <span>Terkumpul: {terkumpul}</span>
@@ -585,7 +611,7 @@ export default function ProfilPantiDetail({
                                   });
                                   setIsNeedModalOpen(true);
                                 }}
-                                className="w-full mt-5 py-2.5 bg-gray-50 hover:bg-[#407E8C] text-[#407E8C] hover:text-white border border-gray-200 hover:border-[#407E8C] rounded-lg text-xs font-bold transition-all"
+                                className="w-full mt-5 py-2.5 bg-[#4274D9] hover:bg-[#293681] text-white hover:text-white border border-gray-200 rounded-lg text-xs font-bold transition-all"
                               >
                                 Donasi Barang Ini
                               </button>
@@ -607,8 +633,8 @@ export default function ProfilPantiDetail({
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       {/* Info Kontak & Map */}
                       <div className="space-y-6">
-                         <h3 className="text-lg font-black text-[#124354] flex items-center gap-2">
-                           <Map size={20} className="text-[#407E8C]" /> Lokasi & Kontak
+                         <h3 className="text-lg font-black text-[#293681] flex items-center gap-2">
+                           <Map size={20} className="text-[#4274D9]" /> Lokasi & Kontak
                          </h3>
                          
                          <div className="aspect-video w-full bg-gray-200 rounded-2xl overflow-hidden border border-gray-200 relative">
@@ -620,24 +646,24 @@ export default function ProfilPantiDetail({
 
                          <div className="space-y-4">
                             <div className="flex gap-3 items-start">
-                               <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><MapPin size={16} className="text-[#124354]" /></div>
+                               <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><MapPin size={16} className="text-[#293681]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Alamat Lengkap</p>
-                                  <p className="text-sm font-medium text-[#124354] leading-relaxed">{panti?.alamat || '-'}</p>
+                                  <p className="text-sm font-medium text-[#293681] leading-relaxed">{panti?.alamat || '-'}</p>
                                </div>
                             </div>
                             <div className="flex gap-3 items-start">
-                               <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Phone size={16} className="text-[#124354]" /></div>
+                               <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Phone size={16} className="text-[#293681]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Telepon / WhatsApp</p>
-                                  <p className="text-sm font-medium text-[#124354]">{panti?.no_telepon || '-'}</p>
+                                  <p className="text-sm font-medium text-[#293681]">{panti?.no_telepon || '-'}</p>
                                </div>
                             </div>
                             <div className="flex gap-3 items-start">
-                               <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Mail size={16} className="text-[#124354]" /></div>
+                               <div className="p-2 bg-gray-50 rounded-lg shrink-0 border border-gray-200"><Mail size={16} className="text-[#293681]" /></div>
                                <div>
                                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Email Yayasan</p>
-                                  <p className="text-sm font-medium text-[#124354]">{panti?.user?.email || '-'}</p>
+                                  <p className="text-sm font-medium text-[#293681]">{panti?.user?.email || '-'}</p>
                                </div>
                             </div>
                          </div>
@@ -645,12 +671,12 @@ export default function ProfilPantiDetail({
 
                       {/* Info Pengurus Panti */}
                       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 h-fit self-start">
-                        <h3 className="text-lg font-black text-[#124354] mb-4 flex items-center gap-2">
-                            <Briefcase size={18} className="text-[#A58D66]" /> Susunan Pengurus
+                        <h3 className="text-lg font-black text-[#293681] mb-4 flex items-center gap-2">
+                            <Briefcase size={18} className="text-[#F59E0B]" /> Susunan Pengurus
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
                             {pengurusList.length > 0 ? pengurusList.map((p: any) => (
-                                <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#407E8C] transition-colors">
+                                <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#4274D9] transition-colors">
                                 <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-gray-100 bg-gray-50">
                                     {p.image ? (
                                       <img src={'/storage/' + p.image} alt={p.nama} className="w-full h-full object-cover" />
@@ -658,7 +684,7 @@ export default function ProfilPantiDetail({
                                       <div className="w-full h-full flex items-center justify-center text-gray-400"><Briefcase size={20}/></div>
                                     )}
                                 </div>
-                                <h4 className="font-bold text-[12px] md:text-xs text-[#124354] mb-0.5">{p.nama}</h4>
+                                <h4 className="font-bold text-[12px] md:text-xs text-[#293681] mb-0.5">{p.nama}</h4>
                                 <p className="text-[10px] text-gray-500 font-medium">{p.jabatan}</p>
                                 </div>
                             )) : (
@@ -680,12 +706,12 @@ export default function ProfilPantiDetail({
                             <BarChart3 size={24} />
                           </div>
                           <div>
-                            <h4 className="font-bold text-base text-[#124354]">{audit.judul}</h4>
+                            <h4 className="font-bold text-base text-[#293681]">{audit.judul}</h4>
                             <p className="text-xs text-gray-500 mt-0.5">Dipublikasi pada {audit.tanggal}</p>
                           </div>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full md:w-auto">
-                          <a href={'/storage/' + audit.file_pdf} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-xs font-bold text-[#124354] border border-gray-200 bg-gray-50 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5">
+                          <a href={'/storage/' + audit.file_pdf} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-xs font-bold text-[#293681] border border-gray-200 bg-gray-50 px-5 py-2.5 rounded-lg hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5">
                             Lihat Dokumen <ChevronRight size={14} />
                           </a>
                           {/* TOMBOL REPORT LAPORAN KEUANGAN */}
@@ -711,17 +737,18 @@ export default function ProfilPantiDetail({
               </div>
             </div>
           </div>
+        </main>
 
         {/* ================= MODAL REPORT / LAPORAN (BARU) ================= */}
         {isReportModalOpen && reportTarget && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-xs transition-opacity">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-xs transition-opacity">
             <div className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl flex flex-col">
               {/* Header Modal */}
               <div className="flex justify-between items-center mb-5 shrink-0">
                 <h3 className="text-lg font-black text-red-600 flex items-center gap-2">
                   <AlertTriangle size={20} /> Laporkan {reportTarget.type === 'panti' ? 'Panti' : reportTarget.type === 'postingan' ? 'Postingan' : 'Dokumen Keuangan'}
                 </h3>
-                <button onClick={() => setIsReportModalOpen(false)} className="p-2 text-gray-400 hover:text-[#124354] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
+                <button onClick={() => setIsReportModalOpen(false)} className="p-2 text-gray-400 hover:text-[#293681] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
                   <X size={18} />
                 </button>
               </div>
@@ -738,7 +765,7 @@ export default function ProfilPantiDetail({
                     required
                     value={formReport.data.alasan}
                     onChange={(e) => formReport.setData('alasan', e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl text-sm font-medium outline-none border border-gray-200 focus:border-red-500 text-[#083A4F]"
+                    className="w-full px-3 py-2 rounded-xl text-sm font-medium outline-none border border-gray-200 focus:border-red-500 text-[#293681]"
                   >
                     <option value="">-- Pilih Alasan Utama --</option>
                     <option value="spam">Spam atau Iklan Tidak Relevan</option>
@@ -755,7 +782,7 @@ export default function ProfilPantiDetail({
                     value={formReport.data.catatan_tambahan}
                     onChange={(e) => formReport.setData('catatan_tambahan', e.target.value)}
                     placeholder="Jelaskan secara singkat kronologi atau kecurigaan Anda..."
-                    className="w-full p-3 text-sm rounded-xl border border-gray-200 focus:border-red-500 outline-none h-24 resize-none text-[#083A4F] font-medium"
+                    className="w-full p-3 text-sm rounded-xl border border-gray-200 focus:border-red-500 outline-none h-24 resize-none text-[#293681] font-medium"
                   />
                 </div>
 
@@ -782,43 +809,43 @@ export default function ProfilPantiDetail({
 
         {/* ================= MODAL BOOKING BARANG ================= */}
         {isNeedModalOpen && selectedNeed && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-xs transition-opacity">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-xs transition-opacity">
             <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
               {/* Header */}
               <div className="flex justify-between items-center mb-5 shrink-0">
-                <h3 className="text-lg font-black text-[#124354] flex items-center gap-2">
-                  <Package size={20} className="text-[#407E8C]" /> Donasi Sekarang
+                <h3 className="text-lg font-black text-[#293681] flex items-center gap-2">
+                  <Package size={20} className="text-[#4274D9]" /> Donasi Sekarang
                 </h3>
-                <button onClick={() => setIsNeedModalOpen(false)} className="p-2 text-gray-400 hover:text-[#124354] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
+                <button onClick={() => setIsNeedModalOpen(false)} className="p-2 text-gray-400 hover:text-[#293681] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
                   <X size={18} />
                 </button>
               </div>
 
               <form onSubmit={submitBookingBarang} className="space-y-5 flex-1">
                 {/* Info Campaign */}
-                <div className="rounded-2xl p-4 bg-[#F4F3EF] border border-gray-200">
+                <div className="rounded-2xl p-4 bg-[#F8FAFC] border border-gray-200">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#C0D5D6]">
-                      <Package size={20} color="#407E8C" />
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#D0E7E6]">
+                      <Package size={20} color="#4274D9" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-[#124354]">{selectedNeed.nama_barang || selectedNeed.nama || 'Item'}</p>
+                      <p className="text-sm font-bold text-[#293681]">{selectedNeed.nama_barang || selectedNeed.nama || 'Item'}</p>
                       <p className="text-xs text-gray-500 mt-0.5">
                         {selectedNeed.kategori} · {panti.nama_yayasan}
                       </p>
                     </div>
                   </div>
-                  <div className="flex justify-between text-xs mb-2 font-semibold text-[#124354]/70">
+                  <div className="flex justify-between text-xs mb-2 font-semibold text-[#293681]/70">
                     <span>Terpenuhi</span>
                     <span>{selectedNeed.terkumpul}/{selectedNeed.jumlah} {selectedNeed.satuan}</span>
                   </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-[#C0D5D6]">
+                  <div className="h-1.5 rounded-full overflow-hidden bg-[#D0E7E6]">
                     <div 
-                      className="h-full rounded-full bg-[#407E8C]" 
+                      className="h-full rounded-full bg-[#4274D9]" 
                       style={{ width: `${(selectedNeed.terkumpul / selectedNeed.jumlah) * 100}%` }} 
                     />
                   </div>
-                  <p className="text-[11px] mt-2 text-[#124354]/60 font-semibold">
+                  <p className="text-[11px] mt-2 text-[#293681]/60 font-semibold">
                     Sisa kuota tersedia: <strong>{selectedNeed.remaining !== undefined ? selectedNeed.remaining : (selectedNeed.jumlah - selectedNeed.terkumpul)} {selectedNeed.satuan}</strong>
                   </p>
                 </div>
@@ -833,19 +860,19 @@ export default function ProfilPantiDetail({
                       type="button"
                       onClick={() => adjustAmount(-1)}
                       disabled={formBarang.data.jumlah_donasi <= 1}
-                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#C0D5D6] text-[#083A4F]"
+                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#D0E7E6] text-[#293681]"
                     >
                       <Minus size={16} />
                     </button>
                     <div className="text-center min-w-[80px]">
-                      <p className="text-2xl font-bold tabular-nums text-[#083A4F]">{formBarang.data.jumlah_donasi}</p>
+                      <p className="text-2xl font-bold tabular-nums text-[#293681]">{formBarang.data.jumlah_donasi}</p>
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{selectedNeed.satuan}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => adjustAmount(1)}
                       disabled={formBarang.data.jumlah_donasi >= (selectedNeed.remaining !== undefined ? selectedNeed.remaining : (selectedNeed.jumlah - selectedNeed.terkumpul))}
-                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#C0D5D6] text-[#083A4F]"
+                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#D0E7E6] text-[#293681]"
                     >
                       <Plus size={16} />
                     </button>
@@ -864,7 +891,7 @@ export default function ProfilPantiDetail({
                     value={formBarang.data.pesan}
                     onChange={(e) => formBarang.setData('pesan', e.target.value)}
                     placeholder="Tulis pesan atau info tambahan mengenai barang donasi Anda..."
-                    className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:border-[#407E8C] outline-none h-20 resize-none text-[#083A4F] font-semibold"
+                    className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:border-[#4274D9] outline-none h-20 resize-none text-[#293681] font-semibold"
                   />
                   {formBarang.errors.pesan && (
                     <p className="text-xs text-red-500 mt-1">{formBarang.errors.pesan}</p>
@@ -890,12 +917,12 @@ export default function ProfilPantiDetail({
                       }}
                       className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                       style={{
-                        borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#407E8C' : '#C0D5D6',
-                        backgroundColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? 'rgba(64,126,140,0.06)' : '#ffffff',
+                        borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#D0E7E6',
+                        backgroundColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D910' : '#ffffff',
                       }}
                     >
-                      <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#407E8C' : '#083A4F'} className="mb-2" />
-                      <p className="text-[10px] font-extrabold text-[#083A4F]">Kirim Ekspedisi</p>
+                      <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#293681'} className="mb-2" />
+                      <p className="text-[10px] font-extrabold text-[#293681]">Kirim Ekspedisi</p>
                     </button>
 
                     <button
@@ -911,12 +938,12 @@ export default function ProfilPantiDetail({
                       }}
                       className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                       style={{
-                        borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#407E8C' : '#C0D5D6',
-                        backgroundColor: formBarang.data.metode_pengiriman === 'mandiri' ? 'rgba(64,126,140,0.06)' : '#ffffff',
+                        borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#D0E7E6',
+                        backgroundColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D910' : '#ffffff',
                       }}
                     >
-                      <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#407E8C' : '#083A4F'} className="mb-2" />
-                      <p className="text-[10px] font-extrabold text-[#083A4F]">Antar Mandiri</p>
+                      <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#293681'} className="mb-2" />
+                      <p className="text-[10px] font-extrabold text-[#293681]">Antar Mandiri</p>
                     </button>
 
                     <button
@@ -932,12 +959,12 @@ export default function ProfilPantiDetail({
                       }}
                       className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                       style={{
-                        borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#407E8C' : '#C0D5D6',
-                        backgroundColor: formBarang.data.metode_pengiriman === 'jemput' ? 'rgba(64,126,140,0.06)' : '#ffffff',
+                        borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#D0E7E6',
+                        backgroundColor: formBarang.data.metode_pengiriman === 'jemput' ? '#4274D910' : '#ffffff',
                       }}
                     >
-                      <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#407E8C' : '#083A4F'} className="mb-2" />
-                      <p className="text-[10px] font-extrabold text-[#083A4F]">Jemput Panti</p>
+                      <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#293681'} className="mb-2" />
+                      <p className="text-[10px] font-extrabold text-[#293681]">Jemput Panti</p>
                     </button>
                   </div>
 
@@ -948,8 +975,8 @@ export default function ProfilPantiDetail({
                         <select
                           value={formBarang.data.kurir}
                           onChange={(e) => formBarang.setData('kurir', e.target.value)}
-                          className="px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#407E8C] bg-white text-[#083A4F]"
-                          style={{ borderColor: '#C0D5D6' }}
+                          className="px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#4274D9] bg-white text-[#293681]"
+                          style={{ borderColor: '#D0E7E6' }}
                         >
                           <option>JNE</option>
                           <option>SiCepat</option>
@@ -962,8 +989,8 @@ export default function ProfilPantiDetail({
                           placeholder="Nomor resi (bisa dikosongkan dahulu)"
                           value={formBarang.data.resi}
                           onChange={(e) => formBarang.setData('resi', e.target.value)}
-                          className="flex-1 px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#407E8C] text-[#083A4F]"
-                          style={{ borderColor: '#C0D5D6' }}
+                          className="flex-1 px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#4274D9] text-[#293681]"
+                          style={{ borderColor: '#D0E7E6' }}
                         />
                       </div>
                       
@@ -972,9 +999,9 @@ export default function ProfilPantiDetail({
                           type="checkbox"
                           checked={formBarang.data.konfirmasi_langsung}
                           onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
-                          className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
+                          className="rounded border-gray-300 text-[#4274D9] focus:ring-[#4274D9]"
                         />
-                        <span className="text-[10px] font-extrabold text-[#083A4F]/85">
+                        <span className="text-[10px] font-extrabold text-[#293681]/85">
                           Barang sudah diserahkan ke ekspedisi sekarang
                         </span>
                       </label>
@@ -993,9 +1020,9 @@ export default function ProfilPantiDetail({
                           type="checkbox"
                           checked={formBarang.data.konfirmasi_langsung}
                           onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
-                          className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
+                          className="rounded border-gray-300 text-[#4274D9] focus:ring-[#4274D9]"
                         />
-                        <span className="text-[10px] font-extrabold text-[#083A4F]/85">
+                        <span className="text-[10px] font-extrabold text-[#293681]/85">
                           Barang sudah mulai saya antar ke lokasi panti sekarang
                         </span>
                       </label>
@@ -1009,7 +1036,7 @@ export default function ProfilPantiDetail({
                   {formBarang.data.metode_pengiriman === 'jemput' && (
                     <div className="mt-4 pt-3 border-t border-gray-100">
                       <div className="rounded-xl p-3 bg-amber-50 border border-amber-100 flex items-start gap-2">
-                        <Clock size={13} className="text-[#A58D66] shrink-0 mt-0.5" />
+                        <Clock size={13} className="text-[#F59E0B] shrink-0 mt-0.5" />
                         <p className="text-[9px] leading-normal text-amber-800 font-semibold">
                           Penjemputan memerlukan konfirmasi pihak panti. Panti memiliki waktu 24 jam untuk menyetujui request penjemputan ini sebelum booking otomatis dibatalkan.
                         </p>
@@ -1019,9 +1046,9 @@ export default function ProfilPantiDetail({
                 </div>
 
                 {/* Alamat Tujuan */}
-                <div className="rounded-2xl p-4 bg-[#C0D5D6] text-[#083A4F]">
+                <div className="rounded-2xl p-4 bg-[#D0E7E6] text-[#293681]">
                   <div className="flex items-center gap-1.5 mb-2">
-                    <MapPin size={14} color="#083A4F" />
+                    <MapPin size={14} color="#293681" />
                     <span className="text-[10px] font-black uppercase tracking-wider opacity-75">
                       Alamat Penerima
                     </span>
@@ -1047,7 +1074,7 @@ export default function ProfilPantiDetail({
                   <button 
                     type="submit" 
                     disabled={!formBarang.data.metode_pengiriman || formBarang.processing} 
-                    className="flex-1 py-3.5 bg-[#083A4F] text-white text-xs font-extrabold rounded-xl hover:bg-[#124354] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3.5 bg-[#293681] text-white text-xs font-extrabold rounded-xl hover:bg-[#1A2359] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
                     <ShieldCheck size={14} /> {formBarang.processing ? 'Memproses...' : 'Kunci Donasi Ini'}
                   </button>

@@ -13,7 +13,6 @@ import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
 import { ToastProvider } from '@/Components/UI/Toast';
 
-// 1. FIX: Tambahkan auth ke interface
 interface AdminDashboardProps {
   auth: any; 
   pantis?: any[];
@@ -23,9 +22,8 @@ interface AdminDashboardProps {
   laporans?: any[];
 }
 
-// --- KOMPONEN UTAMA ---
 export default function AdminDashboard({ 
-  auth, // <-- 2. FIX: Terima auth dari props bawaan Inertia
+  auth, 
   pantis = [], 
   donaturs = [], 
   needs = [], 
@@ -36,7 +34,6 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
 
-  // Sinkronisasi awal & event listener tombol Back/Forward browser
   useEffect(() => {
     const handleUrlChange = () => {
       const params = new URLSearchParams(window.location.search);
@@ -54,14 +51,13 @@ export default function AdminDashboard({
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
-  // Fungsi ganti tab dan update URL tanpa reload
   const handleTabChange = (tab: TabType) => {
     if (tab === 'chat') {
       router.visit(route('admin.chat'));
       return;
     }
     setActiveTab(tab);
-    setIsMobileMenuOpen(false); 
+    setIsMobileMenuOpen(false);
     
     const newUrl = tab === 'dashboard' 
       ? window.location.pathname 
@@ -70,7 +66,20 @@ export default function AdminDashboard({
     window.history.pushState({ path: newUrl }, '', newUrl);
   };
 
-  // Penentu konten berdasarkan tab aktif
+  // Helper Judul Dinamis untuk Header Mobile
+  const getMobileTitle = (tab: string) => {
+    switch (tab) {
+      case 'dashboard': return 'Dashboard';
+      case 'panti': return 'Manajemen Panti';
+      case 'donatur': return 'Manajemen Donatur';
+      case 'kebutuhan': return 'Manajemen Kebutuhan';
+      case 'laporan': return 'Laporan Masuk';
+      case 'chat': return 'Pesan Chat';
+      case 'pengaturan': return 'Pengaturan';
+      default: return 'Dashboard';
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'panti': 
@@ -80,42 +89,60 @@ export default function AdminDashboard({
       case 'kebutuhan': 
         return <KebutuhanManagement needs={needs} activeShelters={activeShelters} />;
       case 'laporan': 
-        // 3. FIX: Oper prop auth dan reports ke komponen Laporan
         return <Laporan auth={auth} reports={laporans} />;
       case 'pengaturan':
         return <AdminSettings auth={auth} />;
       case 'dashboard':
       default: 
-        return <DashboardOverview />;
+        return <DashboardOverview pantis={pantis} donaturs={donaturs} needs={needs} laporans={laporans} />;
     }
   };
 
   return (
     <ToastProvider>
       <div className="flex h-screen bg-[#F8FAFC] font-sans antialiased overflow-hidden">
-        {/* Sidebar Desktop & Mobile */}
-        <AdminSidebar 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-        />
+        
+        {/* ================= MOBILE OVERLAY ================= */}
+        {isMobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
 
-        {/* Main Container */}
+        {/* ================= RESPONSIVE SIDEBAR ================= */}
+        <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          <AdminSidebar 
+            activeTab={activeTab} 
+            onTabChange={handleTabChange}
+          />
+        </div>
+
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
           
-          {/* Header Khusus Mobile */}
-          <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30">
-            <div className="flex items-center gap-3 text-white">
+          {/* ================= MOBILE HEADER ================= */}
+          <div className="lg:hidden flex items-center justify-between p-4 bg-white z-30 shadow-md border-b border-gray-100">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+                className="p-2 rounded-xl bg-[#4274D9] text-white hover:bg-[#293681] active:scale-95 transition-all"
               >
                 <Menu size={20} />
               </button>
-              <span className="font-extrabold tracking-wide uppercase text-sm">Pusat Kendali</span>
+              <span className="font-extrabold text-[#293681] tracking-wide uppercase text-sm">
+                {getMobileTitle(activeTab)}
+              </span>
+            </div>
+
+            {/* Indikator Admin Mobile */}
+            <div className="w-9 h-9 rounded-full bg-[#4274D9] flex items-center justify-center font-extrabold text-xs text-white shadow-xs">
+              AD
             </div>
           </div>
 
-          {/* Top Header Asli */}
+          {/* Desktop Header */}
           <div className="hidden lg:block">
             <AdminHeader activeTab={activeTab} laporans={laporans} pantis={pantis} />
           </div>

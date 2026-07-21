@@ -142,7 +142,7 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                  <Building2 size={18} className="text-[#124354]/60" />
+                  <Building2 size={18} className="text-[#293681]/60" />
                 </div>
                 <input
                   type="text"

@@ -37,8 +37,8 @@ const SidebarItem = ({
       onClick={() => onClick(tabId)}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
         active 
-          ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10' 
-          : 'text-[#5A7C85] font-medium hover:bg-[#EAE8E3] hover:text-[#124354]'
+          ? 'bg-[#4274D9] text-white font-bold shadow-md shadow-[#4274D9]/25' 
+          : 'text-[#293681] font-medium hover:bg-[#4274D9]/10 hover:text-[#4274D9]'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -116,8 +116,8 @@ export default function PantiSidebar({
     <aside className="w-64 bg-white h-full border-r border-gray-200/80 flex flex-col z-20">
       {/* Brand mark */}
       <div className="p-7 pb-5">
-        <h1 className="text-2xl font-extrabold text-[#124354] tracking-tight">
-          KawanBerbagi<span className="text-[#4A828F]">.</span>
+        <h1 className="text-2xl font-extrabold text-[#293681] tracking-tight">
+          KawanBerbagi<span className="text-[#4274D9]">.</span>
         </h1>
       </div>
 
@@ -141,8 +141,8 @@ export default function PantiSidebar({
           onClick={() => onTabChange('pengaturan')}
           className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition-all text-sm ${
             activeTab === 'pengaturan'
-              ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10'
-              : 'text-[#5A7C85] hover:bg-[#EAE8E3] hover:text-[#124354]'
+              ? 'bg-[#4274D9] text-white font-bold shadow-md shadow-[#4274D9]/25'
+              : 'text-[#293681] hover:bg-[#4274D9]/10 hover:text-[#4274D9]'
           }`}
         >
           <Settings size={18} /> Pengaturan
@@ -150,7 +150,7 @@ export default function PantiSidebar({
         
         <button 
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left cursor-pointer"
         >
           <LogOut size={18} /> Keluar
         </button>

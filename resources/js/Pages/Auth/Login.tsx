@@ -77,7 +77,7 @@ export default function Login() {
           {/* Logo Brand */}
           <div className="text-center flex justify-center w-full">
             <div className="inline-flex flex-col items-center justify-center gap-1 text-center">
-              <img src="images/logokb1.png" alt="Logo KawanBerbagi" className="w-16 h-16 object-contain" />
+              <img src="images/logokb2.png" alt="Logo KawanBerbagi" className="w-16 h-16 object-contain" />
               <span className="text-3xl font-bold tracking-tight" style={{ color: COLORS.navy }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.teal }}>.</span>

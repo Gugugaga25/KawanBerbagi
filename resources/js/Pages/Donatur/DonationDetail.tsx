@@ -21,11 +21,11 @@ import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSide
 import DonaturHeader from '@/Components/Donatur/DonaturHeader';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 function CountdownTimer({ createdAt }: { createdAt: string }) {
@@ -144,7 +144,6 @@ export default function DonationDetail({
 
   const handleTabChange = (tab: DonaturTabType) => {
     setIsMobileMenuOpen(false);
-    // Asumsi menggunakan ziggy-js untuk route()
     const destinationUrl = tab === 'dashboard'
       ? route('donatur.dashboard')
       : `${route('donatur.dashboard')}?tab=${tab}`;
@@ -152,7 +151,7 @@ export default function DonationDetail({
   };
 
   return (
-    <div className="flex h-screen font-sans bg-[#F4F3EF] text-[#124354] overflow-hidden">
+    <div className="flex h-screen font-sans bg-[#F8FAFC] text-[#293681] overflow-hidden">
       
       {/* ================= OVERLAY MOBILE ================= */}
       {isMobileMenuOpen && (
@@ -176,7 +175,7 @@ export default function DonationDetail({
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         
         {/* Header Mobile */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30 shadow-md">
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30 shadow-md">
           <div className="flex items-center gap-3 text-white">
             <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
               <Menu size={20} />
@@ -186,7 +185,7 @@ export default function DonationDetail({
         </div>
 
         {/* Header Desktop */}
-        <div className="hidden lg:block bg-white border-b border-gray-100">
+        <div className="hidden lg:block bg-white border-b border-slate-100">
           <DonaturHeader activeTab={activeTab} donaturData={donaturData} />
         </div>
 
@@ -199,14 +198,14 @@ export default function DonationDetail({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <Link 
                 href={route('donatur.dashboard') + '?tab=donasi'} 
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 border border-gray-200 text-sm font-bold text-gray-600 hover:text-[#083A4F] rounded-xl shadow-sm transition-all group w-fit"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-sm font-bold text-slate-600 hover:text-[#293681] rounded-xl shadow-sm transition-all group w-fit"
               >
                 <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> 
                 Kembali ke Riwayat
               </Link>
               
-              <div className="bg-white px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-black tracking-wide uppercase text-gray-500 shadow-sm self-start sm:self-auto">
-                ID Transaksi: <span className="text-[#407E8C]">{donation.id}</span>
+              <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-black tracking-wide uppercase text-slate-500 shadow-sm self-start sm:self-auto">
+                ID Transaksi: <span className="text-[#4274D9]">{donation.id}</span>
               </div>
             </div>
 
@@ -214,11 +213,11 @@ export default function DonationDetail({
             {donation.status === 'Diproses' && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                 <div className="space-y-1">
-                  <h4 className="font-extrabold text-[#124354] flex items-center gap-2">
-                    <Clock size={16} className="text-[#A58D66]" />
+                  <h4 className="font-extrabold text-[#293681] flex items-center gap-2">
+                    <Clock size={16} className="text-[#F59E0B]" />
                     Lengkapi Informasi Pengiriman
                   </h4>
-                  <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                     Kuota donasi Anda sudah dikunci. Silakan masukkan nomor resi kurir (atau konfirmasi jalan untuk Antar Mandiri) sebelum waktu habis agar slot tidak dibatalkan otomatis.
                   </p>
                 </div>
@@ -229,11 +228,11 @@ export default function DonationDetail({
             {donation.status === 'Menunggu Konfirmasi Jemput' && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                 <div className="space-y-1">
-                  <h4 className="font-extrabold text-[#124354] flex items-center gap-2">
-                    <Clock size={16} className="text-[#A58D66]" />
+                  <h4 className="font-extrabold text-[#293681] flex items-center gap-2">
+                    <Clock size={16} className="text-[#F59E0B]" />
                     Menunggu Konfirmasi Panti
                   </h4>
-                  <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                  <p className="text-xs text-slate-500 font-semibold leading-relaxed">
                     Pihak panti sedang dihubungi untuk mengonfirmasi penjemputan barang ini. Batas waktu bagi panti untuk mengonfirmasi:
                   </p>
                 </div>
@@ -260,36 +259,36 @@ export default function DonationDetail({
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* 1. Item Details Card */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-wider text-gray-400">
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-wider text-slate-400">
                     Rincian Barang Donasi
                   </div>
-                  <h1 className="text-2xl font-black mb-1 text-[#124354]">
+                  <h1 className="text-2xl font-black mb-1 text-[#293681]">
                     {donation.barang}
                   </h1>
-                  <p className="text-lg font-bold mb-6 text-[#407E8C]">
+                  <p className="text-lg font-bold mb-6 text-[#4274D9]">
                     Jumlah: {donation.jumlah} {donation.satuan}
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-6">
                     <div>
-                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Tanggal Kirim Form</p>
-                      <p className="text-sm font-bold text-[#124354]">{donation.tanggal}</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Tanggal Kirim Form</p>
+                      <p className="text-sm font-bold text-[#293681]">{donation.tanggal}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Metode Pengiriman</p>
-                      <p className="text-sm font-bold text-[#124354]">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Metode Pengiriman</p>
+                      <p className="text-sm font-bold text-[#293681]">
                         {donation.kurir !== '-' ? donation.kurir : 'Belum diisi'}
                       </p>
                     </div>
                   </div>
 
                   {donation.pesan && donation.pesan !== '-' && (
-                    <div className="mt-6 p-4 rounded-xl bg-[#F4F3EF] border border-gray-200 flex items-start gap-3">
-                      <MessageSquare size={16} className="text-[#A58D66] shrink-0 mt-0.5" />
+                    <div className="mt-6 p-4 rounded-xl bg-[#F8FAFC] border border-slate-200 flex items-start gap-3">
+                      <MessageSquare size={16} className="text-[#4274D9] shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#A58D66] mb-1">Pesan Dukungan Anda</p>
-                        <p className="text-sm italic font-medium leading-relaxed text-[#124354]">
+                        <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#4274D9] mb-1">Pesan Dukungan Anda</p>
+                        <p className="text-sm italic font-medium leading-relaxed text-[#293681]">
                           "{donation.pesan}"
                         </p>
                       </div>
@@ -310,8 +309,8 @@ export default function DonationDetail({
                 </div>
 
                 {/* 2. Timeline Card */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-extrabold mb-6 text-[#124354]">
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-sm">
+                  <h3 className="text-base font-extrabold mb-6 text-[#293681]">
                     Status Pengiriman & Penerimaan
                   </h3>
 
@@ -344,7 +343,7 @@ export default function DonationDetail({
                               className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${
                                 isCompleted 
                                   ? 'text-white border-transparent' 
-                                  : 'bg-white border-gray-200 text-gray-400'
+                                  : 'bg-white border-slate-200 text-slate-400'
                               }`}
                               style={{
                                 backgroundColor: isCompleted ? COLORS.teal : undefined,
@@ -362,27 +361,27 @@ export default function DonationDetail({
                               <div className="flex items-center gap-2">
                                 <h4 
                                   className={`text-sm font-extrabold uppercase tracking-wider ${
-                                    isCurrent ? 'text-[#A58D66]' : isCompleted ? 'text-gray-700' : 'text-gray-400'
+                                    isCurrent ? 'text-[#4274D9]' : isCompleted ? 'text-slate-700' : 'text-slate-400'
                                   }`}
                                 >
                                   {stage.title}
                                 </h4>
                                 {isCurrent && (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#A58D66]/10 text-[#A58D66] border border-[#A58D66]/20">
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#4274D9]/10 text-[#4274D9] border border-[#F59E0B]/20">
                                     Status Terkini
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs font-semibold leading-relaxed text-gray-500">
+                              <p className="text-xs font-semibold leading-relaxed text-slate-500">
                                 {stage.desc}
                               </p>
 
                               {stage.title === 'Dikirim' && isCompleted && donation.resi && donation.resi !== '-' && (
-                                <div className="mt-3 inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2 pr-3">
-                                  <span className="text-xs font-mono font-bold text-gray-600">{donation.resi}</span>
+                                <div className="mt-3 inline-flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl p-2 pr-3">
+                                  <span className="text-xs font-mono font-bold text-slate-600">{donation.resi}</span>
                                   <button
                                     onClick={handleCopyResi}
-                                    className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
+                                    className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1"
                                     title="Salin Resi"
                                     type="button"
                                   >
@@ -414,26 +413,26 @@ export default function DonationDetail({
               <div className="space-y-6">
                 
                 {/* 3. Panti Details Card */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
-                  <h3 className="text-base font-extrabold mb-5 flex items-center gap-2 text-[#124354] border-b border-gray-50 pb-3">
-                    <MapPin size={18} className="text-[#407E8C]" /> Panti Penerima
+                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
+                  <h3 className="text-base font-extrabold mb-5 flex items-center gap-2 text-[#293681] border-b border-slate-50 pb-3">
+                    <MapPin size={18} className="text-[#4274D9]" /> Panti Penerima
                   </h3>
 
                   <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Nama Yayasan</p>
-                    <p className="text-sm font-extrabold text-[#124354]">{donation.panti.nama}</p>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Nama Yayasan</p>
+                    <p className="text-sm font-extrabold text-[#293681]">{donation.panti.nama}</p>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Penanggung Jawab</p>
-                    <p className="text-sm font-bold flex items-center gap-1.5 text-[#124354]">
-                      <User size={13} className="text-[#407E8C]" /> {donation.panti.penanggung_jawab}
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Penanggung Jawab</p>
+                    <p className="text-sm font-bold flex items-center gap-1.5 text-[#293681]">
+                      <User size={13} className="text-[#4274D9]" /> {donation.panti.penanggung_jawab}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 mb-1">Alamat Penerima</p>
-                    <p className="text-xs font-semibold leading-relaxed text-gray-600">
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">Alamat Penerima</p>
+                    <p className="text-xs font-semibold leading-relaxed text-slate-600">
                       {donation.panti.alamat}
                     </p>
                   </div>
@@ -444,7 +443,7 @@ export default function DonationDetail({
                         href={getWhatsAppLink(donation.panti.telepon)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-[#407E8C] hover:bg-[#124354] shadow-sm transition-all py-3 rounded-xl"
+                        className="w-full flex items-center justify-center gap-2 text-xs font-bold text-white bg-[#4274D9] hover:bg-[#293681] shadow-sm transition-all py-3 rounded-xl"
                       >
                         <Phone size={14} /> Hubungi via WhatsApp
                       </a>
@@ -453,9 +452,9 @@ export default function DonationDetail({
                 </div>
 
                 {/* 4. Bukti Penerimaan Card */}
-                <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="text-base font-extrabold mb-4 flex items-center gap-2 text-[#124354]">
-                    <Camera size={18} className="text-[#407E8C]" /> Bukti Barang
+                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <h3 className="text-base font-extrabold mb-4 flex items-center gap-2 text-[#293681]">
+                    <Camera size={18} className="text-[#4274D9]" /> Bukti Barang
                   </h3>
 
                   {donation.status === 'Diterima' ? (
@@ -463,7 +462,7 @@ export default function DonationDetail({
                       <div className="space-y-3">
                         <div 
                           onClick={() => setIsLightboxOpen(true)}
-                          className="group relative cursor-zoom-in rounded-xl overflow-hidden aspect-video border border-gray-200 bg-gray-50 transition-shadow hover:shadow-md"
+                          className="group relative cursor-zoom-in rounded-xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 transition-shadow hover:shadow-md"
                         >
                           <img 
                             src={donation.bukti_penerimaan} 
@@ -479,22 +478,22 @@ export default function DonationDetail({
                             </span>
                           </div>
                         </div>
-                        <p className="text-[10px] font-bold text-center text-gray-400 italic">
+                        <p className="text-[10px] font-bold text-center text-slate-400 italic">
                           Klik foto untuk memperbesar
                         </p>
                       </div>
                     ) : (
-                      <div className="rounded-xl p-6 border border-dashed border-gray-200 bg-gray-50 text-center flex flex-col items-center justify-center">
-                        <Camera size={24} className="text-gray-300 mb-2" />
-                        <p className="text-xs font-semibold text-gray-500">
+                      <div className="rounded-xl p-6 border border-dashed border-slate-200 bg-slate-50 text-center flex flex-col items-center justify-center">
+                        <Camera size={24} className="text-slate-300 mb-2" />
+                        <p className="text-xs font-semibold text-slate-500">
                           Foto belum diunggah Panti.
                         </p>
                       </div>
                     )
                   ) : (
-                    <div className="rounded-xl p-6 border border-dashed border-gray-200 bg-gray-50 text-center flex flex-col items-center justify-center">
-                      <Clock size={24} className="text-gray-300 mb-2" />
-                      <p className="text-xs font-semibold text-gray-500 leading-relaxed">
+                    <div className="rounded-xl p-6 border border-dashed border-slate-200 bg-slate-50 text-center flex flex-col items-center justify-center">
+                      <Clock size={24} className="text-slate-300 mb-2" />
+                      <p className="text-xs font-semibold text-slate-500 leading-relaxed">
                         Bukti akan tersedia setelah barang diterima Panti.
                       </p>
                     </div>
@@ -533,7 +532,7 @@ export default function DonationDetail({
 
           <div className="mt-4 text-center max-w-lg">
             <h4 className="text-white font-extrabold text-sm">{donation.panti.nama}</h4>
-            <p className="text-gray-400 text-xs mt-1">Bukti untuk: {donation.barang} ({donation.jumlah} {donation.satuan})</p>
+            <p className="text-slate-400 text-xs mt-1">Bukti untuk: {donation.barang} ({donation.jumlah} {donation.satuan})</p>
           </div>
         </div>
       )}

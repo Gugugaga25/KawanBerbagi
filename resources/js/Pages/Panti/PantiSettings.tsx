@@ -52,7 +52,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
       
       {/* ================= HEADER ================= */}
       <div>
-        <h1 className="text-3xl font-extrabold text-[#124354] tracking-tight">Pengaturan Akun</h1>
+        <h1 className="text-3xl font-extrabold text-[#293681] tracking-tight">Pengaturan Akun</h1>
         <p className="text-gray-500 mt-1">Kelola data profil pengguna Anda dan ubah pengaturan keamanan sandi.</p>
       </div>
 
@@ -62,7 +62,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#124354] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#4274D9] text-white flex items-center justify-center">
                 <User size={20} />
               </div>
               <div>
@@ -86,7 +86,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
                   required
                   value={profileData.name}
                   onChange={e => setProfileData('name', e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                   placeholder="Nama Pengurus Panti..."
                 />
                 {profileErrors.name && <p className="text-red-500 text-xs mt-1">{profileErrors.name}</p>}
@@ -99,7 +99,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
                   required
                   value={profileData.email}
                   onChange={e => setProfileData('email', e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                   placeholder="email@domain.com"
                 />
                 {profileErrors.email && <p className="text-red-500 text-xs mt-1">{profileErrors.email}</p>}
@@ -109,7 +109,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
                 <button 
                   type="submit" 
                   disabled={profileProcessing}
-                  className="px-6 py-3 bg-[#124354] hover:bg-[#0E3544] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
+                  className="px-6 py-3 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
                 >
                   {profileProcessing ? 'Menyimpan...' : 'Simpan Profil'}
                 </button>
@@ -122,7 +122,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#124354] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#4274D9] text-white flex items-center justify-center">
                 <Lock size={20} />
               </div>
               <div>
@@ -147,13 +147,13 @@ export default function PantiSettings({ auth }: { auth: any }) {
                     required
                     value={passwordData.current_password}
                     onChange={e => setPasswordData('current_password', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-4 text-gray-400 hover:text-[#124354] transition-colors"
+                    className="absolute right-4 text-gray-400 hover:text-[#4274D9] transition-colors"
                   >
                     {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -169,13 +169,13 @@ export default function PantiSettings({ auth }: { auth: any }) {
                     required
                     value={passwordData.password}
                     onChange={e => setPasswordData('password', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                     placeholder="Minimal 8 karakter"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 text-gray-400 hover:text-[#124354] transition-colors"
+                    className="absolute right-4 text-gray-400 hover:text-[#4274D9] transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -191,13 +191,13 @@ export default function PantiSettings({ auth }: { auth: any }) {
                     required
                     value={passwordData.password_confirmation}
                     onChange={e => setPasswordData('password_confirmation', e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/30 focus:border-[#407E8C] transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/30 focus:border-[#4274D9] transition-all"
                     placeholder="Ketik ulang kata sandi baru"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 text-gray-400 hover:text-[#124354] transition-colors"
+                    className="absolute right-4 text-gray-400 hover:text-[#4274D9] transition-colors"
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -209,7 +209,7 @@ export default function PantiSettings({ auth }: { auth: any }) {
                 <button 
                   type="submit" 
                   disabled={passwordProcessing}
-                  className="px-6 py-3 bg-[#124354] hover:bg-[#0E3544] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
+                  className="px-6 py-3 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
                 >
                   {passwordProcessing ? 'Menyimpan...' : 'Perbarui Sandi'}
                 </button>

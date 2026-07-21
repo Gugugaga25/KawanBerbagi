@@ -77,7 +77,7 @@ export default function AdminSettings({ auth }: { auth: any }) {
         <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-[#293681] text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-[#4274D9] text-white flex items-center justify-center">
                 <User size={20} />
               </div>
               <div>

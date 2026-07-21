@@ -42,8 +42,8 @@ const SidebarItem = ({
     <button
       onClick={() => onClick(tabId)}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${active
-        ? 'bg-[#293681] text-white font-bold shadow-md shadow-[#293681]/20'
-        : 'text-gray-600 font-medium hover:bg-gray-100 hover:text-[#293681]'
+        ? 'bg-[#4274D9] text-white font-bold shadow-md shadow-[#4274D9]/25'
+        : 'text-[#293681] font-medium hover:bg-[#4274D9]/10 hover:text-[#4274D9]'
         }`}
     >
       <div className="flex items-center gap-3">

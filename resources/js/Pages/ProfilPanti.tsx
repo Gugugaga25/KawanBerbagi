@@ -299,8 +299,7 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
                         e.preventDefault(); // Mencegah link pindah halaman saat tombol diklik
                         handleDonationAction(shelter.id);
                       }}
-                      className="ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-full text-white transition-all hover:brightness-110 shadow-sm"
-                      style={{ backgroundColor: COLORS.teal }}
+                      className="ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-full text-white transition-all hover:brightness-110 shadow-sm bg-[#4274D9] hover:bg-[#293681]"
                     >
                       Bantu Penuhi <ArrowRight size={13} />
                     </button>
