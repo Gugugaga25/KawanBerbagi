@@ -45,7 +45,7 @@ export default function DonaturDashboard({
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab') as DonaturTabType;
 
-      if (tabParam && ['dashboard', 'cari', 'donasi', 'dampak', 'profil'].includes(tabParam)) {
+      if (tabParam && ['dashboard', 'cari', 'donasi', 'dampak', 'profil', 'pengaturan'].includes(tabParam)) {
         setActiveTab(tabParam);
       } else {
         setActiveTab('dashboard');
@@ -75,7 +75,8 @@ export default function DonaturDashboard({
     switch (activeTab) {
       case 'cari': return <CariPanti needs={needs} pantis={pantis} />;
       case 'donasi': return <DonasiSaya myDonations={myDonations} />;
-      case 'profil': return <ProfilSaya donaturData={donaturData} />;
+      case 'profil':
+      case 'pengaturan': return <ProfilSaya donaturData={donaturData} />;
       case 'dashboard':
       default:
         return <DonaturOverview 

@@ -9,6 +9,7 @@ const TAB_LABEL: Record<string, string> = {
   donasi: 'Donasi Saya',
   dampak: 'Riwayat Dampak',
   profil: 'Profil Saya',
+  pengaturan: 'Pengaturan Akun',
 };
 
 const COLORS = {
@@ -34,10 +35,10 @@ export default function DonaturHeader({ activeTab, donaturData = null }: Donatur
       
       {/* Sisi Kiri: Badge Panel & Judul Tab Aktif */}
       <div className="flex items-center gap-3">
-        <div className="bg-[#F4F3EF] text-[#124354] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+        <div className="bg-[#D0E7E6]/40 text-[#4274D9] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-[#D0E7E6]">
           Panel Donatur
         </div>
-        <h2 className="text-lg font-bold text-[#124354]">
+        <h2 className="text-lg font-bold text-[#293681]">
           {TAB_LABEL[activeTab] ?? 'Ringkasan Donasi'}
         </h2>
       </div>
@@ -59,14 +60,13 @@ export default function DonaturHeader({ activeTab, donaturData = null }: Donatur
             />
           ) : (
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shadow-sm"
-              style={{ backgroundColor: COLORS.navy, color: '#fff' }}
+              className="w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm shadow-sm bg-[#4274D9] text-white shadow-[#4274D9]/20"
             >
               {initials}
             </div>
           )}
           <div className="hidden lg:block text-left">
-            <p className="text-xs font-bold text-[#124354] leading-tight truncate max-w-[140px]">
+            <p className="text-xs font-extrabold text-[#293681] leading-tight truncate max-w-[140px]">
               {namaLengkap}
             </p>
             <p className="text-[10px] text-gray-400 font-medium mt-0.5">

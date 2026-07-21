@@ -63,7 +63,7 @@ function Field({
 }
 
 const inputBase =
-  "w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#407E8C]";
+  "w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-150 border focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 font-semibold";
 const inputStyle = { backgroundColor: "#ffffff", borderColor: COLORS.mist, color: COLORS.navy };
 
 function FileField({
@@ -216,24 +216,24 @@ export default function PantiRegistrationModal({
       <Dialog as="div" className="relative z-[100]" onClose={closeModal}>
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
+          enter="ease-out duration-150"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="ease-in duration-200"
+          leave="ease-in duration-150"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/50" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
+              enter="ease-out duration-150"
               enterFrom="opacity-0 scale-95"
               enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
+              leave="ease-in duration-150"
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
@@ -271,7 +271,7 @@ export default function PantiRegistrationModal({
                   </div>
                 ) : (
                   <>
-                    <Dialog.Title as="h3" className="text-2xl font-bold mb-1 pr-8 text-[#124354]">
+                    <Dialog.Title as="h3" className="text-2xl font-extrabold mb-1 pr-8 text-[#293681]">
                       {editData ? "Edit Data Panti" : "Daftarkan Panti Baru"}
                     </Dialog.Title>
                     <p className="text-xs text-gray-500 mb-6">
@@ -293,22 +293,22 @@ export default function PantiRegistrationModal({
                             <div className="flex items-center gap-2">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
                                 isCompleted 
-                                  ? 'bg-emerald-500 text-white' 
+                                  ? 'bg-[#4274D9] text-white' 
                                   : isActive 
-                                    ? 'bg-[#083A4F] text-white ring-4 ring-[#083A4F]/15' 
+                                    ? 'bg-[#4274D9] text-white ring-4 ring-[#4274D9]/20' 
                                     : 'bg-gray-100 text-gray-400'
                               }`}>
                                 {isCompleted ? <CheckCircle2 size={16} /> : s.num}
                               </div>
                               <span className={`text-xs font-semibold hidden sm:inline ${
-                                isActive ? 'text-[#124354] font-bold' : 'text-gray-400'
+                                isActive ? 'text-[#293681] font-bold' : 'text-gray-400'
                               }`}>
                                 {s.title}
                               </span>
                             </div>
                             {s.num < 3 && (
                               <div className={`flex-1 h-0.5 mx-2 transition-colors ${
-                                currentStep > s.num ? 'bg-emerald-500' : 'bg-gray-200'
+                                currentStep > s.num ? 'bg-[#4274D9]' : 'bg-gray-200'
                               }`} />
                             )}
                           </React.Fragment>
@@ -550,9 +550,10 @@ export default function PantiRegistrationModal({
                       {/* ================= STICKY MOBILE BOTTOM ACTION BAR ================= */}
                       {(() => {
                         const isStep1Valid = Boolean(data.orgName && data.email && data.picName && data.phone && data.address && data.beneficiaries);
+                        const isStep2Valid = editData ? true : Boolean(data.skDoc && data.izinDoc);
                         const pReqs = validatePasswordRequirements(data.password, data.password_confirmation);
                         const isPassValid = editData ? (!data.password || (pReqs.minLength && pReqs.hasNumber && pReqs.hasUpper && pReqs.passwordsMatch)) : (pReqs.minLength && pReqs.hasNumber && pReqs.hasUpper && pReqs.passwordsMatch);
-                        const isFormValid = isStep1Valid && isPassValid && data.agree;
+                        const isFormValid = isStep1Valid && isStep2Valid && isPassValid && data.agree;
 
                         return (
                           <div className="sm:static sticky bottom-0 z-30 bg-white/95 backdrop-blur-md pt-4 pb-2 mt-6 border-t border-gray-100 flex items-center justify-between gap-3">
@@ -560,7 +561,7 @@ export default function PantiRegistrationModal({
                               <button
                                 type="button"
                                 onClick={() => setCurrentStep(prev => prev - 1)}
-                                className="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#124354] text-xs font-bold transition flex items-center gap-1.5"
+                                className="px-5 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#293681] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                               >
                                 <ArrowLeft size={16} /> Kembali
                               </button>
@@ -571,13 +572,13 @@ export default function PantiRegistrationModal({
                                 type="button"
                                 onClick={() => {
                                   if (currentStep === 1 && isStep1Valid) setCurrentStep(2);
-                                  else if (currentStep === 2) setCurrentStep(3);
+                                  else if (currentStep === 2 && isStep2Valid) setCurrentStep(3);
                                 }}
-                                disabled={currentStep === 1 && !isStep1Valid}
+                                disabled={(currentStep === 1 && !isStep1Valid) || (currentStep === 2 && !isStep2Valid)}
                                 className={`px-6 py-3 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 ${
-                                  (currentStep === 1 && isStep1Valid) || currentStep === 2
-                                    ? 'bg-[#083A4F] hover:bg-[#124354] shadow-md cursor-pointer'
-                                    : 'bg-gray-300 cursor-not-allowed shadow-none'
+                                  (currentStep === 1 && isStep1Valid) || (currentStep === 2 && isStep2Valid)
+                                    ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                                 }`}
                               >
                                 <span>Lanjut ke Langkah {currentStep + 1}</span> <ArrowRight size={16} />
@@ -587,7 +588,7 @@ export default function PantiRegistrationModal({
                                 type="submit"
                                 disabled={processing || !isFormValid}
                                 className={`px-6 py-3 rounded-xl text-xs font-bold text-white transition flex items-center gap-1.5 ${
-                                  isFormValid ? 'bg-[#083A4F] hover:bg-[#124354] shadow-md cursor-pointer' : 'bg-gray-300 cursor-not-allowed shadow-none'
+                                  isFormValid ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none'
                                 }`}
                               >
                                 {processing ? <InlineSpinner color="white" size="sm" /> : <ShieldCheck size={16} />}

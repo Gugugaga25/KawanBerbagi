@@ -5,13 +5,14 @@ import {
   ShieldCheck, Clock, Phone, Filter 
 } from 'lucide-react';
 import { useForm, Link, router } from '@inertiajs/react';
+import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 interface Campaign {
@@ -332,7 +333,7 @@ export default function CariPanti({
               );
             })}
           </div>
-        ) : <EmptyState message={`Tidak ada kebutuhan barang untuk filter saat ini`} />
+        ) : <SearchEmptyState message="Tidak ada kebutuhan barang untuk filter saat ini" />
       )}
 
       {/* MODE 2: GRID PROFIL PANTI */}
@@ -418,7 +419,7 @@ export default function CariPanti({
               </div>
             ))}
           </div>
-        ) : <EmptyState message={`Tidak ada panti asuhan di ${selectedLocation}`} />
+        ) : <SearchEmptyState message={`Tidak ada panti asuhan di ${selectedLocation}`} />
       )}
 
       {/* ================= MODAL BOOKING BARANG ================= */}
@@ -702,9 +703,11 @@ export default function CariPanti({
   );
 }
 
-const EmptyState = ({ message }: { message: string }) => (
-  <div className="rounded-2xl p-14 flex flex-col items-center justify-center text-center mt-4" style={{ backgroundColor: '#ffffff', border: `1px dashed ${COLORS.mist}` }}>
-    <MapPinOff size={26} color={COLORS.navy} style={{ opacity: 0.3 }} className="mb-3" />
-    <p className="text-sm font-semibold" style={{ color: COLORS.navy }}>{message}</p>
-  </div>
+const SearchEmptyState = ({ message }: { message: string }) => (
+  <EmptyState
+    mode="search"
+    icon={MapPinOff}
+    title="Tidak Ditemukan"
+    description={message}
+  />
 );

@@ -7,6 +7,7 @@ import {
   UserCircle2,
   LogOut,
   MessageCircle,
+  Settings,
 } from 'lucide-react';
 import Modal from '@/Components/Modal';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -41,8 +42,8 @@ const SidebarItem = ({
     <button
       onClick={() => onClick(tabId)}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${active
-        ? 'bg-[#124354] text-white font-bold shadow-md shadow-[#124354]/10'
-        : 'text-[#5A7C85] font-medium hover:bg-[#EAE8E3] hover:text-[#124354]'
+        ? 'bg-[#293681] text-white font-bold shadow-md shadow-[#293681]/20'
+        : 'text-gray-600 font-medium hover:bg-gray-100 hover:text-[#293681]'
         }`}
     >
       <div className="flex items-center gap-3">
@@ -130,8 +131,8 @@ export default function DonaturSidebar({
 
       {/* Brand mark */}
       <div className="p-7 pb-5">
-        <h1 className="text-2xl font-extrabold text-[#124354] tracking-tight">
-          KawanBerbagi<span className="text-[#4A828F]">.</span>
+        <h1 className="text-2xl font-extrabold text-[#293681] tracking-tight">
+          KawanBerbagi<span className="text-[#4274D9]">.</span>
         </h1>
       </div>
 
@@ -146,14 +147,21 @@ export default function DonaturSidebar({
         <SidebarItem icon={Search} label="Cari Panti" tabId="cari" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
         <SidebarItem icon={MessageCircle} label="Pesan Chat" tabId="chat" activeTab={activeTab} onClick={onTabChange} unreadCount={unreadCount} />
         <SidebarItem icon={PackageCheck} label="Donasi Saya" tabId="donasi" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
-        <SidebarItem icon={UserCircle2} label="Profil Saya" tabId="profil" activeTab={activeTab} onClick={onTabChange} unreadCount={0} />
       </nav>
 
       {/* Footer Navigasi */}
       <div className="p-4 border-t border-gray-100 space-y-1">
+        <SidebarItem
+          icon={Settings}
+          label="Pengaturan"
+          tabId="pengaturan"
+          activeTab={activeTab}
+          onClick={onTabChange}
+        />
         <button
+          type="button"
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left"
+          className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-colors text-sm text-left cursor-pointer"
         >
           <LogOut size={18} /> Keluar
         </button>

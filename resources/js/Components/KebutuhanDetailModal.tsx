@@ -21,14 +21,14 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
     <Modal show={isOpen} onClose={onClose} maxWidth="xl">
       <div className="relative bg-white rounded-2xl shadow-xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#F4F3EF]/50">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#D0E7E6]/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#124354]/10 flex items-center justify-center text-[#124354]">
+            <div className="w-10 h-10 rounded-xl bg-[#D0E7E6] flex items-center justify-center text-[#4274D9]">
               <Info size={20} />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-[#124354]">Detail Campaign</h3>
-              <p className="text-sm text-[#5A7C85] mt-1">{data.barang}</p>
+              <h3 className="text-xl font-extrabold text-[#293681]">Detail Campaign</h3>
+              <p className="text-sm text-gray-500 font-medium mt-0.5">{data.barang}</p>
             </div>
           </div>
           <button 
@@ -44,34 +44,34 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
           
           {/* Card Info Publisher */}
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-            <h4 className="text-sm font-bold text-[#124354] mb-4">Informasi Publisher</h4>
+            <h4 className="text-sm font-bold text-[#293681] mb-4">Informasi Publisher</h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-start gap-3">
                 <Building2 size={18} className="text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">Panti Asuhan</p>
-                  <p className="text-sm font-semibold text-[#124354]">{data.panti}</p>
+                  <p className="text-sm font-bold text-[#293681]">{data.panti}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Calendar size={18} className="text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">Tanggal Posting</p>
-                  <p className="text-sm font-semibold text-[#124354]">{createdDate}</p>
+                  <p className="text-sm font-bold text-[#293681]">{createdDate}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Clock size={18} className="text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">Jam Posting</p>
-                  <p className="text-sm font-semibold text-[#124354]">{createdTime}</p>
+                  <p className="text-sm font-bold text-[#293681]">{createdTime}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Package size={18} className="text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">Target Kebutuhan</p>
-                  <p className="text-sm font-semibold text-[#124354]">{data.target} {data.satuan}</p>
+                  <p className="text-sm font-bold text-[#293681]">{data.target} {data.satuan}</p>
                 </div>
               </div>
             </div>
@@ -79,15 +79,15 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
 
           {/* Progress Pemenuhan */}
           <div>
-            <h4 className="text-sm font-bold text-[#124354] mb-3">Progress Pemenuhan</h4>
+            <h4 className="text-sm font-bold text-[#293681] mb-3">Progress Pemenuhan</h4>
             <div className="bg-white border border-gray-100 p-4 rounded-xl shadow-sm">
-              <div className="flex justify-between text-xs font-bold text-[#124354] mb-2">
+              <div className="flex justify-between text-xs font-bold text-[#293681] mb-2">
                 <span>Terkumpul: {data.terkumpul} {data.satuan}</span>
-                <span>{persentase}%</span>
+                <span className="text-[#4274D9]">{persentase}%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-[#ECFEFF] border border-[#95CCDD]/30 rounded-full h-2.5 overflow-hidden">
                 <div 
-                  className={`h-2.5 rounded-full transition-all duration-500 ${persentase >= 100 ? 'bg-green-500' : 'bg-[#124354]'}`}
+                  className={`h-2.5 rounded-full transition-all duration-500 ${persentase >= 100 ? 'bg-green-500' : 'bg-[#4274D9]'}`}
                   style={{ width: `${Math.min(persentase, 100)}%` }}
                 ></div>
               </div>
@@ -101,22 +101,22 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
 
           {/* Riwayat Donasi */}
           <div>
-            <h4 className="text-sm font-bold text-[#124354] mb-3">Riwayat Donasi</h4>
+            <h4 className="text-sm font-bold text-[#293681] mb-3">Riwayat Donasi</h4>
             {data.donations && data.donations.length > 0 ? (
               <div className="space-y-3">
                 {data.donations.map((donasi: any, index: number) => (
                   <div key={index} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#124354]/10 flex items-center justify-center text-[#124354]">
+                      <div className="w-8 h-8 rounded-full bg-[#D0E7E6] flex items-center justify-center text-[#4274D9]">
                         <User size={14} />
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-[#124354]">{donasi.donor_name}</p>
+                        <p className="text-sm font-bold text-[#293681]">{donasi.donor_name}</p>
                         <p className="text-xs text-gray-500">{donasi.tanggal}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-[#4A828F]">+{donasi.jumlah} {data.satuan}</p>
+                      <p className="text-sm font-bold text-[#4274D9]">+{donasi.jumlah} {data.satuan}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         donasi.status === 'Sukses' ? 'bg-green-100 text-green-700' :
                         donasi.status === 'Pending' ? 'bg-amber-100 text-amber-700' :
@@ -138,10 +138,10 @@ export default function KebutuhanDetailModal({ isOpen, onClose, data }: Kebutuha
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-100 flex justify-end">
+        <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50/50">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+            className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#4274D9] hover:bg-[#293681] text-white shadow-sm transition-colors cursor-pointer"
           >
             Tutup
           </button>

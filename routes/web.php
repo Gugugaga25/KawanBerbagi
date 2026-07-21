@@ -105,6 +105,7 @@ Route::middleware('auth')->group(function () {
         $needs = \App\Models\Need::with(['shelter', 'donations.donor'])->get()->map(function ($need) {
             return [
                 'id' => $need->id_needs,
+                'id_shelter' => $need->id_shelter,
                 'barang' => $need->nama_kebutuhan,
                 'panti' => $need->shelter ? $need->shelter->nama_yayasan : '-',
                 'terkumpul' => $need->terkumpul,
@@ -414,6 +415,7 @@ Route::middleware('auth')->group(function () {
     
     // Fitur Chat
     Route::get('/donatur/chat', [App\Http\Controllers\ChatController::class, 'donorIndex'])->name('donatur.chat');
+    Route::get('/donatur/chat/admin', [App\Http\Controllers\ChatController::class, 'initDonaturAdminChat'])->name('donatur.chat.admin');
     Route::get('/donatur/chat/init/{id_shelter}', [App\Http\Controllers\ChatController::class, 'initChat'])->name('donatur.chat.init');
     Route::get('/panti/chat', [App\Http\Controllers\ChatController::class, 'shelterIndex'])->name('panti.chat');
     Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread_count');

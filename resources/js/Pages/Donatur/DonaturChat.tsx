@@ -428,11 +428,11 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                         onClick={() => handleSelectChat(chat.id_chat)}
                         className={`w-full p-4 flex items-start gap-3 text-left transition-all ${
                           isSelected 
-                            ? 'bg-[#407E8C]/10 border-l-4 border-[#407E8C]' 
+                            ? 'bg-[#4274D9]/10 border-l-4 border-[#4274D9]' 
                             : 'hover:bg-gray-50 border-l-4 border-transparent'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-[#4274D9] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
                           {chat.shelter.foto_profil ? (
                             <img src={chat.shelter.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                           ) : (
@@ -441,7 +441,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-baseline mb-0.5">
-                            <h4 className="font-bold text-xs text-[#124354] truncate">{chat.shelter.nama_yayasan}</h4>
+                            <h4 className="font-bold text-xs text-[#293681] truncate">{chat.shelter.nama_yayasan}</h4>
                             <span className="text-[9px] text-gray-400 font-medium">
                               {formatTime(chat.last_message_time)}
                             </span>
@@ -460,7 +460,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                   })
                 ) : (
                   <div className="text-center py-12 px-4 text-gray-400">
-                    <MessageSquare size={32} className="mx-auto mb-2 opacity-40 text-[#124354]" />
+                    <MessageSquare size={32} className="mx-auto mb-2 opacity-40 text-[#4274D9]" />
                     <p className="text-xs font-bold">Belum ada obrolan.</p>
                     <p className="text-[10px] mt-1 text-gray-500">Mulai chat dengan panti melalui halaman "Cari Panti".</p>
                   </div>
@@ -476,14 +476,14 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                   <div className="h-16 px-4 border-b border-gray-100 bg-white flex items-center gap-3 shrink-0">
                     <button 
                       onClick={() => setActiveChatId(null)}
-                      className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-[#124354]"
+                      className="md:hidden p-1 rounded-lg hover:bg-gray-100 text-[#293681]"
                     >
                       <ArrowLeft size={20} />
                     </button>
                     
-                    <div className="w-9 h-9 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold">
+                    <div className="w-9 h-9 rounded-full bg-[#4274D9] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold">
                       {isAiSelected ? (
-                        <Bot size={18} className="text-[#A58D66]" />
+                        <Bot size={18} className="text-[#F59E0B]" />
                       ) : activeChat.shelter.foto_profil ? (
                         <img src={activeChat.shelter.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                       ) : (
@@ -492,7 +492,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-extrabold text-sm text-[#124354] truncate">{activeChat.shelter.nama_yayasan}</h4>
+                      <h4 className="font-extrabold text-sm text-[#293681] truncate">{activeChat.shelter.nama_yayasan}</h4>
                       <p className="text-xs text-gray-400 font-medium">
                         {isAiSelected ? 'Online' : `@${activeChat.shelter.username}`}
                       </p>
@@ -516,8 +516,8 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                             <div 
                               className={`p-3 rounded-2xl text-sm font-semibold shadow-xs ${
                                 isMe 
-                                  ? 'bg-[#083A4F] text-white rounded-tr-none' 
-                                  : 'bg-white text-[#124354] border border-gray-100 rounded-tl-none'
+                                  ? 'bg-[#4274D9] text-white rounded-tr-none' 
+                                  : 'bg-white text-[#293681] border border-gray-100 rounded-tl-none'
                               }`}
                             >
                               <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>

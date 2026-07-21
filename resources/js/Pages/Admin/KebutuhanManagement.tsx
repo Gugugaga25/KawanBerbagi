@@ -13,6 +13,11 @@ import EmptyState from '@/Components/UI/EmptyState';
 
 export default function KebutuhanManagement({ needs = [], activeShelters = [] }: { needs?: any[], activeShelters?: any[] }) {
   const [localNeeds, setLocalNeeds] = useState(needs);
+
+  React.useEffect(() => {
+    setLocalNeeds(needs);
+  }, [needs]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState<any>(null);
 
@@ -151,7 +156,7 @@ export default function KebutuhanManagement({ needs = [], activeShelters = [] }:
                     <Package size={20} />
                   </div>
                   <div className="flex gap-1.5">
-                    {item.mendesak && !isSelesai && (
+                    {Boolean(item.mendesak) && !isSelesai && (
                       <span className="bg-red-50 text-red-600 border border-red-100 text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
                         <AlertCircle size={12} /> Mendesak
                       </span>

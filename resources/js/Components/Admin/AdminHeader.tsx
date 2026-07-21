@@ -96,12 +96,12 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
         </Dropdown>
         
         <div className="flex items-center gap-3 border-l border-gray-200 pl-5">
-          <div className="w-9 h-9 bg-[#124354] text-white rounded-full flex items-center justify-center font-bold text-sm shadow-sm">
+          <div className="w-9 h-9 bg-[#4274D9] text-white rounded-full flex items-center justify-center font-extrabold text-sm shadow-sm shadow-[#4274D9]/20">
             A
           </div>
           <div className="hidden lg:block">
-            <p className="text-xs font-bold text-[#124354] leading-none">Admin Utama</p>
-            <p className="text-[10px] text-gray-400 mt-1 leading-none">Superadmin</p>
+            <p className="text-xs font-extrabold text-[#293681] leading-none">Admin Utama</p>
+            <p className="text-[10px] text-gray-400 font-medium mt-1 leading-none">Superadmin</p>
           </div>
         </div>
       </div>

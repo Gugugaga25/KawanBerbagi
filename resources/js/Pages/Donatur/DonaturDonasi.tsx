@@ -13,13 +13,14 @@ import {
   Wallet
 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
+import EmptyState from '@/Components/UI/EmptyState';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 function CountdownTimer({ createdAt }: { createdAt: string }) {
@@ -445,20 +446,17 @@ export default function DonasiSaya({ myDonations = [] }: { myDonations?: any[] }
           })}
         </div>
       ) : (
-        /* Empty state */
-        <div className="rounded-[2rem] p-16 flex flex-col items-center justify-center text-center bg-white border border-dashed" style={{ borderColor: COLORS.mist }}>
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: COLORS.mist }}>
-            <Package size={28} color={COLORS.navy} style={{ opacity: 0.4 }} />
-          </div>
-          <h3 className="text-base font-bold mb-1.5" style={{ color: COLORS.navy }}>
-            {query ? 'Tidak ditemukan' : 'Belum ada donasi'}
-          </h3>
-          <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.55 }}>
-            {query
-              ? `Tidak ada donasi yang cocok dengan "${query}".`
-              : 'Data donasi untuk kategori ini masih kosong.'}
-          </p>
-        </div>
+        /* Rich Empty state */
+        <EmptyState
+          mode={query ? 'search' : 'accomplishment'}
+          icon={Package}
+          title={query ? 'Donasi Tidak Ditemukan' : 'Belum Ada Riwayat Donasi'}
+          description={query ? `Tidak ada donasi yang cocok dengan pencarian "${query}".` : 'Anda belum memiliki riwayat donasi pada kategori ini. Mari mulai kebaikan pertama Anda!'}
+          searchQuery={query}
+          onResetSearch={() => { setQuery(''); setFilter('semua'); }}
+          onAction={!query ? () => router.visit(window.location.pathname + '?tab=cari') : undefined}
+          actionLabel="Cari Panti & Salurkan Donasi"
+        />
       )}
     </div>
   );

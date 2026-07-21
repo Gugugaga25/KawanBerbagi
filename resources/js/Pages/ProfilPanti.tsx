@@ -101,8 +101,8 @@ function Nav() {
                 href={route("logout")}
                 method="post"
                 as="button"
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.navy }}>
+                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition shadow-sm"
+                style={{ backgroundColor: COLORS.teal }}>
                 Keluar
               </Link>
             </>
@@ -116,8 +116,8 @@ function Nav() {
               </Link>
               <Link
                 href={route("register")}
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.navy }}>
+                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition shadow-sm"
+                style={{ backgroundColor: COLORS.teal }}>
                 Daftar
               </Link>
             </>
@@ -299,8 +299,8 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
                         e.preventDefault(); // Mencegah link pindah halaman saat tombol diklik
                         handleDonationAction(shelter.id);
                       }}
-                      className="ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-full text-white transition-all hover:brightness-110"
-                      style={{ backgroundColor: COLORS.navy }}
+                      className="ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-full text-white transition-all hover:brightness-110 shadow-sm"
+                      style={{ backgroundColor: COLORS.teal }}
                     >
                       Bantu Penuhi <ArrowRight size={13} />
                     </button>

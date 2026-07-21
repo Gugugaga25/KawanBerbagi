@@ -28,18 +28,17 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
 
   React.useEffect(() => {
     if (editData && isOpen) {
-      // Cari ID panti berdasarkan nama yayasan jika tidak ada id
-      const shelter = activeShelters.find(s => s.nama === editData.panti);
-      const shelterId = shelter?.id || '';
+      const shelterId = editData.id_shelter || activeShelters.find(s => s.nama === editData.panti)?.id || '';
+      const shelterName = editData.panti || activeShelters.find(s => s.id.toString() === shelterId.toString())?.nama || '';
       
       setData({
         id_shelter: shelterId.toString(),
-        nama_kebutuhan: editData.barang,
-        jumlah: editData.target,
-        satuan: editData.satuan,
-        is_mendesak: editData.mendesak,
+        nama_kebutuhan: editData.barang || '',
+        jumlah: editData.target || '',
+        satuan: editData.satuan || '',
+        is_mendesak: Boolean(editData.mendesak),
       });
-      if (shelter) setShelterSearch(shelter.nama);
+      if (shelterName) setShelterSearch(shelterName);
     } else {
       reset();
       setShelterSearch('');
@@ -117,10 +116,10 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
-            <h3 className="text-xl font-bold text-[#124354]">
+            <h3 className="text-xl font-extrabold text-[#293681]">
               {editData ? 'Edit Kebutuhan' : 'Tambah Kebutuhan'}
             </h3>
-            <p className="text-sm text-[#5A7C85] mt-1">
+            <p className="text-sm text-gray-500 mt-1">
               {editData ? 'Ubah informasi data target kebutuhan barang' : 'Daftarkan target kebutuhan barang untuk panti asuhan'}
             </p>
           </div>
@@ -160,7 +159,7 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
                       setData('id_shelter', '');
                     }
                   }}
-                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm font-semibold text-[#124354] bg-white placeholder:text-gray-400"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-gray-200 focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 transition-all text-sm font-semibold text-[#293681] bg-white placeholder:text-gray-400"
                   placeholder="Cari atau pilih nama Panti Asuhan..."
                 />
                 <button
@@ -306,9 +305,9 @@ export default function KebutuhanRegistrationModal({ isOpen, onClose, activeShel
                 type="submit"
                 form="kebutuhan-form"
                 disabled={processing || !isFormValid}
-                className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2 ${
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2 ${
                   isFormValid 
-                    ? 'bg-[#124354] hover:bg-[#0E3544] text-white cursor-pointer' 
+                    ? 'bg-[#4274D9] hover:bg-[#293681] text-white shadow-md shadow-[#4274D9]/20 cursor-pointer' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                 }`}
               >

@@ -86,8 +86,8 @@ function Nav() {
                 href={route("logout")}
                 method="post"
                 as="button"
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.navy }}>
+                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition shadow-sm"
+                style={{ backgroundColor: COLORS.teal }}>
                 Keluar
               </Link>
             </>

@@ -21,10 +21,10 @@ export default function PantiHeader({ activeTab, orgName = 'Panti Kasih Ibu' }: 
       
       {/* Sisi Kiri: Badge Panel & Judul Tab Aktif */}
       <div className="flex items-center gap-3">
-        <div className="bg-[#F4F3EF] text-[#124354] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
+        <div className="bg-[#D0E7E6]/40 text-[#4274D9] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">
           Panel Panti
         </div>
-        <h2 className="text-lg font-bold text-[#124354]">
+        <h2 className="text-lg font-bold text-[#293681]">
           {TAB_LABEL[activeTab] ?? 'Dashboard Panti'}
         </h2>
       </div>
@@ -37,11 +37,11 @@ export default function PantiHeader({ activeTab, orgName = 'Panti Kasih Ibu' }: 
 
         {/* Identitas Akun */}
         <div className="hidden sm:flex items-center gap-3 pl-4 border-l border-gray-100">
-          <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm bg-[#124354] text-white shadow-sm">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-sm bg-[#4274D9] text-white shadow-sm shadow-[#4274D9]/20">
             {orgName.charAt(0)}
           </div>
           <div className="hidden lg:block text-left">
-            <p className="text-xs font-bold text-[#124354] leading-tight truncate max-w-[140px]">
+            <p className="text-xs font-extrabold text-[#293681] leading-tight truncate max-w-[140px]">
               {orgName}
             </p>
             <p className="text-[10px] text-gray-400 font-medium mt-0.5">

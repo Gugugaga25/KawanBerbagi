@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { 
-  Flag, Search, Filter, Eye, CheckCircle, AlertTriangle, 
+import {
+  Flag, Search, Filter, Eye, CheckCircle, AlertTriangle,
   XCircle, Clock, ShieldAlert, ChevronLeft, ChevronRight,
   MoreVertical, Building2, FileText, Heart, CheckCircle2, Image
 } from 'lucide-react';
@@ -37,7 +37,7 @@ interface Report {
 export default function Laporan({ auth, reports }: { auth?: any; reports?: Report[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'semua' | 'pending' | 'diproses' | 'selesai'>('semua');
-  
+
   // State Modal Detail
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -53,7 +53,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
   // Filter Data
   const filteredReports = localReports.filter(report => {
     const matchesTab = activeTab === 'semua' || report.status === activeTab;
-    const matchesSearch = 
+    const matchesSearch =
       (report.terlapor_nama || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (report.pelapor || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       report.id.toString().toLowerCase().includes(searchQuery.toLowerCase());
@@ -129,7 +129,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
 
   return (
     <div className="space-y-6">
-      
+
       {/* Header & Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
@@ -140,36 +140,35 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
         </div>
 
         {/* Search Box */}
-          <div className="relative w-full ml-12 sm:w-64">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <input 
-              type="text"
-              placeholder="Cari ID atau pihak terlapor..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#4274D9]/20 focus:border-[#4274D9] transition-all font-semibold"
-            />
-          </div>
-        
+        <div className="relative w-full ml-12 sm:w-64">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            placeholder="Cari ID atau pihak terlapor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#4274D9]/20 focus:border-[#4274D9] transition-all font-semibold"
+          />
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <button 
+          <button
             onClick={handleExportData}
             className="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-[#4274D9] text-white hover:bg-[#293681] transition-colors shadow-sm cursor-pointer"
           >
             Ekspor Laporan
           </button>
-          
+
           {/* Tabs Filter */}
           <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 w-full sm:w-auto">
             {(['semua', 'pending', 'diproses', 'selesai'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-all capitalize ${
-                  activeTab === tab 
-                    ? 'bg-white text-[#124354] shadow-sm border border-gray-200' 
+                className={`flex-1 sm:flex-none px-4 py-2 text-xs font-bold rounded-lg transition-all capitalize ${activeTab === tab
+                    ? 'bg-white text-[#124354] shadow-sm border border-gray-200'
                     : 'text-gray-500 hover:text-gray-800'
-                }`}
+                  }`}
               >
                 {tab}
               </button>
@@ -204,12 +203,12 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
           <table className="w-full text-left border-separate border-spacing-0">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
-                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.teal}}>ID Laporan</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Objek Terlapor</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Pelapor</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Alasan Singkat</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Status</th>
-                <th className="px-6 py-4 font-bold text-center rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
+                <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{ background: COLORS.teal }}>ID Laporan</th>
+                <th className="px-6 py-4 font-bold" style={{ background: COLORS.teal }}>Objek Terlapor</th>
+                <th className="px-6 py-4 font-bold" style={{ background: COLORS.teal }}>Pelapor</th>
+                <th className="px-6 py-4 font-bold" style={{ background: COLORS.teal }}>Alasan Singkat</th>
+                <th className="px-6 py-4 font-bold" style={{ background: COLORS.teal }}>Status</th>
+                <th className="px-6 py-4 font-bold text-center rounded-tr-2xl" style={{ background: COLORS.teal }}>Aksi</th>
               </tr>
             </thead>
             <tbody className="text-[#124354] text-sm">
@@ -219,7 +218,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                     <EmptyState
                       mode={searchQuery ? 'search' : 'accomplishment'}
                       icon={Flag}
-                      title={searchQuery ? 'Laporan Tidak Ditemukan' : 'Semua Beres! 🎉'}
+                      title={searchQuery ? 'Laporan Tidak Ditemukan' : 'Tidak Ada Laporan'}
                       description={searchQuery ? undefined : 'Seluruh aduan dan laporan dari pengguna pada status ini telah berhasil Anda tangani.'}
                       searchQuery={searchQuery}
                       onResetSearch={() => {
@@ -239,9 +238,9 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                     <td className="px-6 py-4 border-b border-gray-100">
                       <div className="flex items-center gap-2">
                         {getCategoryIcon(report.tipe_laporan)}
-                        <Link 
+                        <Link
                           href={`/panti/${report.id_target}`}
-                          className="font-bold text-[#124354] hover:text-[#407E8C] max-w-[150px] truncate transition-colors underline decoration-dashed decoration-[#407E8C]/30 underline-offset-4" 
+                          className="font-bold text-[#124354] hover:text-[#407E8C] max-w-[150px] truncate transition-colors underline decoration-dashed decoration-[#407E8C]/30 underline-offset-4"
                           title={`Kunjungi Halaman: ${report.terlapor_nama}`}
                         >
                           {report.terlapor_nama}
@@ -263,17 +262,17 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                               <MoreVertical size={18} />
                             </button>
                           </Dropdown.Trigger>
-    
+
                           <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl z-50">
-                            <button 
+                            <button
                               onClick={() => openDetailModal(report)}
                               className="flex items-center gap-2 text-[#124354] hover:bg-[#F4F3EF] block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out font-medium"
                             >
                               <Eye size={16} className="text-[#407E8C]" /> Periksa Detail
                             </button>
-                            
+
                             {report.status === 'pending' && (
-                              <button 
+                              <button
                                 onClick={() => handleUpdateStatus(report.id, 'diproses')}
                                 className="flex items-center gap-2 text-blue-600 hover:bg-blue-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium"
                               >
@@ -282,16 +281,16 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                             )}
 
                             {report.status === 'diproses' && (
-                              <button 
+                              <button
                                 onClick={() => handleUpdateStatus(report.id, 'selesai')}
                                 className="flex items-center gap-2 text-green-600 hover:bg-green-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium"
                               >
                                 <CheckCircle2 size={16} /> Tandai Selesai
                               </button>
                             )}
-    
+
                             {(report.status === 'pending' || report.status === 'diproses') && (
-                              <button 
+                              <button
                                 onClick={() => handleUpdateStatus(report.id, 'ditolak')}
                                 className="flex items-center gap-2 text-red-600 hover:bg-red-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium border-t border-gray-100"
                               >
@@ -308,14 +307,14 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
             </tbody>
           </table>
         </div>
-        
+
         {/* Simple Pagination Footer */}
         {filteredReports.length > 0 && (
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-between items-center text-xs text-gray-500 font-medium">
             <span>Menampilkan {filteredReports.length} data</span>
             <div className="flex gap-1">
-              <button className="p-1 rounded hover:bg-gray-200 text-gray-400"><ChevronLeft size={16}/></button>
-              <button className="p-1 rounded hover:bg-gray-200 text-gray-400"><ChevronRight size={16}/></button>
+              <button className="p-1 rounded hover:bg-gray-200 text-gray-400"><ChevronLeft size={16} /></button>
+              <button className="p-1 rounded hover:bg-gray-200 text-gray-400"><ChevronRight size={16} /></button>
             </div>
           </div>
         )}
@@ -410,9 +409,9 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
               <SecondaryButton onClick={() => setIsDetailModalOpen(false)}>
                 Tutup
               </SecondaryButton>
-              
+
               {selectedReport.status === 'pending' && (
-                <button 
+                <button
                   onClick={() => {
                     handleUpdateStatus(selectedReport.id, 'diproses');
                     setIsDetailModalOpen(false);
@@ -422,9 +421,9 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                   Proses Laporan
                 </button>
               )}
-              
+
               {selectedReport.status === 'diproses' && (
-                <button 
+                <button
                   onClick={() => {
                     handleUpdateStatus(selectedReport.id, 'selesai');
                     setIsDetailModalOpen(false);
@@ -439,11 +438,11 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
         )}
       </Modal>
 
-      <ProgressBar 
-        isVisible={isExporting} 
-        progress={exportProgress} 
-        label="Mengekspor Laporan Data" 
-        sublabel="Menyiapkan berkas dokumen laporan untuk diunduh..." 
+      <ProgressBar
+        isVisible={isExporting}
+        progress={exportProgress}
+        label="Mengekspor Laporan Data"
+        sublabel="Menyiapkan berkas dokumen laporan untuk diunduh..."
       />
 
     </div>

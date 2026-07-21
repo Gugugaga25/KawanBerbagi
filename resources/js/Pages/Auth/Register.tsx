@@ -19,6 +19,9 @@ import {
   ShieldCheck,
   Heart,
 } from "lucide-react";
+import PasswordChecklist from "@/Components/Form/PasswordChecklist";
+import { validatePasswordRequirements, sanitizePhoneNumber } from "@/Utils/formUtils";
+import InlineSpinner from "@/Components/UI/InlineSpinner";
 
 const COLORS = {
   navy: "#293681",
@@ -122,6 +125,7 @@ export default function Register() {
   const [submitted, setSubmitted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [currentYayasanStep, setCurrentYayasanStep] = useState<number>(1);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     role: "donatur",
@@ -144,12 +148,14 @@ export default function Register() {
     orgPhoto: null as File | null,
   });
 
-  const switchRole = () => {
-    const newRole = role === "donatur" ? "yayasan" : "donatur";
-    setRole(newRole);
-    setData("role", newRole);
+  const switchRole = (targetRole?: Role) => {
+    const nextRole = targetRole ?? (role === "donatur" ? "yayasan" : "donatur");
+    if (nextRole === role) return;
+
+    setRole(nextRole);
+    setData("role", nextRole);
     setSubmitted(false);
-    
+    setCurrentYayasanStep(1);
     window.scrollTo({
       top: 0,
       behavior: "smooth"
@@ -171,13 +177,13 @@ export default function Register() {
 
   return (
     <div
-      className="min-h-screen flex flex-col lg:flex-row font-sans"
+      className="min-h-screen flex flex-col lg:flex-row font-sans overflow-hidden relative"
       style={{ backgroundColor: COLORS.cream }}
     >
       {/* ======================= FORM PANEL (scrolls independently) ======================= */}
       <div
-        className={`w-full lg:w-1/2 relative ${
-          formOnRight ? "lg:order-2" : "lg:order-1"
+        className={`w-full lg:w-1/2 relative transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+          formOnRight ? "lg:translate-x-full" : "lg:translate-x-0"
         }`}
       >
         <div className="px-6 sm:px-10 lg:px-20 xl:px-28 pt-10 sm:pt-12 lg:pt-16 pb-14">
@@ -304,7 +310,33 @@ export default function Register() {
               </div>
             )
           ) : (
-            <>
+            <div key={role} className="transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
+              {/* Single Toggle Role Switcher Button */}
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#D0E7E6]/40 px-3 py-1.5 rounded-lg border border-[#D0E7E6]">
+                  {role === "donatur" ? "Pendaftaran Donatur" : "Pendaftaran Yayasan"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => switchRole()}
+                  className="inline-flex items-center gap-2 text-xs font-extrabold px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-[#293681] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                >
+                  {role === "donatur" ? (
+                    <>
+                      <Building2 size={15} className="text-[#F59E0B]" />
+                      <span>Daftar sebagai Yayasan</span>
+                      <ArrowRight size={14} className="text-[#4274D9] group-hover:translate-x-0.5 transition-transform" />
+                    </>
+                  ) : (
+                    <>
+                      <Heart size={15} className="text-[#4274D9] fill-[#4274D9]/20" />
+                      <span>Daftar sebagai Donatur</span>
+                      <ArrowRight size={14} className="text-[#4274D9] group-hover:translate-x-0.5 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </div>
+
               <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: COLORS.navy }}>
                 {role === "donatur" ? "Daftar Sebagai Donatur" : "Daftar & Verifikasi Yayasan"}
               </h1>
@@ -314,333 +346,471 @@ export default function Register() {
                   : "Lengkapi data yayasan Anda untuk mengajukan verifikasi."}
               </p>
 
-              {role === "donatur" ? (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                  <Field icon={User} label="Nama Lengkap">
-                    <input
-                      required
-                      placeholder="Nama Anda"
-                      value={data.name}
-                      onChange={(e) => setData("name", e.target.value)}
-                      className={inputBase}
-                      style={inputStyle}
-                    />
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                  </Field>
+              {(() => {
+                const passReqs = validatePasswordRequirements(data.password, data.password_confirmation);
+                const isDonaturValid = Boolean(
+                  data.name &&
+                  data.email &&
+                  data.phone &&
+                  data.city &&
+                  passReqs.minLength &&
+                  passReqs.hasUpper &&
+                  passReqs.hasNumber &&
+                  passReqs.passwordsMatch &&
+                  data.agree
+                );
 
-                  <Field icon={Mail} label="Alamat Email">
-                    <input
-                      type="email"
-                      required
-                      placeholder="nama@email.com"
-                      value={data.email}
-                      onChange={(e) => setData("email", e.target.value)}
-                      className={inputBase}
-                      style={inputStyle}
-                    />
-                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                  </Field>
+                const isStep1Valid = Boolean(data.orgName && data.email && data.picName && data.phone && data.address && data.beneficiaries);
+                const isStep2Valid = Boolean(data.skDoc && data.izinDoc);
+                const isStep3Valid = passReqs.minLength && passReqs.hasUpper && passReqs.hasNumber && passReqs.passwordsMatch && data.agree;
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field icon={Phone} label="No. WhatsApp">
+                return role === "donatur" ? (
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    <Field icon={User} label="Nama Lengkap">
                       <input
                         required
-                        placeholder="08xxxxxxxxxx"
-                        value={data.phone}
-                        onChange={(e) => setData("phone", e.target.value)}
+                        placeholder="Nama Anda"
+                        value={data.name}
+                        onChange={(e) => setData("name", e.target.value)}
                         className={inputBase}
                         style={inputStyle}
                       />
-                      {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                      {errors.name && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.name}</p>}
                     </Field>
-                    <Field icon={MapPin} label="Kota">
+
+                    <Field icon={Mail} label="Alamat Email">
                       <input
+                        type="email"
                         required
-                        placeholder="Bandung"
-                        value={data.city}
-                        onChange={(e) => setData("city", e.target.value)}
+                        placeholder="nama@email.com"
+                        value={data.email}
+                        onChange={(e) => setData("email", e.target.value)}
                         className={inputBase}
                         style={inputStyle}
                       />
-                      {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                      {errors.email && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.email}</p>}
                     </Field>
-                  </div>
 
-                  <Field icon={Lock} label="Kata Sandi">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      placeholder="Minimal 8 karakter"
-                      value={data.password}
-                      onChange={(e) => setData("password", e.target.value)}
-                      className={inputBase.replace("pr-4", "pr-12")}
-                      style={inputStyle}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
-                      style={{ color: COLORS.navy, opacity: 0.45 }}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                  </Field>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field icon={Phone} label="No. WhatsApp">
+                        <input
+                          required
+                          placeholder="08xxxxxxxxxx"
+                          value={data.phone}
+                          onChange={(e) => setData("phone", e.target.value)}
+                          onBlur={() => setData("phone", sanitizePhoneNumber(data.phone))}
+                          className={inputBase}
+                          style={inputStyle}
+                        />
+                        {errors.phone && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.phone}</p>}
+                      </Field>
+                      <Field icon={MapPin} label="Kota">
+                        <input
+                          required
+                          placeholder="Bandung"
+                          value={data.city}
+                          onChange={(e) => setData("city", e.target.value)}
+                          className={inputBase}
+                          style={inputStyle}
+                        />
+                        {errors.city && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.city}</p>}
+                      </Field>
+                    </div>
 
-                  <Field icon={Lock} label="Konfirmasi Kata Sandi">
-                    <input
-                      type={showConfirm ? "text" : "password"}
-                      required
-                      placeholder="Ulangi kata sandi"
-                      value={data.password_confirmation}
-                      onChange={(e) => setData("password_confirmation", e.target.value)}
-                      className={inputBase.replace("pr-4", "pr-12")}
-                      style={inputStyle}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
-                      style={{ color: COLORS.navy, opacity: 0.45 }}
-                    >
-                      {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </Field>
-
-                  <label className="flex items-start gap-2.5 cursor-pointer mt-1">
-                    <input
-                      type="checkbox"
-                      required
-                      checked={data.agree}
-                      onChange={(e) => setData("agree", e.target.checked)}
-                      className="mt-0.5 rounded"
-                      style={{ accentColor: COLORS.teal }}
-                    />
-                    <span className="text-sm" style={{ color: COLORS.navy, opacity: 0.7 }}>
-                      Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi KawanBerbagi.
-                    </span>
-                  </label>
-
-                  <button
-                    type="submit"
-                    className="mt-2 w-full inline-flex items-center justify-center gap-2 text-base font-semibold py-3.5 rounded-full text-white hover:brightness-110 transition"
-                    style={{ backgroundColor: COLORS.teal }}
-                  >
-                    Daftar sebagai Donatur <ArrowRight size={18} />
-                  </button>
-                </form>
-              ) : (
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                  <Field icon={Building2} label="Nama Yayasan / Panti">
-                    <input
-                      required
-                      placeholder="Yayasan Kasih Ibu"
-                      value={data.orgName}
-                      onChange={(e) => setData("orgName", e.target.value)}
-                      className={inputBase}
-                      style={inputStyle}
-                    />
-                    {errors.orgName && <p className="text-red-500 text-xs mt-1">{errors.orgName}</p>}
-                  </Field>
-
-                  <Field icon={Mail} label="Email Resmi Yayasan">
-                    <input
-                      type="email"
-                      required
-                      placeholder="kontak@yayasan.org"
-                      value={data.email}
-                      onChange={(e) => setData("email", e.target.value)}
-                      className={inputBase}
-                      style={inputStyle}
-                    />
-                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                  </Field>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field icon={User} label="Nama Penanggung Jawab">
+                    <Field icon={Lock} label="Kata Sandi">
                       <input
+                        type={showPassword ? "text" : "password"}
                         required
-                        placeholder="Nama pengurus"
-                        value={data.picName}
-                        onChange={(e) => setData("picName", e.target.value)}
-                        className={inputBase}
+                        placeholder="Minimal 8 karakter"
+                        value={data.password}
+                        onChange={(e) => setData("password", e.target.value)}
+                        className={inputBase.replace("pr-4", "pr-12")}
                         style={inputStyle}
                       />
-                      {errors.picName && <p className="text-red-500 text-xs mt-1">{errors.picName}</p>}
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
+                        style={{ color: COLORS.navy, opacity: 0.45 }}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                      {errors.password && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.password}</p>}
                     </Field>
-                    <Field icon={Phone} label="No. Telepon PIC">
+
+                    <Field icon={Lock} label="Konfirmasi Kata Sandi">
                       <input
+                        type={showConfirm ? "text" : "password"}
                         required
-                        placeholder="08xxxxxxxxxx"
-                        value={data.phone}
-                        onChange={(e) => setData("phone", e.target.value)}
-                        className={inputBase}
+                        placeholder="Ulangi kata sandi"
+                        value={data.password_confirmation}
+                        onChange={(e) => setData("password_confirmation", e.target.value)}
+                        className={inputBase.replace("pr-4", "pr-12")}
                         style={inputStyle}
                       />
-                      {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm(!showConfirm)}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
+                        style={{ color: COLORS.navy, opacity: 0.45 }}
+                      >
+                        {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
                     </Field>
-                  </div>
 
-                  <Field icon={MapPin} label="Alamat Lengkap Panti">
-                    <input
-                      required
-                      placeholder="Jl. Contoh No. 12, Kecamatan, Kota"
-                      value={data.address}
-                      onChange={(e) => setData("address", e.target.value)}
-                      className={inputBase}
-                      style={inputStyle}
-                    />
-                    {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
-                  </Field>
+                    <PasswordChecklist password={data.password} confirmation={data.password_confirmation} />
 
-                  <Field icon={Users} label="Jumlah Penerima Manfaat">
-                    <input
-                      type="number"
-                      min={1}
-                      required
-                      placeholder="Misal: 25"
-                      value={data.beneficiaries}
-                      onChange={(e) => setData("beneficiaries", e.target.value)}
-                      className={inputBase}
-                      style={inputStyle}
-                    />
-                    {errors.beneficiaries && <p className="text-red-500 text-xs mt-1">{errors.beneficiaries}</p>}
-                  </Field>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <FileField
-                        icon={FileText}
-                        label="Akta Pendirian Yayasan (opsional)"
-                        hint="PDF/JPG (Maks 5MB)"
-                        file={data.aktaDoc}
-                        onChange={(f) => setData("aktaDoc", f)}
-                      />
-                      {errors.aktaDoc && <p className="text-red-500 text-xs mt-1">{errors.aktaDoc}</p>}
-                    </div>
-                    <div>
-                      <FileField
-                        icon={FileText}
-                        label="SK Kemenkumham / Kemensos"
-                        hint="PDF/JPG (Maks 5MB)"
+                    <label className="flex items-start gap-2.5 cursor-pointer mt-1">
+                      <input
+                        type="checkbox"
                         required
-                        file={data.skDoc}
-                        onChange={(f) => setData("skDoc", f)}
+                        checked={data.agree}
+                        onChange={(e) => setData("agree", e.target.checked)}
+                        className="mt-0.5 rounded cursor-pointer"
+                        style={{ accentColor: COLORS.teal }}
                       />
-                      {errors.skDoc && <p className="text-red-500 text-xs mt-1">{errors.skDoc}</p>}
-                    </div>
-                  </div>
+                      <span className="text-sm font-medium" style={{ color: COLORS.navy, opacity: 0.8 }}>
+                        Saya menyetujui Syarat & Ketentuan serta Kebijakan Privasi KawanBerbagi.
+                      </span>
+                    </label>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <FileField
-                        icon={FileText}
-                        label="TDY / Izin Operasional"
-                        hint="PDF/JPG (Maks 5MB)"
-                        required
-                        file={data.izinDoc}
-                        onChange={(f) => setData("izinDoc", f)}
-                      />
-                      {errors.izinDoc && <p className="text-red-500 text-xs mt-1">{errors.izinDoc}</p>}
-                    </div>
-                    <div>
-                      <FileField
-                        icon={FileText}
-                        label="NIB / NPWP Yayasan (opsional)"
-                        hint="PDF/JPG (Maks 5MB)"
-                        file={data.npwpDoc}
-                        onChange={(f) => setData("npwpDoc", f)}
-                      />
-                      {errors.npwpDoc && <p className="text-red-500 text-xs mt-1">{errors.npwpDoc}</p>}
-                    </div>
-                  </div>
-
-                  <div>
-                    <FileField
-                      icon={ImagePlus}
-                      label="Foto Panti (opsional)"
-                      hint="Membantu proses verifikasi lebih cepat"
-                      file={data.orgPhoto}
-                      onChange={(f) => setData("orgPhoto", f)}
-                    />
-                    {errors.orgPhoto && <p className="text-red-500 text-xs mt-1">{errors.orgPhoto}</p>}
-                  </div>
-
-                  <Field icon={Lock} label="Kata Sandi">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      placeholder="Minimal 8 karakter"
-                      value={data.password}
-                      onChange={(e) => setData("password", e.target.value)}
-                      className={inputBase.replace("pr-4", "pr-12")}
-                      style={inputStyle}
-                    />
                     <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
-                      style={{ color: COLORS.navy, opacity: 0.45 }}
+                      type="submit"
+                      disabled={processing || !isDonaturValid}
+                      className={`mt-2 w-full inline-flex items-center justify-center gap-2 text-base font-bold py-3.5 rounded-full text-white transition ${
+                        isDonaturValid
+                          ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
+                          : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                      }`}
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {processing ? <InlineSpinner color="white" size="sm" /> : null}
+                      <span>{processing ? "Mendaftarkan Akun..." : "Daftar sebagai Donatur"}</span>
+                      {!processing && <ArrowRight size={18} />}
                     </button>
-                    {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                  </Field>
+                  </form>
+                ) : (
+                  /* ================= YAYASAN MULTI-STEP FORM ================= */
+                  <div className="flex flex-col gap-6">
+                    {/* Stepper Progress Indicator */}
+                    <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                      {[
+                        { num: 1, title: "Profil & Kontak", icon: Building2 },
+                        { num: 2, title: "Berkas Legalitas", icon: FileText },
+                        { num: 3, title: "Keamanan Akun", icon: Lock },
+                      ].map((s) => {
+                        const isCompleted = currentYayasanStep > s.num;
+                        const isActive = currentYayasanStep === s.num;
+                        return (
+                          <React.Fragment key={s.num}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                isCompleted
+                                  ? 'bg-[#4274D9] text-white'
+                                  : isActive
+                                    ? 'bg-[#4274D9] text-white ring-4 ring-[#4274D9]/20'
+                                    : 'bg-gray-100 text-gray-400'
+                              }`}>
+                                {isCompleted ? <CheckCircle2 size={16} /> : s.num}
+                              </div>
+                              <span className={`text-xs font-semibold hidden sm:inline ${
+                                isActive ? 'text-[#293681] font-bold' : 'text-gray-400'
+                              }`}>
+                                {s.title}
+                              </span>
+                            </div>
+                            {s.num < 3 && (
+                              <div className={`flex-1 h-0.5 mx-2 transition-colors ${
+                                currentYayasanStep > s.num ? 'bg-[#4274D9]' : 'bg-gray-200'
+                              }`} />
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
 
-                  <Field icon={Lock} label="Konfirmasi Kata Sandi">
-                    <input
-                      type={showConfirm ? "text" : "password"}
-                      required
-                      placeholder="Ulangi kata sandi"
-                      value={data.password_confirmation}
-                      onChange={(e) => setData("password_confirmation", e.target.value)}
-                      className={inputBase.replace("pr-4", "pr-12")}
-                      style={inputStyle}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
-                      style={{ color: COLORS.navy, opacity: 0.45 }}
-                    >
-                      {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </Field>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                      {/* LANGKAH 1: IDENTITAS & KONTAK */}
+                      {currentYayasanStep === 1 && (
+                        <div className="flex flex-col gap-5">
+                          <Field icon={Building2} label="Nama Yayasan / Panti">
+                            <input
+                              required
+                              placeholder="Yayasan Kasih Ibu"
+                              value={data.orgName}
+                              onChange={(e) => setData("orgName", e.target.value)}
+                              className={inputBase}
+                              style={inputStyle}
+                            />
+                            {errors.orgName && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.orgName}</p>}
+                          </Field>
 
-                  <div
-                    className="flex items-start gap-2.5 rounded-xl p-3.5"
-                    style={{ backgroundColor: "rgba(165,141,102,0.12)" }}
-                  >
-                    <ShieldCheck size={18} color={COLORS.gold} className="mt-0.5 shrink-0" />
-                    <p className="text-xs leading-relaxed" style={{ color: COLORS.navy, opacity: 0.75 }}>
-                      Data dan dokumen yang Anda unggah akan ditinjau tim kami sebelum akun yayasan aktif,
-                      demi menjaga kepercayaan donatur.
-                    </p>
+                          <Field icon={Mail} label="Email Resmi Yayasan">
+                            <input
+                              type="email"
+                              required
+                              placeholder="kontak@yayasan.org"
+                              value={data.email}
+                              onChange={(e) => setData("email", e.target.value)}
+                              className={inputBase}
+                              style={inputStyle}
+                            />
+                            {errors.email && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.email}</p>}
+                          </Field>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <Field icon={User} label="Nama Penanggung Jawab">
+                              <input
+                                required
+                                placeholder="Nama pengurus"
+                                value={data.picName}
+                                onChange={(e) => setData("picName", e.target.value)}
+                                className={inputBase}
+                                style={inputStyle}
+                              />
+                              {errors.picName && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.picName}</p>}
+                            </Field>
+                            <Field icon={Phone} label="No. Telepon PIC">
+                              <input
+                                required
+                                placeholder="08xxxxxxxxxx"
+                                value={data.phone}
+                                onChange={(e) => setData("phone", e.target.value)}
+                                onBlur={() => setData("phone", sanitizePhoneNumber(data.phone))}
+                                className={inputBase}
+                                style={inputStyle}
+                              />
+                              {errors.phone && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.phone}</p>}
+                            </Field>
+                          </div>
+
+                          <Field icon={MapPin} label="Alamat Lengkap Panti">
+                            <input
+                              required
+                              placeholder="Jl. Contoh No. 12, Kecamatan, Kota"
+                              value={data.address}
+                              onChange={(e) => setData("address", e.target.value)}
+                              className={inputBase}
+                              style={inputStyle}
+                            />
+                            {errors.address && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.address}</p>}
+                          </Field>
+
+                          <Field icon={Users} label="Jumlah Penerima Manfaat">
+                            <input
+                              type="number"
+                              min={1}
+                              required
+                              placeholder="Misal: 25"
+                              value={data.beneficiaries}
+                              onChange={(e) => setData("beneficiaries", e.target.value)}
+                              className={inputBase}
+                              style={inputStyle}
+                            />
+                            {errors.beneficiaries && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.beneficiaries}</p>}
+                          </Field>
+
+                          <button
+                            type="button"
+                            onClick={() => isStep1Valid && setCurrentYayasanStep(2)}
+                            disabled={!isStep1Valid}
+                            className={`mt-2 w-full inline-flex items-center justify-center gap-2 text-base font-bold py-3.5 rounded-full text-white transition ${
+                              isStep1Valid
+                                ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
+                                : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                            }`}
+                          >
+                            <span>Lanjut ke Langkah 2 (Legalitas)</span> <ArrowRight size={18} />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* LANGKAH 2: BERKAS LEGALITAS */}
+                      {currentYayasanStep === 2 && (
+                        <div className="flex flex-col gap-5">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <FileField
+                                icon={FileText}
+                                label="Akta Pendirian (opsional)"
+                                hint="PDF/JPG (Maks 5MB)"
+                                file={data.aktaDoc}
+                                onChange={(f) => setData("aktaDoc", f)}
+                              />
+                              {errors.aktaDoc && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.aktaDoc}</p>}
+                            </div>
+                            <div>
+                              <FileField
+                                icon={FileText}
+                                label="SK Kemenkumham / Kemensos"
+                                hint="PDF/JPG (Maks 5MB)"
+                                required
+                                file={data.skDoc}
+                                onChange={(f) => setData("skDoc", f)}
+                              />
+                              {errors.skDoc && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.skDoc}</p>}
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <FileField
+                                icon={FileText}
+                                label="TDY / Izin Operasional"
+                                hint="PDF/JPG (Maks 5MB)"
+                                required
+                                file={data.izinDoc}
+                                onChange={(f) => setData("izinDoc", f)}
+                              />
+                              {errors.izinDoc && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.izinDoc}</p>}
+                            </div>
+                            <div>
+                              <FileField
+                                icon={FileText}
+                                label="NIB / NPWP (opsional)"
+                                hint="PDF/JPG (Maks 5MB)"
+                                file={data.npwpDoc}
+                                onChange={(f) => setData("npwpDoc", f)}
+                              />
+                              {errors.npwpDoc && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.npwpDoc}</p>}
+                            </div>
+                          </div>
+
+                          <div>
+                            <FileField
+                              icon={ImagePlus}
+                              label="Foto Panti (opsional)"
+                              hint="Membantu proses verifikasi lebih cepat"
+                              file={data.orgPhoto}
+                              onChange={(f) => setData("orgPhoto", f)}
+                            />
+                            {errors.orgPhoto && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.orgPhoto}</p>}
+                          </div>
+
+                          <div className="flex gap-3 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setCurrentYayasanStep(1)}
+                              className="w-1/3 py-3.5 rounded-full bg-gray-100 hover:bg-gray-200 text-[#293681] text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <ArrowLeft size={16} /> Kembali
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => isStep2Valid && setCurrentYayasanStep(3)}
+                              disabled={!isStep2Valid}
+                              className={`w-2/3 inline-flex items-center justify-center gap-2 text-base font-bold py-3.5 rounded-full text-white transition ${
+                                isStep2Valid
+                                  ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
+                                  : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                              }`}
+                            >
+                              <span>Lanjut ke Langkah 3</span> <ArrowRight size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* LANGKAH 3: KEAMANAN AKUN & PERSETUJUAN */}
+                      {currentYayasanStep === 3 && (
+                        <div className="flex flex-col gap-5">
+                          <Field icon={Lock} label="Kata Sandi">
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              required
+                              placeholder="Minimal 8 karakter"
+                              value={data.password}
+                              onChange={(e) => setData("password", e.target.value)}
+                              className={inputBase.replace("pr-4", "pr-12")}
+                              style={inputStyle}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
+                              style={{ color: COLORS.navy, opacity: 0.45 }}
+                            >
+                              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                            {errors.password && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.password}</p>}
+                          </Field>
+
+                          <Field icon={Lock} label="Konfirmasi Kata Sandi">
+                            <input
+                              type={showConfirm ? "text" : "password"}
+                              required
+                              placeholder="Ulangi kata sandi"
+                              value={data.password_confirmation}
+                              onChange={(e) => setData("password_confirmation", e.target.value)}
+                              className={inputBase.replace("pr-4", "pr-12")}
+                              style={inputStyle}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirm(!showConfirm)}
+                              className="absolute inset-y-0 right-0 pr-4 flex items-center hover:opacity-70"
+                              style={{ color: COLORS.navy, opacity: 0.45 }}
+                            >
+                              {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                          </Field>
+
+                          <PasswordChecklist password={data.password} confirmation={data.password_confirmation} />
+
+                          <div
+                            className="flex items-start gap-2.5 rounded-xl p-3.5"
+                            style={{ backgroundColor: "rgba(165,141,102,0.12)" }}
+                          >
+                            <ShieldCheck size={18} color={COLORS.gold} className="mt-0.5 shrink-0" />
+                            <p className="text-xs leading-relaxed" style={{ color: COLORS.navy, opacity: 0.75 }}>
+                              Data dan dokumen yang Anda unggah akan ditinjau tim kami sebelum akun yayasan aktif,
+                              demi menjaga kepercayaan donatur.
+                            </p>
+                          </div>
+
+                          <label className="flex items-start gap-2.5 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              required
+                              checked={data.agree}
+                              onChange={(e) => setData("agree", e.target.checked)}
+                              className="mt-0.5 rounded cursor-pointer"
+                              style={{ accentColor: COLORS.teal }}
+                            />
+                            <span className="text-sm font-medium" style={{ color: COLORS.navy, opacity: 0.8 }}>
+                              Saya menyatakan data yang diisi benar dan menyetujui Syarat & Ketentuan.
+                            </span>
+                          </label>
+
+                          <div className="flex gap-3 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setCurrentYayasanStep(2)}
+                              className="w-1/3 py-3.5 rounded-full bg-gray-100 hover:bg-gray-200 text-[#293681] text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <ArrowLeft size={16} /> Kembali
+                            </button>
+
+                            <button
+                              type="submit"
+                              disabled={processing || !isStep3Valid}
+                              className={`w-2/3 inline-flex items-center justify-center gap-2 text-base font-bold py-3.5 rounded-full text-white transition ${
+                                isStep3Valid
+                                  ? 'bg-[#4274D9] hover:bg-[#293681] shadow-md shadow-[#4274D9]/20 cursor-pointer'
+                                  : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                              }`}
+                            >
+                              {processing ? <InlineSpinner color="white" size="sm" /> : null}
+                              <span>{processing ? "Memproses..." : "Daftar & Ajukan Verifikasi"}</span>
+                              {!processing && <ArrowRight size={18} />}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </form>
                   </div>
-
-                  <label className="flex items-start gap-2.5 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      required
-                      checked={data.agree}
-                      onChange={(e) => setData("agree", e.target.checked)}
-                      className="mt-0.5 rounded"
-                      style={{ accentColor: COLORS.teal }}
-                    />
-                    <span className="text-sm" style={{ color: COLORS.navy, opacity: 0.7 }}>
-                      Saya menyatakan data yang diisi benar dan menyetujui Syarat & Ketentuan.
-                    </span>
-                  </label>
-
-                  <button
-                    type="submit"
-                    className="mt-2 w-full inline-flex items-center justify-center gap-2 text-base font-semibold py-3.5 rounded-full text-white hover:brightness-110 transition"
-                    style={{ backgroundColor: COLORS.navy }}
-                  >
-                    Daftar & Ajukan Verifikasi <ArrowRight size={18} />
-                  </button>
-                </form>
-              )}
+                );
+              })()}
 
               <div className="mt-8 text-center">
                 <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.75 }}>
@@ -651,7 +821,7 @@ export default function Register() {
                   </Link>
                 </p>
               </div>
-            </>
+            </div>
           )}
           </div>
         </div>
@@ -659,8 +829,8 @@ export default function Register() {
 
       {/* ======================= EXPLANATION PANEL (scrolls independently) ======================= */}
       <div
-        className={`w-full lg:w-1/2 relative overflow-hidden ${
-          formOnRight ? "lg:order-1" : "lg:order-2"
+        className={`w-full lg:w-1/2 relative overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+          formOnRight ? "lg:-translate-x-full" : "lg:translate-x-0"
         }`}
         style={{ backgroundColor: COLORS.navy }}
       >
@@ -687,7 +857,7 @@ export default function Register() {
             </Link>
           </div>
 
-          <div className="max-w-md w-full">
+          <div key={role} className="max-w-md w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
           {role === "donatur" ? (
             <>
               <div
@@ -718,26 +888,12 @@ export default function Register() {
                 ))}
               </ul>
               <div
-                className="rounded-2xl p-5 mb-8"
+                className="rounded-2xl p-5 mb-2"
                 style={{ backgroundColor: "rgba(255,255,255,0.06)", border: `1px solid rgba(192,213,214,0.15)` }}
               >
                 <p className="text-sm" style={{ color: COLORS.cream, opacity: 0.75 }}>
                   Tidak perlu verifikasi dokumen — akun Anda langsung aktif setelah mendaftar.
                 </p>
-              </div>
-
-              <div className="pt-6" style={{ borderTop: `1px solid rgba(192,213,214,0.15)` }}>
-                <p className="text-sm mb-3" style={{ color: COLORS.cream, opacity: 0.7 }}>
-                  Anda pengurus panti atau yayasan?
-                </p>
-                <button
-                  type="button"
-                  onClick={switchRole}
-                  className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full border transition hover:bg-white/10"
-                  style={{ borderColor: "rgba(229,225,221,0.4)", color: COLORS.cream }}
-                >
-                  Daftar sebagai Yayasan <ArrowRight size={16} />
-                </button>
               </div>
             </>
           ) : (
@@ -770,7 +926,7 @@ export default function Register() {
                 ))}
               </ul>
               <div
-                className="flex items-start gap-3 rounded-2xl p-5 mb-8"
+                className="flex items-start gap-3 rounded-2xl p-5 mb-2"
                 style={{ backgroundColor: "rgba(255,255,255,0.06)", border: `1px solid rgba(192,213,214,0.15)` }}
               >
                 <ShieldCheck size={18} color={COLORS.gold} className="mt-0.5 shrink-0" />
@@ -778,20 +934,6 @@ export default function Register() {
                   Pendaftaran yayasan memerlukan verifikasi dokumen legalitas oleh tim kami
                   (1–3 hari kerja) demi menjaga kepercayaan donatur.
                 </p>
-              </div>
-
-              <div className="pt-6" style={{ borderTop: `1px solid rgba(192,213,214,0.15)` }}>
-                <p className="text-sm mb-3" style={{ color: COLORS.cream, opacity: 0.7 }}>
-                  Hanya ingin menyumbangkan barang?
-                </p>
-                <button
-                  type="button"
-                  onClick={switchRole}
-                  className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full border transition hover:bg-white/10"
-                  style={{ borderColor: "rgba(229,225,221,0.4)", color: COLORS.cream }}
-                >
-                  Daftar sebagai Donatur <ArrowRight size={16} />
-                </button>
               </div>
             </>
           )}

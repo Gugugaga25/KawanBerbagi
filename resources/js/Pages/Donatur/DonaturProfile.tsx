@@ -12,13 +12,16 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useForm, usePage } from '@inertiajs/react';
+import PasswordChecklist from '@/Components/Form/PasswordChecklist';
+import { sanitizePhoneNumber, validatePasswordRequirements } from '@/Utils/formUtils';
+import InlineSpinner from '@/Components/UI/InlineSpinner';
 
 const COLORS = {
-  navy: "#083A4F",
-  gold: "#A58D66",
-  mist: "#C0D5D6",
-  teal: "#407E8C",
-  cream: "#E5E1DD",
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
+  cream: "#F8FAFC",
 };
 
 interface DonaturData {
@@ -197,13 +200,14 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
                 <input
                   value={profileForm.data.no_wa}
                   onChange={e => profileForm.setData('no_wa', e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none border focus:border-[#407E8C] transition-colors"
+                  onBlur={() => profileForm.setData('no_wa', sanitizePhoneNumber(profileForm.data.no_wa))}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none border focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 transition-colors"
                   style={{ backgroundColor: '#FAFAF9', borderColor: COLORS.mist, color: COLORS.navy }}
                   placeholder="08xxxxxxxxxx"
                 />
               </div>
               {profileForm.errors.no_wa && (
-                <p className="text-red-500 text-xs mt-1">{profileForm.errors.no_wa}</p>
+                <p className="text-red-500 text-xs mt-1.5 font-semibold">{profileForm.errors.no_wa}</p>
               )}
             </div>
 
@@ -240,12 +244,15 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
 
           <button
             type="submit"
-            disabled={profileForm.processing}
-            className="mt-6 inline-flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white transition-all hover:brightness-110 disabled:opacity-50"
-            style={{ backgroundColor: COLORS.navy }}
+            disabled={profileForm.processing || !profileForm.data.nama_lengkap}
+            className={`mt-6 inline-flex items-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white transition-all shadow-md ${
+              profileForm.data.nama_lengkap && !profileForm.processing
+                ? 'bg-[#4274D9] hover:bg-[#293681] shadow-[#4274D9]/20 cursor-pointer'
+                : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+            }`}
           >
-            <CheckCircle2 size={16} />
-            {profileForm.processing ? 'Menyimpan...' : 'Simpan Profil'}
+            {profileForm.processing ? <InlineSpinner color="white" size="sm" /> : <CheckCircle2 size={16} />}
+            <span>{profileForm.processing ? 'Menyimpan...' : 'Simpan Profil'}</span>
           </button>
         </div>
       </form>
@@ -370,10 +377,12 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
                   </button>
                 </div>
                 {passwordForm.errors.password_confirmation && (
-                  <p className="text-red-500 text-xs mt-1">{passwordForm.errors.password_confirmation}</p>
+                  <p className="text-red-500 text-xs mt-1.5 font-semibold">{passwordForm.errors.password_confirmation}</p>
                 )}
               </div>
             </div>
+
+            <PasswordChecklist password={passwordForm.data.password} confirmation={passwordForm.data.password_confirmation} />
           </div>
 
           <button

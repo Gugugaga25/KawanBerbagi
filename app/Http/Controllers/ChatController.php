@@ -16,11 +16,16 @@ class ChatController extends Controller
     {
         $donor = Donor::where('id_user', auth()->id())->firstOrFail();
 
+        $activeChatId = $request->query('active_chat') ? (is_numeric($request->query('active_chat')) ? (int) $request->query('active_chat') : $request->query('active_chat')) : null;
+
         $chats = Chat::where('id_donor', $donor->id_donor)
             ->with(['shelter.user', 'admin', 'messages' => function ($query) {
                 $query->orderBy('created_at', 'asc');
             }])
             ->get()
+            ->filter(function ($chat) use ($activeChatId) {
+                return $chat->messages->count() > 0 || ($activeChatId && (string)$chat->id_chat === (string)$activeChatId);
+            })
             ->map(function ($chat) {
                 $lastMessage = $chat->messages->last();
                 $unreadCount = $chat->messages
@@ -52,11 +57,12 @@ class ChatController extends Controller
                     'last_message_time' => $lastMessage ? $lastMessage->created_at->toIso8601String() : null,
                     'unread_count' => $unreadCount,
                 ];
-            });
+            })
+            ->values();
 
         return Inertia::render('Donatur/DonaturChat', [
             'chats' => $chats,
-            'activeChatId' => $request->query('active_chat') ? (is_numeric($request->query('active_chat')) ? (int) $request->query('active_chat') : $request->query('active_chat')) : null,
+            'activeChatId' => $activeChatId,
 
             'donaturData' => [
                 'id_donor' => $donor->id_donor,
@@ -70,11 +76,16 @@ class ChatController extends Controller
     {
         $shelter = Shelter::where('id_user', auth()->id())->firstOrFail();
 
+        $activeChatId = $request->query('active_chat') ? (int) $request->query('active_chat') : null;
+
         $chats = Chat::where('id_shelter', $shelter->id_shelter)
             ->with(['donor.user', 'admin', 'messages' => function ($query) {
                 $query->orderBy('created_at', 'asc');
             }])
             ->get()
+            ->filter(function ($chat) use ($activeChatId) {
+                return $chat->messages->count() > 0 || ($activeChatId && (int)$chat->id_chat === $activeChatId);
+            })
             ->map(function ($chat) {
                 $lastMessage = $chat->messages->last();
                 $unreadCount = $chat->messages
@@ -104,11 +115,12 @@ class ChatController extends Controller
                     'last_message_time' => $lastMessage ? $lastMessage->created_at->toIso8601String() : null,
                     'unread_count' => $unreadCount,
                 ];
-            });
+            })
+            ->values();
 
         return Inertia::render('Panti/PantiChat', [
             'chats' => $chats,
-            'activeChatId' => $request->query('active_chat') ? (int) $request->query('active_chat') : null,
+            'activeChatId' => $activeChatId,
             'pantiData' => $shelter,
         ]);
     }
@@ -134,12 +146,13 @@ class ChatController extends Controller
         $donor = Donor::where('id_user', auth()->id())->first();
         $shelter = Shelter::where('id_user', auth()->id())->first();
 
+        $user = auth()->user();
         $authorized = false;
         if ($donor && $chat->id_donor === $donor->id_donor) {
             $authorized = true;
         } elseif ($shelter && $chat->id_shelter === $shelter->id_shelter) {
             $authorized = true;
-        } elseif ($chat->id_admin === auth()->id()) {
+        } elseif ($user && ($user->id_role_user === 'RL01ADM' || $chat->id_admin === $user->id_user)) {
             $authorized = true;
         }
 
@@ -180,12 +193,13 @@ class ChatController extends Controller
         $donor = Donor::where('id_user', auth()->id())->first();
         $shelter = Shelter::where('id_user', auth()->id())->first();
 
+        $user = auth()->user();
         $authorized = false;
         if ($donor && $chat->id_donor === $donor->id_donor) {
             $authorized = true;
         } elseif ($shelter && $chat->id_shelter === $shelter->id_shelter) {
             $authorized = true;
-        } elseif ($chat->id_admin === auth()->id()) {
+        } elseif ($user && ($user->id_role_user === 'RL01ADM' || $chat->id_admin === $user->id_user)) {
             $authorized = true;
         }
 
@@ -352,11 +366,22 @@ class ChatController extends Controller
 
     public function adminIndex(Request $request)
     {
-        $chats = Chat::where('id_admin', auth()->id())
+        $activeChatId = $request->query('active_chat') ? (int) $request->query('active_chat') : null;
+
+        $chats = Chat::whereNotNull('id_admin')
+            ->orWhere(function ($query) {
+                $query->whereNull('id_shelter')->whereNotNull('id_donor');
+            })
+            ->orWhere(function ($query) {
+                $query->whereNull('id_donor')->whereNotNull('id_shelter');
+            })
             ->with(['donor.user', 'shelter.user', 'messages' => function ($query) {
                 $query->orderBy('created_at', 'asc');
             }])
             ->get()
+            ->filter(function ($chat) use ($activeChatId) {
+                return $chat->messages->count() > 0 || ($activeChatId && (int)$chat->id_chat === $activeChatId);
+            })
             ->map(function ($chat) {
                 $lastMessage = $chat->messages->last();
                 $unreadCount = $chat->messages
@@ -393,21 +418,26 @@ class ChatController extends Controller
                     'last_message_time' => $lastMessage ? $lastMessage->created_at->toIso8601String() : null,
                     'unread_count' => $unreadCount,
                 ];
-            });
+            })
+            ->values();
 
         return Inertia::render('Admin/AdminChat', [
             'chats' => $chats,
-            'activeChatId' => $request->query('active_chat') ? (int) $request->query('active_chat') : null,
+            'activeChatId' => $activeChatId,
         ]);
     }
 
     public function initAdminPantiChat($id_panti)
     {
         $chat = Chat::firstOrCreate([
-            'id_admin' => auth()->id(),
             'id_shelter' => $id_panti,
             'id_donor' => null,
+        ], [
+            'id_admin' => auth()->id(),
         ]);
+        if (!$chat->id_admin) {
+            $chat->update(['id_admin' => auth()->id()]);
+        }
 
         return redirect()->route('admin.chat', ['active_chat' => $chat->id_chat]);
     }
@@ -415,11 +445,34 @@ class ChatController extends Controller
     public function initAdminDonaturChat($id_donatur)
     {
         $chat = Chat::firstOrCreate([
-            'id_admin' => auth()->id(),
             'id_donor' => $id_donatur,
             'id_shelter' => null,
+        ], [
+            'id_admin' => auth()->id(),
         ]);
+        if (!$chat->id_admin) {
+            $chat->update(['id_admin' => auth()->id()]);
+        }
 
         return redirect()->route('admin.chat', ['active_chat' => $chat->id_chat]);
+    }
+
+    public function initDonaturAdminChat()
+    {
+        $donor = Donor::where('id_user', auth()->id())->firstOrFail();
+        $adminUser = \App\Models\User::where('id_role_user', 'RL01ADM')->first();
+        $adminId = $adminUser ? $adminUser->id_user : auth()->id();
+
+        $chat = Chat::firstOrCreate([
+            'id_donor' => $donor->id_donor,
+            'id_shelter' => null,
+        ], [
+            'id_admin' => $adminId,
+        ]);
+        if (!$chat->id_admin) {
+            $chat->update(['id_admin' => $adminId]);
+        }
+
+        return redirect()->route('donatur.chat', ['active_chat' => $chat->id_chat]);
     }
 }

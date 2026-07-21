@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import InlineSpinner from "@/Components/UI/InlineSpinner";
 
 const COLORS = {
   navy: "#293681",
@@ -24,6 +25,8 @@ export default function Login() {
     password: '',
     remember: false,
   });
+
+  const isFormValid = Boolean(data.email && data.password);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setData(e.target.name as any, e.target.value);
@@ -123,7 +126,7 @@ export default function Login() {
                     placeholder="nama@email.com"
                     value={data.email}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#407E8C]"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 font-semibold"
                     style={{
                       backgroundColor: "#f9fafb",
                       borderColor: COLORS.mist,
@@ -131,6 +134,7 @@ export default function Login() {
                     }}
                   />
                 </div>
+                {errors.email && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.email}</p>}
               </div>
 
               {/* Input Password */}
@@ -159,7 +163,7 @@ export default function Login() {
                     placeholder="••••••••"
                     value={data.password}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-12 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#407E8C]"
+                    className="w-full pl-11 pr-12 py-3 rounded-xl text-sm outline-none transition-all duration-200 border focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 font-semibold"
                     style={{
                       backgroundColor: "#f9fafb",
                       borderColor: COLORS.mist,
@@ -175,15 +179,22 @@ export default function Login() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.password}</p>}
               </div>
 
               {/* Tombol Submit */}
               <button
                 type="submit"
-                className="mt-2 w-full inline-flex items-center justify-center gap-2 text-base font-semibold py-3 rounded-xl text-white hover:brightness-110 transition shadow-md"
-                style={{ backgroundColor: COLORS.teal }}
+                disabled={processing || !isFormValid}
+                className={`mt-2 w-full inline-flex items-center justify-center gap-2 text-base font-bold py-3 rounded-xl text-white transition shadow-md ${
+                  isFormValid 
+                    ? 'bg-[#4274D9] hover:bg-[#293681] shadow-[#4274D9]/20 cursor-pointer' 
+                    : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
               >
-                Masuk ke Akun <ArrowRight size={18} />
+                {processing ? <InlineSpinner color="white" size="sm" /> : null}
+                <span>{processing ? "Memeriksa Kredensial..." : "Masuk ke Akun"}</span>
+                {!processing && <ArrowRight size={18} />}
               </button>
             </form>
 
@@ -261,7 +272,7 @@ export default function Login() {
                     placeholder="nama@email.com"
                     value={data.email}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-base outline-none transition-all duration-200 border focus:border-[#407E8C]"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-base outline-none transition-all duration-200 border focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 font-semibold"
                     style={{
                       backgroundColor: "#ffffff",
                       borderColor: COLORS.mist,
@@ -269,6 +280,7 @@ export default function Login() {
                     }}
                   />
                 </div>
+                {errors.email && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.email}</p>}
               </div>
 
               {/* Input Password */}
@@ -297,7 +309,7 @@ export default function Login() {
                     placeholder="••••••••"
                     value={data.password}
                     onChange={handleChange}
-                    className="w-full pl-11 pr-12 py-3.5 rounded-xl text-base outline-none transition-all duration-200 border focus:border-[#407E8C]"
+                    className="w-full pl-11 pr-12 py-3.5 rounded-xl text-base outline-none transition-all duration-200 border focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 font-semibold"
                     style={{
                       backgroundColor: "#ffffff",
                       borderColor: COLORS.mist,
@@ -313,15 +325,22 @@ export default function Login() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.password}</p>}
               </div>
 
               {/* Tombol Submit */}
               <button
                 type="submit"
-                className="mt-4 w-full inline-flex items-center justify-center gap-2 text-lg font-semibold py-3.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.teal }}
+                disabled={processing || !isFormValid}
+                className={`mt-4 w-full inline-flex items-center justify-center gap-2 text-base font-bold py-3.5 rounded-full text-white transition shadow-md ${
+                  isFormValid 
+                    ? 'bg-[#4274D9] hover:bg-[#293681] shadow-[#4274D9]/20 cursor-pointer' 
+                    : 'bg-gray-300 text-gray-400 cursor-not-allowed shadow-none'
+                }`}
               >
-                Masuk Sekarang <ArrowRight size={20} />
+                {processing ? <InlineSpinner color="white" size="sm" /> : null}
+                <span>{processing ? "Memeriksa Kredensial..." : "Masuk Sekarang"}</span>
+                {!processing && <ArrowRight size={20} />}
               </button>
             </form>
 

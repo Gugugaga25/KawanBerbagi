@@ -296,7 +296,7 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                             : 'hover:bg-[#ECFEFF] border-l-4 border-transparent'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-[#293681] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-[#4274D9] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold relative border border-gray-100 shadow-sm">
                           {chat.participant.foto_profil ? (
                             <img src={chat.participant.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                           ) : (
@@ -306,11 +306,11 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-baseline mb-0.5">
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                              <h4 className="font-bold text-xs text-[#124354] truncate">{chat.participant.name}</h4>
+                              <h4 className="font-bold text-xs text-[#293681] truncate">{chat.participant.name}</h4>
                               <span className={`shrink-0 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${
                                 chat.participant.type === 'Panti' 
-                                  ? 'bg-[#407E8C]/15 text-[#407E8C]' 
-                                  : 'bg-[#A58D66]/15 text-[#A58D66]'
+                                  ? 'bg-[#D0E7E6] text-[#4274D9]' 
+                                  : 'bg-[#F59E0B]/15 text-[#F59E0B]'
                               }`}>
                                 {chat.participant.type}
                               </span>
@@ -354,7 +354,7 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                       <ArrowLeft size={20} />
                     </button>
                     
-                    <div className="w-9 h-9 rounded-full bg-[#083A4F] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold">
+                    <div className="w-9 h-9 rounded-full bg-[#4274D9] text-white shrink-0 overflow-hidden flex items-center justify-center font-bold shadow-xs">
                       {activeChat.participant.foto_profil ? (
                         <img src={activeChat.participant.foto_profil} className="w-full h-full object-cover" alt="Avatar" />
                       ) : (
@@ -364,11 +364,11 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-extrabold text-xs text-[#124354] truncate">{activeChat.participant.name}</h4>
+                        <h4 className="font-extrabold text-xs text-[#293681] truncate">{activeChat.participant.name}</h4>
                         <span className={`text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${
                           activeChat.participant.type === 'Panti' 
-                            ? 'bg-[#407E8C]/15 text-[#407E8C]' 
-                            : 'bg-[#A58D66]/15 text-[#A58D66]'
+                            ? 'bg-[#D0E7E6] text-[#4274D9]' 
+                            : 'bg-[#F59E0B]/15 text-[#F59E0B]'
                         }`}>
                           {activeChat.participant.type}
                         </span>
@@ -382,7 +382,9 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                   {/* Chat Messages List */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
                     {loadingMessages ? (
-                      <SkeletonChat />
+                      <div className="flex-1 flex items-center justify-center text-sm text-gray-400 font-semibold">
+                        Memuat riwayat chat...
+                      </div>
                     ) : messages.length > 0 ? (
                       messages.map((msg) => {
                         const isMe = msg.id_sender === auth.user.id_user;
