@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { 
-  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck
+  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Paperclip, X
 } from 'lucide-react';
 import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
@@ -26,7 +26,8 @@ interface Message {
   id_message: number | string;
   id_chat: number | string;
   id_sender: number | string;
-  message: string;
+  message?: string | null;
+  image_path?: string | null;
   is_read: boolean;
   created_at: string;
 }
@@ -42,6 +43,10 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
   const [activeChatId, setActiveChatId] = useState<number | null>(initialActiveChatId);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -132,12 +137,35 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
   const { showToast } = useToast();
   const [isSending, setIsSending] = useState(false);
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCancelImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !activeChatId || isSending) return;
+    if ((!inputMessage.trim() && !selectedImage) || !activeChatId || isSending) return;
 
     const messageText = inputMessage;
+    const imageFile = selectedImage;
+
     setInputMessage('');
+    handleCancelImage();
     setIsSending(true);
 
     const tempId = 'temp-' + Date.now();
@@ -145,7 +173,7 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
       id_message: tempId,
       id_chat: activeChatId,
       id_sender: auth.user.id_user,
-      message: messageText,
+      message: messageText || 'Mengirim gambar...',
       is_read: false,
       created_at: new Date().toISOString(),
     };
@@ -154,15 +182,22 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
 
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const formData = new FormData();
+      if (messageText.trim()) {
+        formData.append('message', messageText);
+      }
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
+
       const response = await fetch(`/chat/${activeChatId}/send`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'X-CSRF-TOKEN': csrfToken,
         },
-        body: JSON.stringify({ message: messageText }),
+        body: formData,
       });
 
       if (response.status === 401) {
@@ -177,7 +212,7 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
         setChats(prevChats => 
           prevChats.map(c => 
             c.id_chat === activeChatId 
-              ? { ...c, last_message: messageText, last_message_time: new Date().toISOString() } 
+              ? { ...c, last_message: messageText || 'Mengirim gambar', last_message_time: new Date().toISOString() } 
               : c
           ).sort((a, b) => {
             const timeA = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
@@ -389,7 +424,17 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                                   : 'bg-white border border-gray-200/80 rounded-tl-none text-[#293681]'
                               }`}
                             >
-                              <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>
+                              {msg.image_path && (
+                                <div className="mb-2 max-w-xs overflow-hidden rounded-xl cursor-pointer hover:opacity-95 transition-opacity">
+                                  <img 
+                                    src={msg.image_path} 
+                                    alt="Uploaded" 
+                                    className="max-h-60 w-full object-cover"
+                                    onClick={() => setLightboxImage(msg.image_path || null)}
+                                  />
+                                </div>
+                              )}
+                              {msg.message && <p className="whitespace-pre-wrap break-words leading-relaxed">{msg.message}</p>}
                             </div>
                             <div className="flex items-center gap-1 mt-1 px-1">
                               <span className="text-xs text-gray-400">
@@ -417,22 +462,78 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
                   </div>
 
                   {/* Chat Input Bar */}
-                  <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100 flex gap-2 shrink-0">
-                    <input
-                      type="text"
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder="Tulis pesan..."
-                      className="flex-1 px-4 py-2.5 bg-gray-50 rounded-xl text-sm outline-none placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 transition-all font-semibold text-[#293681]"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!inputMessage.trim() || isSending}
-                      className="w-10 h-10 rounded-xl bg-[#4274D9] hover:bg-[#293681] text-white flex items-center justify-center transition shadow-md shadow-[#4274D9]/20 disabled:opacity-50 cursor-pointer"
+                  <div className="border-t border-gray-100 bg-white flex flex-col shrink-0">
+                    {imagePreview && (
+                      <div className="px-4 py-2.5 bg-gray-50/50 border-b border-gray-100 flex items-center gap-3">
+                        <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-200 shrink-0 bg-white shadow-xs">
+                          <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
+                          <button
+                            type="button"
+                            onClick={handleCancelImage}
+                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors shadow-sm cursor-pointer flex items-center justify-center"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-gray-600 truncate">{selectedImage?.name}</p>
+                          <p className="text-[10px] text-gray-400 font-medium">{((selectedImage?.size ?? 0) / 1024).toFixed(0)} KB</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <form onSubmit={handleSendMessage} className="p-3 bg-white flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-10 h-10 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 flex items-center justify-center transition shrink-0 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <Paperclip size={16} />
+                      </button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageSelect}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      <input
+                        type="text"
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        placeholder="Tulis pesan..."
+                        className="flex-1 px-4 py-2.5 bg-gray-50 rounded-xl text-sm outline-none placeholder-gray-400 border border-transparent focus:bg-white focus:border-[#4274D9] focus:ring-2 focus:ring-[#4274D9]/20 transition-all font-semibold text-[#293681]"
+                      />
+                      <button
+                        type="submit"
+                        disabled={(!inputMessage.trim() && !selectedImage) || isSending}
+                        className="w-10 h-10 rounded-xl bg-[#4274D9] hover:bg-[#293681] text-white flex items-center justify-center transition shadow-md shadow-[#4274D9]/20 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isSending ? <InlineSpinner color="white" size="sm" /> : <Send size={16} />}
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Lightbox Modal */}
+                  {lightboxImage && (
+                    <div 
+                      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 backdrop-blur-xs cursor-pointer"
+                      onClick={() => setLightboxImage(null)}
                     >
-                      {isSending ? <InlineSpinner color="white" size="sm" /> : <Send size={16} />}
-                    </button>
-                  </form>
+                      <button 
+                        className="absolute top-5 right-5 text-white hover:text-gray-300 p-2 transition-colors"
+                        onClick={() => setLightboxImage(null)}
+                      >
+                        <X size={24} />
+                      </button>
+                      <img 
+                        src={lightboxImage} 
+                        className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 scale-100" 
+                        alt="Enlarged view" 
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  )}
                 </>
               ) : (
                 <EmptyState

@@ -180,6 +180,7 @@ class ChatController extends Controller
                     'id_chat' => $msg->id_chat,
                     'id_sender' => $msg->id_sender,
                     'message' => $msg->message,
+                    'image_path' => $msg->image_path ? asset('storage/' . $msg->image_path) : null,
                     'is_read' => $msg->is_read,
                     'created_at' => $msg->created_at->toIso8601String(),
                 ];
@@ -213,13 +214,27 @@ class ChatController extends Controller
         }
 
         $request->validate([
-            'message' => 'required|string',
+            'message' => 'nullable|string',
+            'image' => 'nullable|image|max:5120',
         ]);
+
+        if (!$request->filled('message') && !$request->hasFile('image')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesan atau gambar harus diisi.'
+            ], 422);
+        }
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('chat_images', 'public');
+        }
 
         $message = Message::create([
             'id_chat' => $id_chat,
             'id_sender' => auth()->id(),
             'message' => $request->message,
+            'image_path' => $imagePath,
             'is_read' => false,
         ]);
 
@@ -230,6 +245,7 @@ class ChatController extends Controller
                 'id_chat' => $message->id_chat,
                 'id_sender' => $message->id_sender,
                 'message' => $message->message,
+                'image_path' => $message->image_path ? asset('storage/' . $message->image_path) : null,
                 'is_read' => $message->is_read,
                 'created_at' => $message->created_at->toIso8601String(),
             ]

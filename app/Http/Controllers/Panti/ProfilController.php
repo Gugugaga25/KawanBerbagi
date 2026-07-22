@@ -115,9 +115,13 @@ class ProfilController extends Controller
     {
         $shelter = Shelter::where('id_user', Auth::id())->firstOrFail();
         $request->validate([
-            'content' => 'required|string',
+            'content' => 'nullable|string',
             'image' => 'nullable|image|max:5120'
         ]);
+
+        if (!$request->filled('content') && !$request->hasFile('image')) {
+            return back()->withErrors(['content' => 'Postingan harus berisi teks atau foto.']);
+        }
 
         $posts = $shelter->posts ?? [];
         $imagePath = null;

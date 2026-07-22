@@ -351,27 +351,7 @@ export default function ProfilPantiDetail({
           <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
             <Head title={`Profil Panti - ${panti?.nama_yayasan || panti?.nama}`} />
 
-            <div className="sticky top-0 z-30 bg-[#4274D9] text-white px-4 h-16 flex items-center gap-4 shadow-md">
-                <Link 
-                    href={`${route('donatur.dashboard')}?tab=cari&mode=panti`} 
-                    className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
-                >
-                    <ArrowLeft size={18} className="text-white" />
-                </Link>
-                <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
-                    <h2 className="font-bold text-[16px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
-                    <p className="text-[12px] text-[#D0E7E6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Penerima Manfaat</p>
-                </div>
-                {!isPantiOwner && (
-                  <button 
-                      onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
-                      className="p-1.5 ml-1 rounded-full hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors border border-white"
-                      title="Laporkan Akun Panti Ini"
-                  >
-                      <Flag size={16} />
-                  </button>
-                )}
-            </div>
+            
 
             <div className="max-w-7xl mx-auto bg-white min-h-screen shadow-sm">
               
@@ -435,6 +415,16 @@ export default function ProfilPantiDetail({
                     >
                     <Wallet size={18} /> Donasi Tunai
                     </Link>
+                    
+                    {!isPantiOwner && (
+                      <button 
+                        onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
+                        className="p-2.5 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-400 border border-gray-200 transition-colors cursor-pointer"
+                        title="Laporkan Akun Panti Ini"
+                      >
+                        <Flag size={18} />
+                      </button>
+                    )}
                     </div>
                   </div>
 
@@ -454,23 +444,30 @@ export default function ProfilPantiDetail({
                   <div className="mt-3 flex flex-wrap gap-3 mb-2">
                      {panti?.akta_yayasan && (
                      <div 
-                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 cursor-default"
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default"
                      >
                         <FileText size={14} /> Akta Pendirian
                      </div>
                      )}
                      {panti?.sk_kemenkumham && (
                      <div 
-                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 cursor-default"
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default"
                      >
                         <FileText size={14} /> SK Kemenkumham
                      </div>
                      )}
                      {panti?.izin_operasional && (
                      <div 
-                       className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 cursor-default"
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default"
                      >
-                        <FileText size={14} /> Tanda Daftar Yayasan
+                        <FileText size={14} /> Izin Operasional
+                     </div>
+                     )}
+                     {panti?.npwp_yayasan && (
+                     <div 
+                       className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default"
+                     >
+                        <FileText size={14} /> NPWP Yayasan
                      </div>
                      )}
                   </div>
@@ -488,7 +485,7 @@ export default function ProfilPantiDetail({
               </div>
 
               {/* TAB NAVIGATION */}
-              <div className="flex overflow-x-auto no-scrollbar border-y border-gray-200 gap-28 sticky top-16 z-30 bg-white/95 backdrop-blur-md px-2 justify-start sm:justify-center">
+              <div className="flex overflow-x-auto no-scrollbar border-y border-gray-200 gap-28 sticky top-0 z-30 bg-white/95 backdrop-blur-md px-2 justify-start sm:justify-center">
                 {profileTabs.map((tab) => (
                   <button
                     key={tab.id}

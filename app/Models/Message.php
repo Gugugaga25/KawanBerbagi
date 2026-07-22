@@ -16,6 +16,7 @@ class Message extends Model
         'id_chat',
         'id_sender',
         'message',
+        'image_path',
         'is_read',
     ];
 

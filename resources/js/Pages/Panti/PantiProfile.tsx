@@ -135,16 +135,19 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
   const handleCreatePost = () => {
     if (!newPostContent.trim() && !imageFile) return;
   
-    const fd = new FormData();
-    fd.append('content', newPostContent);
-    if (imageFile) fd.append('image', imageFile);
-  
-    router.post('/panti/posts', fd, {
+    router.post('/panti/posts', {
+      content: newPostContent,
+      image: imageFile
+    }, {
       preserveScroll: true,
       onSuccess: () => {
         setNewPostContent('');
         removeImage();
         showNotification('Postingan berhasil dibagikan!');
+      },
+      onError: (errors) => {
+        const errorMsg = Object.values(errors).flat().join(', ');
+        showNotification('Gagal membuat postingan: ' + errorMsg);
       }
     });
   };
@@ -215,17 +218,35 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
   const handleUploadBanner = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const fd = new FormData();
-      fd.append('foto_banner', e.target.files[0]);
-      router.post('/panti/profil/banner', fd, { preserveScroll: true });
+      router.post('/panti/profil/banner', {
+        foto_banner: e.target.files[0]
+      }, {
+        preserveScroll: true,
+        onSuccess: () => {
+          showNotification('Banner panti berhasil diperbarui!');
+        },
+        onError: (errors) => {
+          const errorMsg = Object.values(errors).flat().join(', ');
+          showNotification('Gagal mengunggah banner: ' + errorMsg);
+        }
+      });
     }
   };
-
+  
   const handleUploadProfil = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const fd = new FormData();
-      fd.append('foto_profil', e.target.files[0]);
-      router.post('/panti/profil/foto', fd, { preserveScroll: true });
+      router.post('/panti/profil/foto', {
+        foto_profil: e.target.files[0]
+      }, {
+        preserveScroll: true,
+        onSuccess: () => {
+          showNotification('Foto profil berhasil diperbarui!');
+        },
+        onError: (errors) => {
+          const errorMsg = Object.values(errors).flat().join(', ');
+          showNotification('Gagal mengunggah foto profil: ' + errorMsg);
+        }
+      });
     }
   };
 
@@ -350,27 +371,27 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
             </button>
           </div>
 
-          {/* Dokumen Resmi (Editable) */}
+          {/* Dokumen Resmi (Badges) */}
           <div className="mt-4 flex flex-wrap gap-3 mb-2 items-center">
             {pantiData?.akta_yayasan && (
-            <a href={'/storage/' + pantiData.akta_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
+            <span className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default">
               <FileText size={14} /> Akta Pendirian
-            </a>
+            </span>
             )}
             {pantiData?.sk_kemenkumham && (
-            <a href={'/storage/' + pantiData.sk_kemenkumham} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
+            <span className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default">
               <FileText size={14} /> SK Kemenkumham
-            </a>
+            </span>
             )}
             {pantiData?.izin_operasional && (
-            <a href={'/storage/' + pantiData.izin_operasional} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
+            <span className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default">
               <FileText size={14} /> Izin Operasional
-            </a>
+            </span>
             )}
             {pantiData?.npwp_yayasan && (
-            <a href={'/storage/' + pantiData.npwp_yayasan} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-3.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-[#4274D9] hover:text-white hover:border-[#4274D9] transition-colors">
+            <span className="flex items-center gap-2 px-3.5 py-1.5 bg-green-50 border border-green-200 rounded-lg text-xs font-bold text-green-700 cursor-default">
               <FileText size={14} /> NPWP Yayasan
-            </a>
+            </span>
             )}
           </div>
 
