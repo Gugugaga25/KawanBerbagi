@@ -369,7 +369,7 @@ export default function PantiChat({ chats: initialChats, activeChatId: initialAc
                       </div>
                     ) : messages.length > 0 ? (
                       messages.map((msg) => {
-                        const isMe = msg.id_sender === auth.user.id_user;
+                        const isMe = msg.id_sender == auth.user.id_user;
                         return (
                           <div 
                             key={msg.id_message} 

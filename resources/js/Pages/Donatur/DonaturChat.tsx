@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { 
-  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Clock, User2, Bot, Paperclip, X
+  Send, Menu, MessageSquare, ArrowLeft, Check, CheckCheck, Clock, User2, Bot, Paperclip, X, Trash2
 } from 'lucide-react';
 import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
 import DonaturHeader from '@/Components/Donatur/DonaturHeader';
+import { useToast } from '@/Components/UI/Toast';
 
 interface Message {
   id_message: number | string;
@@ -56,6 +57,7 @@ interface DonaturChatProps {
 }
 
 export default function DonaturChat({ chats: initialChats, activeChatId: initialActiveChatId, donaturData, auth }: DonaturChatProps) {
+  const { showToast } = useToast();
   const [chats, setChats] = useState<ChatItem[]>(initialChats);
   const [activeChatId, setActiveChatId] = useState<number | string | null>(initialActiveChatId);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -111,6 +113,14 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
 
   const saveAiHistory = (history: Message[]) => {
     localStorage.setItem('kawanberbagi_ai_history', JSON.stringify(history));
+  };
+
+  const handleClearAiHistory = () => {
+    if (confirm('Apakah Anda yakin ingin menghapus seluruh riwayat obrolan dengan Asisten AI?')) {
+      localStorage.removeItem('kawanberbagi_ai_history');
+      setMessages(getAiHistory());
+      showToast('Riwayat obrolan Asisten AI berhasil dihapus.', 'success', 'Riwayat Dihapus');
+    }
   };
 
   // Auto scroll to bottom
@@ -278,7 +288,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
           body: JSON.stringify({ 
             message: messageText,
             history: updatedHistory.map(h => ({
-              role: h.id_sender === auth.user.id_user ? 'user' : 'model',
+              role: h.id_sender == auth.user.id_user ? 'user' : 'model',
               message: h.message
             }))
           }),
@@ -537,6 +547,16 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                         {isAiSelected ? 'Online' : `@${activeChat.shelter.username}`}
                       </p>
                     </div>
+
+                    {isAiSelected && (
+                      <button
+                        onClick={handleClearAiHistory}
+                        title="Hapus Riwayat Chat"
+                        className="p-2 rounded-xl text-red-500 hover:bg-red-50 transition-all cursor-pointer flex items-center justify-center"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </div>
 
                   {/* Chat Messages List */}
@@ -547,7 +567,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                       </div>
                     ) : messages.length > 0 ? (
                       messages.map((msg) => {
-                        const isMe = msg.id_sender === auth.user.id_user;
+                        const isMe = msg.id_sender == auth.user.id_user;
                         return (
                           <div 
                             key={msg.id_message} 

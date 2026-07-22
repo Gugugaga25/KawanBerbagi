@@ -850,6 +850,7 @@ export default function Register() {
           <div className="mb-10 lg:mb-12">
             {/* @ts-ignore */}
             <Link href="/" className="flex items-center gap-2">
+              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
               <span className="text-2xl font-bold" style={{ color: COLORS.cream }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.gold }}>.</span>

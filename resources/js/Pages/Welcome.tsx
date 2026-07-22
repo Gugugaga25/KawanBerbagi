@@ -169,6 +169,7 @@ function Nav() {
       >
         <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-2">
+            <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
             <span className="text-2xl sm:text-3xl font-bold" style={{ color: COLORS.navy }}>
               KawanBerbagi
               <span style={{ color: COLORS.teal }}>.</span>
@@ -957,8 +958,9 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           <div>
-            <span className="text-2xl font-bold" style={{ color: COLORS.cream }}>
-              KawanBerbagi<span style={{ color: COLORS.gold }}>.</span>
+            <span className="text-2xl font-bold flex items-center gap-2" style={{ color: COLORS.cream }}>
+              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
+              <span>KawanBerbagi<span style={{ color: COLORS.gold }}>.</span></span>
             </span>
             <p className="text-sm mt-4 max-w-xs leading-relaxed" style={{ color: COLORS.cream, opacity: 0.6 }}>
               Platform donasi demand-driven — mempertemukan barang yang Anda punya dengan

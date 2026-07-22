@@ -19,9 +19,15 @@ const COLORS = {
   cream: "#F8FAFC",
 };
 
-export default function Login() {
+export default function Login({ status }: { status?: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const { showToast } = useToast();
+
+  React.useEffect(() => {
+    if (status) {
+      showToast(status, 'success', 'Notifikasi');
+    }
+  }, [status]);
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
     password: '',
@@ -86,7 +92,7 @@ export default function Login() {
           {/* Logo Brand */}
           <div className="text-center flex justify-center w-full">
             <div className="inline-flex flex-col items-center justify-center gap-1 text-center">
-              <img src="images/logokb2.png" alt="Logo KawanBerbagi" className="w-16 h-16 object-contain" />
+              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-16 h-16 object-contain" />
               <span className="text-3xl font-bold tracking-tight" style={{ color: COLORS.navy }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.teal }}>.</span>
@@ -365,6 +371,7 @@ export default function Login() {
           <div className="absolute top-10 right-10 xl:right-14">
             {/* @ts-ignore */}
             <Link href="/" className="flex items-center gap-2">
+              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
               <span className="text-2xl font-bold" style={{ color: COLORS.cream }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.gold }}>.</span>

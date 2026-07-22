@@ -54,6 +54,7 @@ function Nav() {
     >
       <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-2">
+          <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
           <span className="text-2xl sm:text-3xl font-bold" style={{ color: COLORS.navy }}>
             KawanBerbagi
             <span style={{ color: COLORS.teal }}>.</span>

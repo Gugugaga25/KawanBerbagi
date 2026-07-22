@@ -130,7 +130,8 @@ export default function DonaturSidebar({
     <aside className="w-64 bg-white h-full border-r border-gray-200/80 flex flex-col z-20">
 
       {/* Brand mark */}
-      <div className="p-7 pb-5">
+      <div className="p-7 pb-5 flex items-center gap-2">
+        <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
         <h1 className="text-2xl font-extrabold text-[#293681] tracking-tight">
           KawanBerbagi<span className="text-[#4274D9]">.</span>
         </h1>
