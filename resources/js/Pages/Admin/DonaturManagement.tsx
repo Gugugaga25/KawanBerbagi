@@ -134,6 +134,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-2xl" style={{background: COLORS.teal}}>Informasi Donatur</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.teal}}>Total Donasi</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.teal}}>Tier</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.teal}}>Status</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.teal}}>Terakhir Donasi</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
@@ -141,7 +142,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
             <tbody>
               {filteredDonaturs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-0 border-b border-gray-100">
+                  <td colSpan={6} className="p-0 border-b border-gray-100">
                     <EmptyState
                       mode={searchQuery || tierFilter !== 'semua' ? 'search' : 'empty'}
                       icon={UserCheck}
@@ -185,6 +186,15 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                           'bg-orange-100 text-orange-700'}`}
                       >
                         <Award size={14} /> {donor.tier}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center border-b border-gray-100">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-extrabold border
+                        ${donor.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
+                          donor.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-200' : 
+                          'bg-rose-50 text-rose-700 border-rose-200'}`}
+                      >
+                        {donor.status || 'Active'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-[#5A7C85] border-b border-gray-100">

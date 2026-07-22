@@ -32,6 +32,7 @@ function Nav() {
     { label: "Untuk Siapa", href: "/#untuk-siapa" },
     { label: "Fitur", href: "/#fitur" },
     { label: "Profil Panti", href: "/profil-panti" },
+    { label: "Tentang Kami", href: "/about" },
   ];
 
   return (

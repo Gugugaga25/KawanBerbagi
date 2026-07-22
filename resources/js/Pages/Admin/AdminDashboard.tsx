@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu } from 'lucide-react'; 
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 
 // Import komponen dari file terpisah
 import PantiManagement from './PantiManagement';
@@ -30,6 +30,7 @@ export default function AdminDashboard({
   laporans = [] 
 }: AdminDashboardProps) {
   
+  const { flash } = usePage().props as any;
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); 
 
@@ -148,6 +149,32 @@ export default function AdminDashboard({
           {/* Dynamic Content Area */}
           <div className="flex-1 overflow-y-auto p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
+              
+              {/* FLASH NOTIFICATION BANNER */}
+              {flash?.success && (
+                <div className="mb-6 p-5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-950 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">✅</span>
+                    <div>
+                      <p className="text-sm font-bold leading-relaxed">{flash.success}</p>
+                      {flash?.wa_link && (
+                        <p className="text-xs text-emerald-700 mt-0.5">Klik tombol di samping untuk langsung mengirimkan draf notifikasi resmi ke WhatsApp 081291819276.</p>
+                      )}
+                    </div>
+                  </div>
+                  {flash?.wa_link && (
+                    <a
+                      href={flash.wa_link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-md transition-all hover:scale-105 active:scale-95"
+                    >
+                      💬 Kirim WA Ke 081291819276
+                    </a>
+                  )}
+                </div>
+              )}
+
               {renderContent()}
             </div>
           </div>

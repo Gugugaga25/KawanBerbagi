@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 
+use App\Mail\PantiVerificationMail;
+use App\Services\WhatsAppService;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+
 class PantiController extends Controller
 {
     /**
@@ -164,13 +169,43 @@ class PantiController extends Controller
     {
         $request->validate([
             'status' => 'required|string|in:Active,Pending,Inactive',
+            'catatan' => 'nullable|string|max:1000',
         ]);
 
-        $shelter = Shelter::findOrFail($id);
+        $shelter = Shelter::with('user')->findOrFail($id);
         $shelter->status = $request->status;
         $shelter->save();
 
-        return redirect('/admin/dashboard?tab=panti')->with('success', 'Status panti berhasil diperbarui');
+        $catatan = $request->input('catatan');
+
+        // 1. Kirim Email Notifikasi via Mailtrap / SMTP
+        if ($shelter->user && !empty($shelter->user->email)) {
+            try {
+                Mail::to($shelter->user->email)->send(
+                    new PantiVerificationMail($shelter, $request->status, $catatan)
+                );
+            } catch (\Exception $e) {
+                Log::error("Gagal mengirim email verifikasi panti: " . $e->getMessage());
+            }
+        }
+
+        // 2. Kirim Notifikasi WhatsApp ke Nomor Pengujian (081291819276) & Buat Tautan wa.me
+        $waPhone = WhatsAppService::TARGET_PHONE_TEST; // '081291819276'
+        $waMessage = WhatsAppService::buildVerificationMessage($shelter, $request->status, $catatan);
+        
+        // Kirim via Fonnte/WA Gateway API jika terkonfigurasi
+        WhatsAppService::sendNotification($waPhone, $waMessage);
+
+        // Buat link wa.me langsung untuk kemudahan Admin
+        $waLink = WhatsAppService::generateWaMeLink($waPhone, $waMessage);
+
+        $statusText = $request->status === 'Active' ? 'Disetujui & Terverifikasi' : 'Ditolak / Inactive';
+
+        return redirect('/admin/dashboard?tab=panti')->with([
+            'success' => "Status panti {$shelter->nama_yayasan} berhasil diperbarui menjadi {$statusText}. Notifikasi Email (Mailtrap) & WhatsApp (081291819276) telah terkirim.",
+            'wa_link' => $waLink,
+            'wa_phone' => $waPhone,
+        ]);
     }
 
     /**

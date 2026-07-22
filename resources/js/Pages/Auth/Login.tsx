@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useForm } from "@inertiajs/react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import {
   Mail,
   Lock,
@@ -22,12 +22,16 @@ const COLORS = {
 export default function Login({ status }: { status?: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const { showToast } = useToast();
+  const { flash } = usePage().props as any;
 
   React.useEffect(() => {
     if (status) {
       showToast(status, 'success', 'Notifikasi');
     }
-  }, [status]);
+    if (flash?.warning) {
+      showToast(flash.warning, 'warning', 'Verifikasi Akun');
+    }
+  }, [status, flash]);
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
     password: '',
@@ -45,7 +49,10 @@ export default function Login({ status }: { status?: string }) {
     post('/login', {
       onError: (errors) => {
         if (errors.email) {
-          showToast(errors.email, 'error', 'Login Gagal');
+          const isStatusError = errors.email.includes('Pending') || errors.email.includes('ditolak') || errors.email.includes('belum aktif');
+          const toastType = isStatusError ? 'warning' : 'error';
+          const toastTitle = isStatusError ? 'Status Verifikasi Panti' : 'Login Gagal';
+          showToast(errors.email, toastType, toastTitle);
         } else {
           showToast('Terjadi kesalahan saat masuk. Silakan coba lagi.', 'error', 'Login Gagal');
         }
@@ -118,6 +125,13 @@ export default function Login({ status }: { status?: string }) {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {/* WARNING BANNER UNTUK PANTI PENDING / INACTIVE */}
+              {flash?.warning && (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-start gap-3 shadow-xs animate-in fade-in">
+                  <span className="text-lg leading-none shrink-0">⏳</span>
+                  <p className="leading-relaxed">{flash.warning}</p>
+                </div>
+              )}
               {/* Input Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
@@ -257,6 +271,13 @@ export default function Login({ status }: { status?: string }) {
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              {/* WARNING BANNER UNTUK PANTI PENDING / INACTIVE */}
+              {flash?.warning && (
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm font-semibold flex items-start gap-3 shadow-xs animate-in fade-in">
+                  <span className="text-xl leading-none shrink-0">⏳</span>
+                  <p className="leading-relaxed">{flash.warning}</p>
+                </div>
+              )}
               {/* Input Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>

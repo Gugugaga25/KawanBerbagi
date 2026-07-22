@@ -54,6 +54,7 @@ class DonaturController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id_user . ',id_user',
             'phone' => 'required|string|max:20',
             'city' => 'required|string|max:255',
+            'status' => 'nullable|in:Pending,Active,Inactive',
         ];
 
         if ($request->filled('password')) {
@@ -73,11 +74,21 @@ class DonaturController extends Controller
             ]);
         }
 
-        $donor->update([
+        $donorData = [
             'nama_lengkap' => $request->name,
             'no_wa' => $request->phone,
             'kota' => $request->city,
-        ]);
+        ];
+
+        if ($request->filled('status')) {
+            $donorData['status'] = $request->status;
+            // Jika admin mengaktifkan manual donatur pending, set email_verified_at jika null
+            if ($request->status === 'Active' && !$user->email_verified_at) {
+                $user->update(['email_verified_at' => now()]);
+            }
+        }
+
+        $donor->update($donorData);
 
         return redirect()->route('admin.dashboard', ['tab' => 'donatur'])->with('success', 'Data donatur berhasil diperbarui.');
     }

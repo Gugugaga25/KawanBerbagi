@@ -38,10 +38,48 @@ class AuthenticatedSessionController extends Controller
         }
 
         if ($request->user()->id_role_user === 'RL02PAN') {
+            $shelter = \App\Models\Shelter::where('id_user', $request->user()->id_user)->first();
+            
+            if (!$shelter || $shelter->status !== 'Active') {
+                $statusMsg = ($shelter && $shelter->status === 'Inactive')
+                    ? 'Mohon maaf, pendaftaran panti asuhan Anda ditolak / belum aktif. Silakan periksa email/WhatsApp Anda.'
+                    : 'Akun panti asuhan Anda masih dalam proses verifikasi Admin (Pending). Silakan periksa email/WhatsApp Anda.';
+
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => $statusMsg,
+                ]);
+            }
+
             return redirect()->intended(route('panti.dashboard', absolute: false));
         }
 
         if ($request->user()->id_role_user === 'RL03DON') {
+            $donor = \App\Models\Donor::where('id_user', $request->user()->id_user)->first();
+
+            if ($donor && $donor->status === 'Inactive') {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'Mohon maaf, akun Donatur Anda telah dinonaktifkan (Inactive). Silakan hubungi admin KawanBerbagi.',
+                ]);
+            }
+
+            if (($donor && $donor->status === 'Pending') || !$request->user()->email_verified_at) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'email' => 'Akun Donatur Anda masih berstatus Pending (belum diverifikasi). Silakan periksa inbox Mailtrap Anda dan klik tombol verifikasi untuk mengaktifkan akun.',
+                ]);
+            }
+
             return redirect()->intended(route('donatur.dashboard', absolute: false));
         }
 

@@ -16,6 +16,7 @@ class Donor extends Model
         'nama_lengkap',
         'no_wa',
         'kota',
+        'status',
         'foto_profil',
     ];
 

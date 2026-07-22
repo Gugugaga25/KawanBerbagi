@@ -142,6 +142,7 @@ class UserSeeder extends Seeder
                 'id_role_user' => 'RL03DON',
                 'name' => $donorName,
                 'email' => $donorEmail,
+                'email_verified_at' => now(),
                 'password' => Hash::make('password123'),
             ]);
 
@@ -150,6 +151,7 @@ class UserSeeder extends Seeder
                 'nama_lengkap' => $donorName,
                 'no_wa' => $faker->phoneNumber,
                 'kota' => $faker->city,
+                'status' => 'Active',
                 'foto_profil' => 'profiles/donor_' . rand(1, 4) . '.jpg',
             ]);
 

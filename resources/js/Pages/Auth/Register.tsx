@@ -285,27 +285,28 @@ export default function Register() {
                 </Link>
               </div>
             ) : (
-              /* ---------- DONATUR: instant success ---------- */
-              <div className="pt-32">
+              /* ---------- DONATUR: Email Verification Sent ---------- */
+              <div className="pt-12">
                 <div
                   className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[#4274D9]/20"
                 >
-                  <CheckCircle2 size={28} color={COLORS.teal} />
+                  <Mail size={28} color={COLORS.teal} />
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: COLORS.navy }}>
-                  Akun Berhasil Dibuat!
+                  Verifikasi Email Dikirim!
                 </h1>
-                <p className="text-base leading-relaxed mb-8" style={{ color: COLORS.navy, opacity: 0.75 }}>
-                  Selamat datang, {data.name || "Kawan"}. Anda sudah bisa mulai mencari panti yang
-                  membutuhkan barang Anda.
+                <p className="text-base leading-relaxed mb-6" style={{ color: COLORS.navy, opacity: 0.75 }}>
+                  Terima kasih telah mendaftar, <strong>{data.name || "Kawan"}</strong>. Kami telah mengirimkan email verifikasi resmi ke <strong>{data.email || "email Anda"}</strong>.
                 </p>
-                {/* @ts-ignore */}
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm leading-relaxed mb-8 font-medium">
+                  📩 Silakan periksa inbox / spam pada <strong>Mailtrap</strong> Anda dan klik tombol <strong>"Verifikasi Email Saya"</strong> untuk mengaktifkan akun Donatur sebelum login.
+                </div>
                 <Link
-                  href="/"
-                  className="inline-flex items-center justify-center gap-2 w-full text-base font-semibold py-3.5 rounded-full text-white hover:brightness-110 transition"
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 w-full text-base font-semibold py-3.5 rounded-full text-white hover:brightness-110 transition shadow-sm"
                   style={{ backgroundColor: COLORS.teal }}
                 >
-                  Mulai Cari Panti <ArrowRight size={18} />
+                  Buka Halaman Login <ArrowRight size={18} />
                 </Link>
               </div>
             )

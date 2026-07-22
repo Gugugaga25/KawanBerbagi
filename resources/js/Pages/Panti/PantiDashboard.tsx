@@ -66,7 +66,7 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
       case 'pengaturan': return <PantiSettings auth={auth} />;
       case 'dashboard':
       default:
-        return <PantiOverview />;
+        return <PantiOverview pantiData={pantiData} needs={needs} donations={donations} />;
     }
   };
 

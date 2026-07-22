@@ -133,6 +133,7 @@ Route::middleware('auth')->group(function () {
                 'terakhir' => $latest ? \Carbon\Carbon::parse($latest)->format('d M Y') : '-',
                 'phone' => $donor->no_wa,
                 'city' => $donor->kota,
+                'status' => $donor->status ?? 'Active',
             ];
         });
 
@@ -585,5 +586,31 @@ Route::middleware('auth')->group(function () {
 // Route ini dipindahkan ke bawah agar tidak bertabrakan dengan /panti/dashboard
 Route::get('/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'showPublic'])->name('panti.detail.public');
 
+
+// ================= ROUTE VERIFIKASI EMAIL DONATUR (PUBLIC SIGNED ROUTE) =================
+Route::get('/email/verify-donor/{id}/{hash}', function (\Illuminate\Http\Request $request, $id, $hash) {
+    if (!$request->hasValidSignature()) {
+        return redirect()->route('login')->with('warning', 'Link verifikasi email tidak valid atau sudah kadaluarsa. Silakan periksa email terbaru Anda.');
+    }
+
+    $user = \App\Models\User::findOrFail($id);
+
+    if (sha1($user->email) !== $hash) {
+        return redirect()->route('login')->with('warning', 'Link verifikasi email tidak cocok dengan data user.');
+    }
+
+    if (!$user->email_verified_at) {
+        $user->email_verified_at = now();
+        $user->save();
+    }
+
+    $donor = \App\Models\Donor::where('id_user', $user->id_user)->first();
+    if ($donor) {
+        $donor->status = 'Active';
+        $donor->save();
+    }
+
+    return redirect()->route('login')->with('success', 'Email Anda berhasil diverifikasi! Akun Donatur Anda telah aktif. Silakan login.');
+})->name('donor.verify');
 
 require __DIR__.'/auth.php';

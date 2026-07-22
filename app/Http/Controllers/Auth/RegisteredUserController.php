@@ -56,7 +56,17 @@ class RegisteredUserController extends Controller
                 'nama_lengkap' => $request->name,
                 'no_wa' => $request->phone,
                 'kota' => $request->city,
+                'status' => 'Pending',
             ]);
+
+            // Send Email Verification via Mailtrap for Donatur
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                    new \App\Mail\DonorVerificationMail($user)
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Gagal mengirim email verifikasi donatur: " . $e->getMessage());
+            }
         } else {
             // Role Yayasan
             $request->validate([
@@ -104,8 +114,6 @@ class RegisteredUserController extends Controller
         }
 
         event(new Registered($user));
-
-        Auth::login($user);
 
         return Inertia::render('Auth/Register', ['registered' => true]);
     }

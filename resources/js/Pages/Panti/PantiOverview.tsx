@@ -1,78 +1,99 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Camera,
-  ArrowUpRight,
-  ArrowRight,
   CheckCircle2,
   Package,
   Plus,
-  Handshake,
-  AlertCircle,
-  ChevronRight,
   TrendingUp,
-  Calendar
 } from 'lucide-react';
+import { router } from '@inertiajs/react';
 
-const ORG_NAME = "Yayasan Kasih Ibu";
+interface PantiOverviewProps {
+  pantiData?: any;
+  needs?: any[];
+  donations?: any[];
+}
 
-const COLORS = {
-  navy: "#293681",
-  gold: "#F59E0B",
-  mist: "#D0E7E6",
-  teal: "#4274D9",
-  cream: "#F2F5FB", // Disesuaikan menjadi sedikit lebih cool/kebiruan agar pas dengan navy
-};
+export default function PantiOverview({ pantiData, needs = [], donations = [] }: PantiOverviewProps) {
+  const orgName = pantiData?.nama_yayasan || "Panti Asuhan";
 
-const INCOMING_DELIVERIES = [
-  { id: 1, donor: "Budi Santoso", item: "Beras 15kg", method: "JNE", resi: "JX9284710" },
-  { id: 2, donor: "Aline Wijaya", item: "Buku Pelajaran SD (12 eks)", method: "Antar Mandiri", resi: "-" },
-  { id: 3, donor: "PT Sumber Makmur", item: "Susu Bayi (24 kaleng)", method: "SiCepat", resi: "SC1123890" },
-];
+  // --- 1. Perhitungan Donasi & Rincian Logistik ---
+  const totalDonations = donations.length;
 
-const OWN_CAMPAIGNS = [
-  { item: "Beras Putih Premium", filled: 36, total: 50, unit: "kg" },
-  { item: "Susu Formula Bayi", filled: 18, total: 20, unit: "kaleng" },
-  { item: "Selimut & Pakaian", filled: 9, total: 30, unit: "pcs" },
-];
+  const sembakoCount = donations.filter((d: any) => {
+    const txt = ((d.barang || '') + ' ' + (d.val || '') + ' ' + (d.type || '')).toLowerCase();
+    return txt.includes('beras') || txt.includes('minyak') || txt.includes('makanan') || txt.includes('susu') || txt.includes('sembako') || txt.includes('gula') || txt.includes('mie') || txt.includes('pangan');
+  }).length;
 
-const TRANSFER_OFFERS = [
-  { org: "Panti Wreda Bahagia", item: "Selimut (12 pcs)", distance: "3.2 km" },
-  { org: "Rumah Yatim Cahaya", item: "Buku Tulis (5 lusin)", distance: "6.8 km" },
-];
+  const pakaianCount = donations.filter((d: any) => {
+    const txt = ((d.barang || '') + ' ' + (d.val || '') + ' ' + (d.type || '')).toLowerCase();
+    return txt.includes('pakaian') || txt.includes('baju') || txt.includes('selimut') || txt.includes('celana') || txt.includes('jaket') || txt.includes('handuk');
+  }).length;
 
-// Data Grafik Bulanan
-const CHART_DATA = [
-  { month: 'Jan', value: 45 },
-  { month: 'Feb', value: 68 },
-  { month: 'Mar', value: 110 },
-  { month: 'Apr', value: 92 },
-  { month: 'Mei', value: 135 },
-  { month: 'Jun', value: 148 },
-];
+  const bukuCount = Math.max(0, totalDonations - sembakoCount - pakaianCount);
 
-export default function YayasanOverview() {
-  const [deliveries, setDeliveries] = useState(INCOMING_DELIVERIES);
+  const sembakoPct = totalDonations > 0 ? Math.round((sembakoCount / totalDonations) * 100) : 0;
+  const pakaianPct = totalDonations > 0 ? Math.round((pakaianCount / totalDonations) * 100) : 0;
+  const bukuPct = totalDonations > 0 ? Math.max(0, 100 - sembakoPct - pakaianPct) : 0;
 
-  const handleConfirm = (id: number) => {
-    setDeliveries((prev) => prev.filter((d) => d.id !== id));
-  };
+  // --- 2. Data Grafik Garis (Past 6 Months Dynamic) ---
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const currentMonthIdx = new Date().getMonth();
+  const last6Months: { month: string; monthIdx: number; year: number; value: number }[] = [];
 
-  // --- Perhitungan Matematis Grafik SVG ---
-  const MAX_VAL = 150;
+  for (let i = 5; i >= 0; i--) {
+    const dateObj = new Date();
+    dateObj.setMonth(currentMonthIdx - i);
+    last6Months.push({
+      month: monthNames[dateObj.getMonth()],
+      monthIdx: dateObj.getMonth(),
+      year: dateObj.getFullYear(),
+      value: 0
+    });
+  }
+
+  donations.forEach((d: any) => {
+    if (d.created_at_raw) {
+      const dt = new Date(d.created_at_raw);
+      const m = dt.getMonth();
+      const y = dt.getFullYear();
+      const found = last6Months.find(x => x.monthIdx === m && x.year === y);
+      if (found) {
+        found.value += 1;
+      }
+    }
+  });
+
+  const chartData = last6Months.map(x => ({ month: x.month, value: x.value }));
+  const maxVal = Math.max(10, ...chartData.map(c => c.value));
+
+  // --- SVG Math ---
   const SVG_W = 600;
-  const SVG_H = 240; 
+  const SVG_H = 240;
   const PAD_T = 20;
   const PAD_B = 30;
   const PAD_L = 40;
   const PAD_R = 20;
-  
   const G_W = SVG_W - PAD_L - PAD_R;
   const G_H = SVG_H - PAD_T - PAD_B;
 
-  const getX = (index: number) => PAD_L + (index * (G_W / (CHART_DATA.length - 1)));
-  const getY = (val: number) => PAD_T + G_H - ((val / MAX_VAL) * G_H);
-  
-  const pathD = `M ${CHART_DATA.map((d, i) => `${getX(i)} ${getY(d.value)}`).join(' L ')}`;
+  const getX = (index: number) => PAD_L + (index * (G_W / (chartData.length - 1)));
+  const getY = (val: number) => PAD_T + G_H - ((val / maxVal) * G_H);
+  const pathD = `M ${chartData.map((d, i) => `${getX(i)} ${getY(d.value)}`).join(' L ')}`;
+
+  // --- 3. Paket Menunggu Konfirmasi ---
+  const incomingDeliveries = donations.filter((d: any) => d.status === 'Dikirim' || d.status === 'Proses' || d.status === 'Pending');
+
+  // --- 4. Priority Wishlist Needs ---
+  const priorityNeeds = needs.filter((n: any) => n.status === 'aktif' || (n.target && n.terkumpul < n.target)).slice(0, 3);
+
+  const handleNavDonasi = () => {
+    router.visit('/panti/dashboard?tab=donasi');
+  };
+
+  const handleNavKebutuhan = () => {
+    router.visit('/panti/dashboard?tab=kebutuhan');
+  };
 
   return (
     <div className="space-y-6 w-full">
@@ -86,7 +107,7 @@ export default function YayasanOverview() {
             </span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-            Selamat Datang, <span className="text-[#F59E0B]">{ORG_NAME}</span>
+            Selamat Datang, <span className="text-[#F59E0B]">{orgName}</span>
           </h1>
           <p className="text-sm text-[#D0E7E6] mt-3 max-w-1xl leading-relaxed">
             Akun aktif terverifikasi. Monitor laju logistik, sisa stok harian, dan distribusi kebutuhan panti Anda dengan mudah dari satu tempat.
@@ -102,14 +123,14 @@ export default function YayasanOverview() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <span className="text-sm font-bold uppercase tracking-widest text-[#5E6C9E]">Ringkasan Logistik</span>
-              <span className="text-xs font-bold bg-[#F2F5FB] px-3 py-1.5 rounded-md text-[#293681]">Bulan Ini</span>
+              <span className="text-xs font-bold bg-[#F2F5FB] px-3 py-1.5 rounded-md text-[#293681]">Semua Data</span>
             </div>
             
             <h3 className="text-5xl font-black text-[#4274D9] tracking-tight">
-              148 <span className="text-2xl text-[#5E6C9E] font-bold">Paket</span>
+              {totalDonations} <span className="text-2xl text-[#5E6C9E] font-bold">Paket</span>
             </h3>
             <p className="text-sm text-[#5E6C9E] mt-2.5 leading-relaxed">
-              Total donasi sukses mendarat di gudang.
+              Total donasi tercatat di database panti.
             </p>
           </div>
 
@@ -118,28 +139,28 @@ export default function YayasanOverview() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-bold">
                 <span className="text-[#293681]">Sembako & Pangan</span>
-                <span className="text-[#4274D9]">82 Pkt</span>
+                <span className="text-[#4274D9]">{sembakoCount} Pkt</span>
               </div>
               <div className="h-2.5 rounded-full bg-[#F2F5FB] overflow-hidden">
-                <div className="h-full rounded-full bg-[#4274D9]" style={{ width: '55%' }} />
+                <div className="h-full rounded-full bg-[#4274D9] transition-all" style={{ width: `${sembakoPct}%` }} />
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-bold">
                 <span className="text-[#293681]">Pakaian & Selimut</span>
-                <span className="text-[#F59E0B]">40 Pkt</span>
+                <span className="text-[#F59E0B]">{pakaianCount} Pkt</span>
               </div>
               <div className="h-2.5 rounded-full bg-[#F2F5FB] overflow-hidden">
-                <div className="h-full rounded-full bg-[#F59E0B]" style={{ width: '27%' }} />
+                <div className="h-full rounded-full bg-[#F59E0B] transition-all" style={{ width: `${pakaianPct}%` }} />
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-bold">
                 <span className="text-[#293681]">Buku & Lain-lain</span>
-                <span className="text-[#5E6C9E]">26 Pkt</span>
+                <span className="text-[#5E6C9E]">{bukuCount} Pkt</span>
               </div>
               <div className="h-2.5 rounded-full bg-[#F2F5FB] overflow-hidden">
-                <div className="h-full rounded-full bg-[#5E6C9E]" style={{ width: '18%' }} />
+                <div className="h-full rounded-full bg-[#5E6C9E] transition-all" style={{ width: `${bukuPct}%` }} />
               </div>
             </div>
           </div>
@@ -152,14 +173,14 @@ export default function YayasanOverview() {
               <TrendingUp size={20} className="text-[#4274D9]" />
               <h4 className="text-sm font-bold text-[#293681] uppercase tracking-wider">Tren Volume Donasi</h4>
             </div>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-md">+15% Bulan Ini</span>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-md">Realtime Database</span>
           </div>
 
           <div className="relative w-full pt-4 flex-1">
             <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} className="w-full h-full overflow-visible">
               
               {/* Garis Grid Horizontal & Label Sumbu Y */}
-              {[0, 50, 100, 150].map((val) => {
+              {[0, Math.round(maxVal / 2), maxVal].map((val) => {
                 const y = getY(val);
                 return (
                   <g key={`y-${val}`}>
@@ -182,10 +203,10 @@ export default function YayasanOverview() {
               />
               
               {/* Label Sumbu X & Interaksi Titik (Hover) */}
-              {CHART_DATA.map((d, i) => {
+              {chartData.map((d, i) => {
                 const x = getX(i);
                 const y = getY(d.value);
-                const isLast = i === CHART_DATA.length - 1;
+                const isLast = i === chartData.length - 1;
                 
                 return (
                   <g key={`pt-${i}`} className="group cursor-pointer">
@@ -216,7 +237,7 @@ export default function YayasanOverview() {
 
       </div>
 
-      {/* ================= DATA GRID ROW 2: Aksi & AI Insight ================= */}
+      {/* ================= DATA GRID ROW 2: Aksi & Dynamic List ================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Kolom Kiri: Konfirmasi Penerimaan */}
@@ -229,16 +250,16 @@ export default function YayasanOverview() {
               </div>
               <h3 className="text-xl font-extrabold text-[#293681]">Konfirmasi Penerimaan</h3>
             </div>
-            {deliveries.length > 0 && (
+            {incomingDeliveries.length > 0 && (
               <span className="text-sm font-bold px-3 py-1.5 rounded-md bg-red-50 text-red-600 border border-red-100">
-                {deliveries.length} Menunggu
+                {incomingDeliveries.length} Menunggu
               </span>
             )}
           </div>
 
-          {deliveries.length > 0 ? (
+          {incomingDeliveries.length > 0 ? (
             <div className="flex flex-col space-y-4">
-              {deliveries.map((d) => (
+              {incomingDeliveries.map((d: any) => (
                 <div 
                   key={d.id}
                   className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-[#F2F5FB] border border-transparent hover:border-gray-200/80 transition-all"
@@ -248,19 +269,19 @@ export default function YayasanOverview() {
                       <Package size={22} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-base font-bold text-[#293681] truncate">{d.item}</p>
+                      <p className="text-base font-bold text-[#293681] truncate">{d.val || d.barang || 'Donasi Logistik'}</p>
                       <p className="text-sm text-[#5E6C9E] mt-1 truncate">
-                        Kurir: <span className="font-semibold text-gray-700">{d.method}</span> • Pengirim: {d.donor}
+                        Kurir: <span className="font-semibold text-gray-700">{d.detail?.kurir || '-'}</span> • Pengirim: {d.name}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex shrink-0 pt-3 sm:pt-0 border-t sm:border-0 border-gray-200/40 mt-1 sm:mt-0">
                     <button
-                      onClick={() => handleConfirm(d.id)}
-                      className="inline-flex items-center justify-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl bg-[#4274D9] text-white hover:bg-[#1E2866] transition shadow-sm w-full sm:w-auto"
+                      onClick={handleNavDonasi}
+                      className="inline-flex items-center justify-center gap-2 text-sm font-bold px-4 py-2.5 rounded-xl bg-[#4274D9] text-white hover:bg-[#293681] transition shadow-sm w-full sm:w-auto"
                     >
-                      <Camera size={14} /> Selesai
+                      <Camera size={14} /> Selesai / Bukti
                     </button>
                   </div>
                 </div>
@@ -269,12 +290,13 @@ export default function YayasanOverview() {
           ) : (
             <div className="flex flex-col items-center justify-center text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
               <CheckCircle2 size={32} className="text-emerald-500 mb-3" />
-              <p className="text-base font-bold text-[#293681]">Semua donasi aman</p>
+              <p className="text-base font-bold text-[#293681]">Semua donasi aman & terkonfirmasi</p>
+              <p className="text-xs text-gray-500 mt-1">Belum ada paket yang menunggu konfirmasi saat ini.</p>
             </div>
           )}
         </div>
 
-        {/* Kolom Kanan: Wishlist Kebutuhan (Tema Navy) */}
+        {/* Kolom Kanan: Wishlist Kebutuhan (Real Database Needs) */}
         <div className="lg:col-span-5 bg-[#4274D9] rounded-[2rem] p-6 md:p-8 text-white flex flex-col justify-between shadow-sm">
           <div>
             <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded bg-white/10 border border-white/10">
@@ -283,31 +305,40 @@ export default function YayasanOverview() {
             </div>
             <h3 className="text-xl font-extrabold text-white mb-1.5">Wishlist Kebutuhan</h3>
             <p className="text-sm text-[#D0E7E6] mb-6 leading-relaxed">
-              Target pengumpulan donasi barang operasional yayasan.
+              Target pengumpulan donasi barang operasional yayasan dari database.
             </p>
             
-            <div className="space-y-5">
-              {OWN_CAMPAIGNS.map((c) => {
-                const pct = Math.round((c.filled / c.total) * 100);
-                return (
-                  <div key={c.item} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="font-bold text-white truncate max-w-[200px]">{c.item}</span>
-                      <span className="font-semibold text-white">{c.filled}/{c.total} {c.unit}</span>
+            {priorityNeeds.length > 0 ? (
+              <div className="space-y-5">
+                {priorityNeeds.map((c: any) => {
+                  const pct = Math.min(100, Math.round(((c.terkumpul || 0) / (c.target || 1)) * 100));
+                  return (
+                    <div key={c.id || c.barang} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="font-bold text-white truncate max-w-[200px]">{c.barang}</span>
+                        <span className="font-semibold text-white">{c.terkumpul || 0}/{c.target} {c.satuan || 'Pcs'}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-500" 
+                          style={{ width: `${pct}%`, backgroundColor: pct >= 100 ? '#10B981' : '#F59E0B' }} 
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500" 
-                        style={{ width: `${pct}%`, backgroundColor: pct > 80 ? '#10B981' : '#F59E0B' }} 
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-6 text-center text-xs text-white/80 border border-dashed border-white/20 rounded-xl">
+                Belum ada kebutuhan aktif terdaftar.
+              </div>
+            )}
           </div>
 
-          <button className="mt-8 w-full py-3 rounded-xl bg-white text-[#293681] text-sm font-bold hover:bg-[#293681] hover:text-white transition-colors flex items-center justify-center gap-2 shadow-sm">
+          <button 
+            onClick={handleNavKebutuhan}
+            className="mt-8 w-full py-3 rounded-xl bg-white text-[#293681] text-sm font-bold hover:bg-[#293681] hover:text-white transition-colors flex items-center justify-center gap-2 shadow-sm"
+          >
             <Plus size={16} /> Buat Item Baru
           </button>
         </div>

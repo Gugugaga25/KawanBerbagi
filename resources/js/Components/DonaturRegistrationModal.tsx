@@ -20,6 +20,7 @@ export default function DonaturRegistrationModal({ isOpen, onClose, editData }: 
     email: '',
     phone: '',
     city: '',
+    status: 'Active',
     password: '',
     password_confirmation: '',
   });
@@ -32,6 +33,7 @@ export default function DonaturRegistrationModal({ isOpen, onClose, editData }: 
           email: editData.email || '',
           phone: editData.phone || '',
           city: editData.city || '',
+          status: editData.status || 'Active',
           password: '',
           password_confirmation: '',
         });
@@ -174,6 +176,24 @@ export default function DonaturRegistrationModal({ isOpen, onClose, editData }: 
                 />
                 {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
               </div>
+
+              {/* Status Donatur */}
+              {editData && (
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-semibold text-[#124354]">
+                    Status Akun Donatur
+                  </label>
+                  <select
+                    value={data.status}
+                    onChange={e => setData('status', e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#4A828F] focus:ring-2 focus:ring-[#4A828F]/20 transition-all text-sm font-medium bg-white"
+                  >
+                    <option value="Active">Active (Dapat Login)</option>
+                    <option value="Pending">Pending (Wajib Verifikasi Email)</option>
+                    <option value="Inactive">Inactive (Nonaktif / Ditolak)</option>
+                  </select>
+                </div>
+              )}
 
               {/* Password */}
               <div className="space-y-2 md:col-span-2">

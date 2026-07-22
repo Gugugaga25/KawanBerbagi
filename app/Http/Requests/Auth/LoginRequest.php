@@ -42,6 +42,38 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Cek jika email terdaftar milik akun Panti (RL02PAN) dengan status Pending / Inactive
+        $user = \App\Models\User::where('email', $this->email)->first();
+        if ($user && $user->id_role_user === 'RL02PAN') {
+            $shelter = \App\Models\Shelter::where('id_user', $user->id_user)->first();
+            if ($shelter && $shelter->status !== 'Active') {
+                $statusMsg = $shelter->status === 'Inactive'
+                    ? 'Mohon maaf, pendaftaran panti asuhan Anda ditolak / belum aktif. Silakan periksa email/WhatsApp Anda.'
+                    : 'Akun panti asuhan Anda masih dalam proses verifikasi Admin (Pending). Silakan periksa email/WhatsApp Anda.';
+
+                throw ValidationException::withMessages([
+                    'email' => $statusMsg,
+                ]);
+            }
+        }
+
+        // Cek jika email terdaftar milik akun Donatur (RL03DON)
+        if ($user && $user->id_role_user === 'RL03DON') {
+            $donor = \App\Models\Donor::where('id_user', $user->id_user)->first();
+            
+            if ($donor && $donor->status === 'Inactive') {
+                throw ValidationException::withMessages([
+                    'email' => 'Mohon maaf, akun Donatur Anda telah dinonaktifkan (Inactive). Silakan hubungi admin KawanBerbagi.',
+                ]);
+            }
+
+            if (($donor && $donor->status === 'Pending') || !$user->email_verified_at) {
+                throw ValidationException::withMessages([
+                    'email' => 'Akun Donatur Anda masih berstatus Pending (belum diverifikasi). Silakan periksa inbox Mailtrap Anda dan klik tombol verifikasi untuk mengaktifkan akun.',
+                ]);
+            }
+        }
+
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
