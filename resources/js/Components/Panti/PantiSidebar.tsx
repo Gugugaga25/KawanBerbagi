@@ -1,5 +1,5 @@
 import React from 'react';
-import { router, usePage } from '@inertiajs/react';
+import { router, usePage, Link } from '@inertiajs/react';
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -115,12 +115,12 @@ export default function PantiSidebar({
   return (
     <aside className="w-64 bg-white h-full border-r border-gray-200/80 flex flex-col z-20">
       {/* Brand mark */}
-      <div className="p-7 pb-5 flex items-center gap-2">
-        <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
+      <Link href="/" className="p-7 pb-5 flex items-center gap-2 hover:opacity-80 transition-all group" title="Kembali ke Landing Page">
+        <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain group-hover:scale-105 transition-transform" />
         <h1 className="text-2xl font-extrabold text-[#293681] tracking-tight">
           KawanBerbagi<span className="text-[#4274D9]">.</span>
         </h1>
-      </div>
+      </Link>
 
       <div className="mx-6 border-b border-gray-100" />
 

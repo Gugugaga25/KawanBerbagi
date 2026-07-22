@@ -21,13 +21,24 @@ Route::get('/', function () {
 
 Route::get('/profil-panti', function () {
     $pantis = \App\Models\Shelter::where('status', 'Active')->with('needs')->get()->map(function ($panti) {
+        $logoUrl = $panti->foto_profil 
+            ? (str_starts_with($panti->foto_profil, 'http') ? $panti->foto_profil : asset('storage/' . $panti->foto_profil))
+            : ($panti->dokumentasi_panti ? (str_starts_with($panti->dokumentasi_panti, 'http') ? $panti->dokumentasi_panti : asset('storage/' . $panti->dokumentasi_panti)) : 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop');
+
+        $bannerUrl = $panti->foto_banner 
+            ? (str_starts_with($panti->foto_banner, 'http') ? $panti->foto_banner : asset('storage/' . $panti->foto_banner))
+            : ($panti->dokumentasi_panti ? (str_starts_with($panti->dokumentasi_panti, 'http') ? $panti->dokumentasi_panti : asset('storage/' . $panti->dokumentasi_panti)) : null);
+
         return [
             'id' => $panti->id_shelter,
             'nama' => $panti->nama_yayasan,
             'alamat' => $panti->alamat,
+            'lokasi' => $panti->alamat,
             'deskripsi' => $panti->deskripsi ?? 'Panti asuhan yang berdedikasi membimbing dan menyekolahkan anak asuh.',
             'jumlah_anak' => $panti->jumlah_anak ?? 0,
-            'image' => $panti->foto_profil ? asset('storage/' . $panti->foto_profil) : ($panti->dokumentasi_panti ? asset('storage/' . $panti->dokumentasi_panti) : 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop'),
+            'image' => $logoUrl,
+            'logo' => $logoUrl,
+            'banner' => $bannerUrl,
             'kebutuhan_mendesak' => $panti->needs->where('is_mendesak', true)->take(3)->pluck('nama_kebutuhan')->toArray(),
             'terverifikasi' => true,
         ];
@@ -37,6 +48,10 @@ Route::get('/profil-panti', function () {
         'pantis' => $pantis
     ]); 
 })->name('profil-panti');
+
+Route::get('/about', function () {
+    return Inertia::render('About');
+})->name('about');
 
 // Route penengah pasca-login (Auto-redirect sesuai role/tabel data)
 Route::get('/dashboard', function () {
@@ -405,12 +420,25 @@ Route::middleware('auth')->group(function () {
             $urgentNeeds = $needs->filter(fn($n) => $n['urgent'])->take(4)->values();
 
             $pantis = \App\Models\Shelter::where('status', 'Active')->get()->map(function($p) {
+                $logoUrl = $p->foto_profil 
+                    ? (str_starts_with($p->foto_profil, 'http') ? $p->foto_profil : asset('storage/' . $p->foto_profil))
+                    : ($p->dokumentasi_panti ? (str_starts_with($p->dokumentasi_panti, 'http') ? $p->dokumentasi_panti : asset('storage/' . $p->dokumentasi_panti)) : null);
+
+                $bannerUrl = $p->foto_banner 
+                    ? (str_starts_with($p->foto_banner, 'http') ? $p->foto_banner : asset('storage/' . $p->foto_banner))
+                    : ($p->dokumentasi_panti ? (str_starts_with($p->dokumentasi_panti, 'http') ? $p->dokumentasi_panti : asset('storage/' . $p->dokumentasi_panti)) : null);
+
                 return [
                     'id' => $p->id_shelter, 
                     'nama' => $p->nama_yayasan, 
                     'lokasi' => $p->alamat,
+                    'alamat' => $p->alamat,
                     'deskripsi' => $p->deskripsi ?? 'Panti asuhan yang berdedikasi membantu anak-anak.',
                     'jumlah_anak' => $p->jumlah_anak ?? 0,
+                    'logo' => $logoUrl,
+                    'banner' => $bannerUrl,
+                    'image' => $logoUrl ?? 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=600&auto=format&fit=crop',
+                    'terverifikasi' => true,
                 ];
             });
 
@@ -473,6 +501,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/panti/profil/banner', [App\Http\Controllers\Panti\ProfilController::class, 'updateBanner'])->name('panti.profil.banner');
     Route::post('/panti/posts', [App\Http\Controllers\Panti\ProfilController::class, 'storePost'])->name('panti.posts.store');
     Route::delete('/panti/posts/{id}', [App\Http\Controllers\Panti\ProfilController::class, 'destroyPost'])->name('panti.posts.destroy');
+    Route::post('/panti/{shelterId}/posts/{postId}/like', [App\Http\Controllers\Panti\ProfilController::class, 'toggleLike'])->name('panti.posts.like');
     Route::post('/panti/pengurus', [App\Http\Controllers\Panti\ProfilController::class, 'storePengurus'])->name('panti.pengurus.store');
     Route::delete('/panti/pengurus/{id}', [App\Http\Controllers\Panti\ProfilController::class, 'destroyPengurus'])->name('panti.pengurus.destroy');
     Route::post('/panti/audits', [App\Http\Controllers\Panti\ProfilController::class, 'storeAudit'])->name('panti.audits.store');

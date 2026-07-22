@@ -55,6 +55,67 @@ const getInitials = (name: string) => {
   return name.substring(0, 2).toUpperCase();
 };
 
+const PantiLogo = ({ logo, nama }: { logo?: string; nama: string }) => {
+  const [imgError, setImgError] = useState(false);
+
+  if (logo && !imgError) {
+    return (
+      <img
+        src={logo}
+        alt={`Logo ${nama}`}
+        onError={() => setImgError(true)}
+        className="w-16 h-16 rounded-full border-4 object-cover group-hover:scale-105 transition-transform bg-white shadow-sm"
+        style={{ borderColor: '#ffffff' }}
+      />
+    );
+  }
+
+  return (
+    <div
+      className="w-16 h-16 rounded-full border-4 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform tracking-wider shadow-sm"
+      style={{
+        borderColor: '#ffffff',
+        backgroundColor: COLORS.teal,
+        color: '#ffffff',
+      }}
+    >
+      {getInitials(nama)}
+    </div>
+  );
+};
+
+const PantiBanner = ({ banner }: { banner?: string }) => {
+  const [bannerError, setBannerError] = useState(false);
+
+  if (banner && !bannerError) {
+    return (
+      <div className="h-28 w-full relative overflow-hidden">
+        <img
+          src={banner}
+          alt="Banner Panti"
+          onError={() => setBannerError(true)}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="h-28 w-full bg-cover bg-center relative"
+      style={{ backgroundColor: COLORS.teal }}
+    >
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage: 'radial-gradient(#ffffff 1.5px, transparent 1.5px)',
+          backgroundSize: '12px 12px',
+        }}
+      />
+    </div>
+  );
+};
+
 export default function CariPanti({ 
   needs = [], 
   pantis = [], 
@@ -377,48 +438,14 @@ export default function CariPanti({
                 style={{ backgroundColor: '#ffffff', border: `1px solid ${COLORS.mist}` }}
               >
                 {/* --- Banner Area --- */}
-                <div 
-                  className="h-28 w-full bg-cover bg-center relative"
-                  style={{
-                    backgroundImage: p.banner ? `url(${p.banner})` : 'none',
-                    backgroundColor: p.banner ? 'transparent' : COLORS.teal
-                  }}
-                >
-                  {!p.banner && (
-                    <div 
-                      className="absolute inset-0 opacity-20" 
-                      style={{ 
-                        backgroundImage: 'radial-gradient(#ffffff 1.5px, transparent 1.5px)', 
-                        backgroundSize: '12px 12px' 
-                      }} 
-                    />
-                  )}
-                </div>
+                <PantiBanner banner={p.banner} />
 
                 {/* --- Konten Bawah Banner --- */}
                 <div className="p-5 flex flex-col flex-1 relative">
                   
                   {/* Foto Profil (Logo) / Inisial 2 Huruf */}
-                  <div className="absolute -top-10 left-5">
-                    {p.logo ? (
-                      <img 
-                        src={p.logo} 
-                        alt={`Logo ${p.nama}`} 
-                        className="w-16 h-16 rounded-full border-4 object-cover group-hover:scale-105 transition-transform bg-white"
-                        style={{ borderColor: '#ffffff' }}
-                      />
-                    ) : (
-                      <div 
-                        className="w-16 h-16 rounded-full border-4 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform tracking-wider"
-                        style={{ 
-                          borderColor: '#ffffff', 
-                          backgroundColor: COLORS.teal,
-                          color: '#ffffff'
-                        }}
-                      >
-                        {getInitials(p.nama)}
-                      </div>
-                    )}
+                  <div className="absolute -top-10 left-5 z-10">
+                    <PantiLogo logo={p.logo} nama={p.nama} />
                   </div>
 
                   {/* Spacer */}

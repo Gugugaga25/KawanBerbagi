@@ -153,6 +153,43 @@ class ProfilController extends Controller
         return back()->with('success', 'Postingan dihapus.');
     }
 
+    public function toggleLike(Request $request, $shelterId, $postId)
+    {
+        $userId = Auth::id();
+
+        $shelter = Shelter::findOrFail($shelterId);
+        $posts = collect($shelter->posts ?? []);
+
+        $posts = $posts->map(function ($post) use ($postId, $userId) {
+            if ((string)$post['id'] === (string)$postId) {
+                $likedBy = array_map('strval', $post['liked_by'] ?? []);
+                $strUserId = (string)$userId;
+
+                if (in_array($strUserId, $likedBy, true)) {
+                    // Unlike: hapus userId dari daftar
+                    $likedBy = array_values(array_filter($likedBy, fn($uid) => $uid !== $strUserId));
+                } else {
+                    // Like: tambahkan userId
+                    $likedBy[] = $strUserId;
+                }
+                $post['liked_by'] = $likedBy;
+                $post['likes'] = count($likedBy);
+            }
+            return $post;
+        });
+
+        $shelter->update(['posts' => $posts->toArray()]);
+
+        // Ambil status terbaru
+        $updatedPost = $posts->firstWhere('id', $postId);
+        $likedByUpdated = array_map('strval', $updatedPost['liked_by'] ?? []);
+
+        return response()->json([
+            'likes'    => $updatedPost['likes'] ?? 0,
+            'is_liked' => in_array((string)$userId, $likedByUpdated, true),
+        ]);
+    }
+
     public function storePengurus(Request $request)
     {
         $shelter = Shelter::where('id_user', Auth::id())->firstOrFail();

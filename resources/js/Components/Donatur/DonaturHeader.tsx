@@ -1,5 +1,6 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { Search, Home } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import NotificationBell from '@/Components/Donatur/NotificationBell';
 
 const TAB_LABEL: Record<string, string> = {
@@ -38,8 +39,18 @@ export default function DonaturHeader({ activeTab, donaturData = null }: Donatur
         </h2>
       </div>
 
-      {/* Sisi Kanan: Pencarian, Notifikasi, & Profil */}
-      <div className="flex items-center gap-5">
+      {/* Sisi Kanan: Lihat Beranda, Notifikasi, & Profil */}
+      <div className="flex items-center gap-4">
+
+        {/* Tombol Kembali ke Landing Page */}
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 text-[#293681] hover:bg-[#4274D9]/10 hover:text-[#4274D9] transition-all text-xs font-bold shadow-xs border border-slate-200/60"
+          title="Kembali ke Landing Page"
+        >
+          <Home size={14} />
+          <span className="hidden sm:inline">Lihat Beranda</span>
+        </Link>
 
         {/* Tombol Notifikasi */}
         <NotificationBell />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell, Flag, Building2 } from 'lucide-react';
+import { Bell, Flag, Building2, Home } from 'lucide-react';
 import Dropdown from '@/Components/Dropdown';
 import { Link } from '@inertiajs/react';
 
@@ -55,8 +55,18 @@ export default function AdminHeader({ activeTab, laporans = [], pantis = [] }: A
         </h2>
       </div>
       
-      {/* Sisi Kanan: Notifikasi & Profil Admin */}
-      <div className="flex items-center gap-5">
+      {/* Sisi Kanan: Lihat Beranda, Notifikasi & Profil Admin */}
+      <div className="flex items-center gap-4">
+
+        {/* Tombol Kembali ke Landing Page */}
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 text-[#293681] hover:bg-[#4274D9]/10 hover:text-[#4274D9] transition-all text-xs font-bold shadow-xs border border-slate-200/60"
+          title="Kembali ke Landing Page"
+        >
+          <Home size={14} />
+          <span className="hidden sm:inline">Lihat Beranda</span>
+        </Link>
         
         {/* Dropdown Notifikasi */}
         <Dropdown>

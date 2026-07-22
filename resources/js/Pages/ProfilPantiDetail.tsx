@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
+import { useToast } from '@/Components/UI/Toast';
 import { 
   MapPin, Users, ArrowLeft, Wallet, Package, Menu, Globe, 
   Calendar, FileText, CheckCircle2, MessageCircle, 
@@ -176,6 +178,7 @@ export default function ProfilPantiDetail({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const activeSidebarTab: DonaturTabType = 'cari';
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
+  const { showToast } = useToast();
 
   // Hak Akses (Cek apakah user yang login adalah panti ini sendiri)
   const isLoggedIn = !!auth?.user;
@@ -289,67 +292,67 @@ export default function ProfilPantiDetail({
   ];
 
   const [posts, setPosts] = useState<any[]>([]);
+  const currentUserId = auth?.user?.id_user ?? auth?.user?.id ?? null;
 
   React.useEffect(() => {
     if (panti?.posts) {
-      setPosts(panti.posts.map((p: any) => ({...p, isLiked: false, likes: p.likes || 0})));
-    }
-  }, [panti]);
-
-  // Fungsi untuk Like Postingan
-  const toggleLike = (postId: number) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return { 
-          ...post, 
-          isLiked: !post.isLiked, 
-          likes: post.isLiked ? post.likes - 1 : post.likes + 1 
+      setPosts(panti.posts.map((p: any) => {
+        const likedBy = (p.liked_by || []).map((id: any) => String(id));
+        const isUserLiked = currentUserId ? likedBy.includes(String(currentUserId)) : false;
+        return {
+          ...p,
+          likes: p.likes || 0,
+          liked_by: p.liked_by || [],
+          isLiked: isUserLiked,
         };
-      }
-      return post;
-    }));
+      }));
+    }
+  }, [panti, currentUserId]);
+
+  // Fungsi untuk Like Postingan (dengan penyimpanan ke database)
+  const toggleLike = async (postId: number) => {
+    if (!isLoggedIn) {
+      showToast('Silakan login terlebih dahulu untuk memberikan like.', 'warning', 'Login Diperlukan');
+      return;
+    }
+    // Optimistic update
+    setPosts(prev => prev.map(post =>
+      post.id === postId
+        ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+        : post
+    ));
+    try {
+      const shelterId = panti?.id_shelter || panti?.id;
+      const resp = await axios.post(`/panti/${shelterId}/posts/${postId}/like`);
+      // Sinkronkan dengan data server
+      setPosts(prev => prev.map(post =>
+        post.id === postId
+          ? { ...post, isLiked: resp.data.is_liked, likes: resp.data.likes }
+          : post
+      ));
+    } catch {
+      // Rollback optimistic update jika gagal
+      setPosts(prev => prev.map(post =>
+        post.id === postId
+          ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+          : post
+      ));
+    }
   };
 
   const pengurusList = panti?.pengurus || [];
   const auditList = panti?.laporan_audits || [];
 
   return (
-    <div className={`font-sans bg-[#F8FAFC] text-[#293681] ${isLoggedIn ? "flex h-screen overflow-hidden" : "flex flex-col h-screen overflow-hidden"}`}>
+    <div className="font-sans bg-[#F8FAFC] text-[#293681] flex flex-col min-h-screen">
       
-      {/* TAMPILKAN HEADER NAV JIKA GUEST / TIDAK LOGIN */}
-      {!isLoggedIn && <Nav />}
+      {/* HEADER NAV LANDING PAGE (SELALU DITAMPILKAN DI RUTE PUBLIC /panti/{id}) */}
+      <Nav />
 
-      {/* LAYER PEMBUNGKUS UTAMA */}
-      <div className={`flex flex-1 min-w-0 overflow-hidden relative ${!isLoggedIn ? "flex-col" : ""}`}>
-        
-        {/* SIDEBAR & MOBILE BACKDROP (HANYA MUNCUL JIKA USER LOGIN) */}
-        {isLoggedIn && (
-          <>
-            {isMobileMenuOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />}
-            <div className={`fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-              <DonaturSidebar activeTab={activeSidebarTab} onTabChange={handleTabChange} donaturData={donaturData} stats={stats} />
-            </div>
-          </>
-        )}
-
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-white">
-          
-          {/* HEADER DASHBOARD*/}
-          {isLoggedIn && (
-            <>
-              <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30 shadow-md">
-                <div className="flex items-center gap-3 text-white">
-                  <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10"><Menu size={18} /></button>
-                  <span className="font-extrabold tracking-wide uppercase text-sm">Detail Panti</span>
-                </div>
-              </div>
-              <div className="hidden lg:block bg-white border-b border-gray-100 z-10">
-                <DonaturHeader activeTab={activeSidebarTab} donaturData={donaturData} />
-              </div>
-            </>
-          )}
-
-          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto relative bg-gray-50/30 scroll-smooth">
+      {/* LAYER PEMBUNGKUS UTAMA LANDING PAGE */}
+      <div className="flex flex-1 min-w-0 flex-col relative">
+        <main className="flex-1 flex flex-col min-w-0 relative bg-white">
+          <div ref={scrollContainerRef} className="flex-1 relative bg-gray-50/30">
             <Head title={`Profil Panti - ${panti?.nama_yayasan || panti?.nama}`} />
 
             
@@ -747,6 +750,70 @@ export default function ProfilPantiDetail({
             </div>
           </div>
         </main>
+
+        {/* ================= FOOTER ================= */}
+        <footer style={{ backgroundColor: COLORS.navy }} className="pt-16 pb-8">
+          <div className="max-w-7xl mx-auto px-5 sm:px-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+              <div>
+                <span className="text-2xl font-bold flex items-center gap-2" style={{ color: COLORS.cream }}>
+                  <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
+                  <span>KawanBerbagi<span style={{ color: COLORS.gold }}>.</span></span>
+                </span>
+                <p className="text-sm mt-4 max-w-xs leading-relaxed" style={{ color: COLORS.cream, opacity: 0.6 }}>
+                  Platform donasi demand-driven — mempertemukan barang yang Anda punya dengan kebutuhan yang benar-benar ada.
+                </p>
+              </div>
+              {[
+                {
+                  title: "Untuk Donatur",
+                  links: ["Cari Panti", "Lacak Donasi", "Riwayat Dampak"],
+                },
+                {
+                  title: "Untuk Panti",
+                  links: ["Daftarkan Yayasan", "Buat Wishlist", "Panduan Verifikasi"],
+                },
+                {
+                  title: "Kepercayaan",
+                  links: ["Dokumen Legalitas", "Keamanan Data", "Pusat Bantuan"],
+                },
+              ].map((col) => (
+                <div key={col.title}>
+                  <h5
+                    className="text-xs font-semibold tracking-wide mb-4"
+                    style={{ color: COLORS.teal, textTransform: "uppercase" }}
+                  >
+                    {col.title}
+                  </h5>
+                  <ul className="flex flex-col gap-3">
+                    {col.links.map((l) => (
+                      <li key={l}>
+                        <a
+                          href="#"
+                          className="text-sm hover:opacity-100 transition-opacity"
+                          style={{ color: COLORS.cream, opacity: 0.75 }}
+                        >
+                          {l}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div
+              className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6"
+              style={{ borderTop: `1px solid rgba(229,225,221,0.15)` }}
+            >
+              <p className="text-sm text-center sm:text-left" style={{ color: COLORS.cream, opacity: 0.5 }}>
+                © 2026 KawanBerbagi. Semua yayasan terverifikasi manual oleh tim kami.
+              </p>
+              <p className="text-sm" style={{ color: COLORS.cream, opacity: 0.5 }}>
+                Donasi yang pas, tanpa mubazir.
+              </p>
+            </div>
+          </div>
+        </footer>
 
         {/* ================= MODAL REPORT / LAPORAN (BARU) ================= */}
         {isReportModalOpen && reportTarget && (

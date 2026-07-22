@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
+import { useToast } from '@/Components/UI/Toast';
 import { 
   MapPin, Users, ArrowLeft, Wallet, Package, Menu, Globe, 
   Calendar, FileText, CheckCircle2, MessageCircle, 
@@ -176,6 +178,7 @@ export default function ProfilPantiDetail({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const activeSidebarTab: DonaturTabType = 'cari';
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
+  const { showToast } = useToast();
 
   // Hak Akses (Cek apakah user yang login adalah panti ini sendiri)
   const isLoggedIn = !!auth?.user;
@@ -289,25 +292,52 @@ export default function ProfilPantiDetail({
   ];
 
   const [posts, setPosts] = useState<any[]>([]);
+  const currentUserId = auth?.user?.id_user ?? auth?.user?.id ?? null;
 
   React.useEffect(() => {
     if (panti?.posts) {
-      setPosts(panti.posts.map((p: any) => ({...p, isLiked: false, likes: p.likes || 0})));
-    }
-  }, [panti]);
-
-  // Fungsi untuk Like Postingan
-  const toggleLike = (postId: number) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return { 
-          ...post, 
-          isLiked: !post.isLiked, 
-          likes: post.isLiked ? post.likes - 1 : post.likes + 1 
+      setPosts(panti.posts.map((p: any) => {
+        const likedBy = (p.liked_by || []).map((id: any) => String(id));
+        const isUserLiked = currentUserId ? likedBy.includes(String(currentUserId)) : false;
+        return {
+          ...p,
+          likes: p.likes || 0,
+          liked_by: p.liked_by || [],
+          isLiked: isUserLiked,
         };
-      }
-      return post;
-    }));
+      }));
+    }
+  }, [panti, currentUserId]);
+
+  // Fungsi untuk Like Postingan (dengan penyimpanan ke database)
+  const toggleLike = async (postId: number) => {
+    if (!isLoggedIn) {
+      showToast('Silakan login terlebih dahulu untuk memberikan like.', 'warning', 'Login Diperlukan');
+      return;
+    }
+    // Optimistic update
+    setPosts(prev => prev.map(post =>
+      post.id === postId
+        ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+        : post
+    ));
+    try {
+      const shelterId = panti?.id_shelter || panti?.id;
+      const resp = await axios.post(`/panti/${shelterId}/posts/${postId}/like`);
+      // Sinkronkan dengan data server
+      setPosts(prev => prev.map(post =>
+        post.id === postId
+          ? { ...post, isLiked: resp.data.is_liked, likes: resp.data.likes }
+          : post
+      ));
+    } catch {
+      // Rollback optimistic update jika gagal
+      setPosts(prev => prev.map(post =>
+        post.id === postId
+          ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+          : post
+      ));
+    }
   };
 
   const pengurusList = panti?.pengurus || [];

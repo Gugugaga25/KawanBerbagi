@@ -18,6 +18,9 @@ import {
   ClipboardList,
   Truck,
   PartyPopper,
+  Ban,
+  HelpCircle,
+  EyeOff,
 } from "lucide-react";
 
 const COLORS = {
@@ -27,6 +30,264 @@ const COLORS = {
   teal: "#4274D9",
   cream: "#F8FAFC",
 };
+
+/* ---------- Interactive Particles Live Background ---------- */
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  color: string;
+}
+
+function InteractiveParticles() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let width = (canvas.width = canvas.offsetWidth);
+    let height = (canvas.height = canvas.offsetHeight);
+
+    const particles: Particle[] = [];
+    const particleCount = Math.min(60, Math.floor((width * height) / 15000));
+    const maxDistance = 120;
+    const mouse = { x: -1000, y: -1000, radius: 150 };
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        radius: Math.random() * 2 + 1.5,
+        color: i % 2 === 0 ? "rgba(66, 116, 217, 0.2)" : "rgba(41, 54, 129, 0.12)",
+      });
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    };
+
+    const handleMouseLeave = () => {
+      mouse.x = -1000;
+      mouse.y = -1000;
+    };
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
+    };
+
+    window.addEventListener("resize", handleResize);
+    
+    // Bind to the parent container of the canvas for hover tracking
+    const parent = canvas.parentElement;
+    if (parent) {
+      parent.addEventListener("mousemove", handleMouseMove);
+      parent.addEventListener("mouseleave", handleMouseLeave);
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      // Update & Draw particles
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        if (mouse.x > -1000) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < mouse.radius) {
+            const force = (mouse.radius - dist) / mouse.radius;
+            const angle = Math.atan2(dy, dx);
+            p.x += Math.cos(angle) * force * 1.5;
+            p.y += Math.sin(angle) * force * 1.5;
+          }
+        }
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+
+      // Draw lines between particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const p1 = particles[i];
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < maxDistance) {
+            const alpha = (1 - dist / maxDistance) * 0.12;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(66, 116, 217, ${alpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (parent) {
+        parent.removeEventListener("mousemove", handleMouseMove);
+        parent.removeEventListener("mouseleave", handleMouseLeave);
+      }
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block pointer-events-none" />;
+}
+
+/* ---------- Before After Drag Slider ---------- */
+function BeforeAfterSlider() {
+  const [sliderPos, setSliderPos] = useState(50);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleMove = (clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setSliderPos(percentage);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (e.buttons === 1) {
+      handleMove(e.clientX);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches[0]) {
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
+      onClick={(e) => handleMove(e.clientX)}
+      className="relative w-full h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-gray-100 select-none cursor-ew-resize bg-gray-100"
+    >
+      {/* BACKGROUND / BEFORE SECTION */}
+      <div className="absolute inset-0 bg-[#FFF5F5] p-6 sm:p-8 flex flex-col justify-between">
+        <div>
+          <span className="inline-block bg-red-100 text-red-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            Sebelum KawanBerbagi (Mubazir & Tidak Terarah)
+          </span>
+          <h3 className="text-xl sm:text-2xl font-bold text-red-950 mt-3 leading-snug">
+            Barang Menumpuk, Kebutuhan Kritis Kosong
+          </h3>
+          <p className="text-red-900/80 mt-1.5 text-xs sm:text-sm max-w-md">
+            Donasi dikirim acak tanpa info kebutuhan riil panti.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 max-w-lg">
+          <div className="bg-white/95 backdrop-blur p-3.5 rounded-2xl border border-red-200 shadow-sm">
+            <h4 className="font-bold text-red-950 text-xs sm:text-sm flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              Oversupply Barang
+            </h4>
+            <p className="text-[11px] text-red-900/75 mt-1 leading-normal">Pakaian bekas & mie instan menumpuk hingga kadaluarsa, tapi beras kosong.</p>
+          </div>
+          <div className="bg-white/95 backdrop-blur p-3.5 rounded-2xl border border-red-200 shadow-sm">
+            <h4 className="font-bold text-red-950 text-xs sm:text-sm flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              Buta Informasi
+            </h4>
+            <p className="text-[11px] text-red-900/75 mt-1 leading-normal">Donatur tidak pernah mendapat kepastian penerimaan atau pemanfaatan barang.</p>
+          </div>
+        </div>
+
+        <div className="text-[10px] text-red-900/60 mt-3 italic">
+          *Mengakibatkan beban logistik berlebih di gudang panti asuhan.
+        </div>
+      </div>
+
+      {/* FOREGROUND / AFTER SECTION (CLIPPED) */}
+      <div
+        className="absolute inset-0 bg-[#F4F9F9] p-6 sm:p-8 flex flex-col justify-between"
+        style={{
+          clipPath: `polygon(${sliderPos}% 0, 100% 0, 100% 100%, ${sliderPos}% 100%)`,
+        }}
+      >
+        <div className="flex flex-col items-end text-right w-full">
+          <span className="inline-block bg-[#4274D9]/10 text-[#4274D9] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+            Sesudah KawanBerbagi (Demand-Driven)
+          </span>
+          <h3 className="text-xl sm:text-2xl font-bold text-[#293681] mt-3 leading-snug max-w-md ml-auto">
+            Kuota Terpenuhi Pas Sesuai Kebutuhan
+          </h3>
+          <p className="text-[#293681]/80 mt-1.5 text-xs sm:text-sm max-w-md ml-auto">
+            Panti merilis wishlist spesifik, donatur mengisi kuota secara presisi.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 ml-auto max-w-lg w-full">
+          <div className="bg-white/95 backdrop-blur p-3.5 rounded-2xl border border-[#4274D9]/20 shadow-sm flex flex-col items-end text-right">
+            <h4 className="font-bold text-[#293681] text-xs sm:text-sm flex items-center gap-1.5 justify-end">
+              Penyaluran Tepat Sasaran
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4274D9]"></span>
+            </h4>
+            <p className="text-[11px] text-gray-500 mt-1 leading-normal">Kuota membatasi donasi berlebih dan dialihkan ke panti terdekat yang kosong.</p>
+          </div>
+          <div className="bg-white/95 backdrop-blur p-3.5 rounded-2xl border border-[#4274D9]/20 shadow-sm flex flex-col items-end text-right">
+            <h4 className="font-bold text-[#293681] text-xs sm:text-sm flex items-center gap-1.5 justify-end">
+              Transparansi Terlacak
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4274D9]"></span>
+            </h4>
+            <p className="text-[11px] text-gray-500 mt-1 leading-normal">Status terupdate real-time lengkap dengan bukti foto serah terima pengurus.</p>
+          </div>
+        </div>
+
+        <div className="text-[10px] text-[#4274D9] mt-3 text-right font-medium">
+          *Platform KawanBerbagi menjamin penyaluran efisien tanpa mubazir.
+        </div>
+      </div>
+
+      {/* SLIDER BAR & HANDLE */}
+      <div
+        className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize flex items-center justify-center pointer-events-none"
+        style={{ left: `${sliderPos}%` }}
+      >
+        <div className="w-10 h-10 bg-[#293681] text-white rounded-full shadow-xl border-2 border-white flex items-center justify-center font-bold select-none text-base pointer-events-auto transition-transform hover:scale-105">
+          ↔
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 /* ---------- Hooks & primitives ---------- */
 
@@ -129,29 +390,18 @@ function Reveal({
       {children}
     </div>
   );
-}
-
-// ================= KOMPONEN NAVIGASI =================
+}// ================= KOMPONEN NAVIGASI =================
 function Nav() {
     const [open, setOpen] = useState(false);
     const { auth } = usePage().props as any;
     const { url } = usePage(); 
     
-    // State baru untuk menyimpan posisi hash (#) saat ini
     const [currentHash, setCurrentHash] = useState("");
   
-    // Memantau perubahan hash di browser setiap kali diklik
     useEffect(() => {
-      // Setel hash awal saat halaman pertama kali dimuat
       setCurrentHash(window.location.hash);
-  
-      // Fungsi untuk memperbarui state saat hash berubah
       const handleHashChange = () => setCurrentHash(window.location.hash);
-      
-      // Dengarkan event perubahan hash
       window.addEventListener("hashchange", handleHashChange);
-      
-      // Bersihkan event listener saat komponen dilepas
       return () => window.removeEventListener("hashchange", handleHashChange);
     }, []);
   
@@ -160,19 +410,38 @@ function Nav() {
       { label: "Untuk Siapa", href: "/#untuk-siapa" },
       { label: "Fitur", href: "/#fitur" },
       { label: "Profil Panti", href: "/profil-panti" },
+      { label: "Tentang Kami", href: "/about" },
     ];
+
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+      // Jika link mengarah ke hash anchor dan kita berada di halaman utama
+      if (href.includes("#") && (url === "/" || url.startsWith("/#"))) {
+        const hashPart = href.substring(href.indexOf("#") + 1);
+        const element = document.getElementById(hashPart);
+        if (element) {
+          e.preventDefault();
+          element.scrollIntoView({ behavior: "smooth" });
+          window.history.pushState(null, "", href);
+          setCurrentHash(`#${hashPart}`);
+          setOpen(false);
+        }
+      }
+    };
   
     return (
       <header
-        className="sticky top-0 z-50 backdrop-blur"
-        style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.teal}33` }}
+        className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100/80 transition-all duration-300 shadow-sm"
       >
         <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
-          <a href="#top" className="flex items-center gap-2">
+          <a 
+            href="/#top" 
+            onClick={(e) => handleNavClick(e, "/#top")}
+            className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
+          >
             <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
-            <span className="text-2xl sm:text-3xl font-bold" style={{ color: COLORS.navy }}>
+            <span className="text-xl sm:text-2xl font-extrabold tracking-tight" style={{ color: COLORS.navy }}>
               KawanBerbagi
-              <span style={{ color: COLORS.teal }}>.</span>
+              <span className="text-[#4274D9]">.</span>
             </span>
           </a>
           
@@ -181,14 +450,10 @@ function Nav() {
             {links.map((l) => {
               let isActive = false;
   
-              // Logika untuk menentukan Tab mana yang aktif
               if (l.href.includes('#')) {
-                // Jika link adalah hash (mengandung '#')
-                const hashPart = l.href.substring(l.href.indexOf('#')); // Ambil bagian "#fitur"
-                // Aktif jika kita di halaman utama (url '/') DAN hash-nya sama persis
+                const hashPart = l.href.substring(l.href.indexOf('#'));
                 isActive = (url === '/' || url.startsWith('/#')) && currentHash === hashPart;
               } else {
-                // Jika link adalah halaman biasa (/profil-panti)
                 isActive = url === l.href || url.startsWith(l.href + '/');
               }
               
@@ -196,22 +461,26 @@ function Nav() {
                 <a
                   key={l.href}
                   href={l.href}
-                  className={`text-base font-bold transition-all ${
-                    isActive ? "border-b-2 pb-1" : "hover:opacity-70"
+                  onClick={(e) => handleNavClick(e, l.href)}
+                  className={`text-base font-bold transition-all duration-200 relative pb-1 hover:text-[#4274D9] ${
+                    isActive ? "" : "text-[#293681]/80"
                   }`}
-                  style={{ 
-                    color: isActive ? COLORS.teal : COLORS.navy,
-                    borderColor: isActive ? COLORS.teal : "transparent" 
-                  }}
+                  style={{ color: isActive ? COLORS.teal : undefined }}
                 >
                   {l.label}
+                  {isActive && (
+                    <span 
+                      className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full" 
+                      style={{ backgroundColor: COLORS.teal }}
+                    />
+                  )}
                 </a>
               );
             })}
           </div>
   
           {/* === TOMBOL AUTH === */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-4">
             {auth?.user ? (
               <>
                 <Link
@@ -220,8 +489,7 @@ function Nav() {
                     auth.user.id_role_user === 'RL02PAN' ? route('panti.dashboard') :
                     route('donatur.dashboard')
                   }
-                  className="text-sm font-bold mr-2 hover:underline transition-all"
-                  style={{ color: COLORS.navy }}
+                  className="text-sm font-bold text-[#293681] hover:text-[#4274D9] hover:underline transition-all"
                 >
                   Halo, {auth.user.name}
                 </Link>
@@ -229,8 +497,8 @@ function Nav() {
                   href={route("logout")}
                   method="post"
                   as="button"
-                  className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                  style={{ backgroundColor: COLORS.navy }}>
+                  className="text-sm font-bold px-5 py-2.5 rounded-full text-white bg-[#293681] shadow-md shadow-[#293681]/10 hover:bg-[#1A2151] hover:shadow-lg transition-all duration-300"
+                >
                   Keluar
                 </Link>
               </>
@@ -238,13 +506,14 @@ function Nav() {
               <>
                 <Link
                   href={route("login")}
-                  className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
-                  style={{ color: COLORS.navy }}>
+                  className="text-base font-bold text-[#293681] hover:text-[#4274D9] transition-colors"
+                >
                   Masuk
                 </Link>
                 <Link
                   href={route("register")}
-                  className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition bg-[#4274D9] hover:bg-[#293681]">
+                  className="text-sm font-bold px-5 py-2.5 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20 hover:bg-[#293681] hover:shadow-lg transition-all duration-300"
+                >
                   Daftar
                 </Link>
               </>
@@ -253,20 +522,19 @@ function Nav() {
   
           {/* === TOMBOL HAMBURGER MOBILE === */}
           <button
-            className="md:hidden p-2 rounded-lg"
+            className="md:hidden p-2 rounded-xl hover:bg-slate-100/50 transition-colors"
             style={{ color: COLORS.navy }}
             onClick={() => setOpen((o) => !o)}
             aria-label="Buka menu"
           >
-            {open ? <X size={26} /> : <Menu size={26} />}
+            {open ? <X size={24} /> : <Menu size={24} />}
           </button>
         </nav>
   
         {/* === MENU MOBILE === */}
         {open && (
           <div
-            className="md:hidden px-5 pb-5 flex flex-col gap-4 absolute w-full shadow-md"
-            style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.teal}33` }}
+            className="md:hidden px-5 pb-6 flex flex-col gap-4 absolute w-full shadow-lg border-b border-slate-100 bg-white/95 backdrop-blur-md"
           >
             {links.map((l) => {
               let isActive = false;
@@ -282,11 +550,10 @@ function Nav() {
                 <a
                   key={l.href}
                   href={l.href}
-                  onClick={() => setOpen(false)}
-                  className={`text-lg font-medium py-1 transition-colors ${
-                    isActive ? "font-bold" : ""
+                  onClick={(e) => handleNavClick(e, l.href)}
+                  className={`text-base font-bold py-1.5 transition-colors ${
+                    isActive ? "text-[#4274D9]" : "text-[#293681]"
                   }`}
-                  style={{ color: isActive ? COLORS.teal : COLORS.navy }}
                 >
                   {l.label}
                 </a>
@@ -294,9 +561,8 @@ function Nav() {
             })}
             <a
               href="#mulai"
-              onClick={() => setOpen(false)}
-              className="text-lg font-semibold text-center px-5 py-3 rounded-full text-white mt-2"
-              style={{ backgroundColor: COLORS.teal }}
+              onClick={(e) => handleNavClick(e, "/#mulai")}
+              className="text-center text-sm font-bold px-5 py-3.5 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20 hover:bg-[#293681] transition-all duration-300"
             >
               Mulai Donasi
             </a>
@@ -304,7 +570,7 @@ function Nav() {
         )}
       </header>
     );
-  }
+}
 
 /* ---------- Hero ---------- */
 function Hero() {
@@ -313,98 +579,222 @@ function Hero() {
   const donors = useCountUp(5200);
 
   return (
-    <section id="top" className="max-w-7xl mx-auto px-6 lg:px-10 pt-14 pb-20">
-      <div className="grid lg:grid-cols-2 gap-12 items-center">
-        <Reveal>
-          <div className="max-w-xl">
-            <h1
-              className="text-4xl sm:text-6xl leading-[1.08] font-bold"
-              style={{ color: COLORS.teal }}
-            >
-              ARSIP KEBAIKAN.
-            </h1>
-            <h1
-              className="text-4xl sm:text-6xl leading-[1.08] font-bold mb-6"
-              style={{ color: COLORS.navy }}
-            >
-              DONASI TEPAT SASARAN.
-            </h1>
-            <p
-              className="text-lg sm:text-xl leading-relaxed mb-8 max-w-xl font-regular"
-              style={{ color: COLORS.navy, opacity: 0.75 }}
-            >
-              Platform donasi berbasis kebutuhan panti asuhan yang transparan dan terukur.
-              Kami mendokumentasikan setiap kebutuhan secara mendetail untuk memastikan amanah
-              Anda tersalurkan ke tujuan yang tepat
-            </p>
+    <section id="top" className="relative overflow-hidden pt-16 pb-24" style={{ backgroundColor: COLORS.cream }}>
+      {/* Dynamic particles live background */}
+      <InteractiveParticles />
 
-            <div className="flex gap-12 mt-10">
-              <div>
-                <h3 className="text-3xl font-bold" style={{ color: COLORS.navy }}>
-                  {orphanages}+
-                </h3>
-                <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
-                <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.6 }}>
-                  Panti Terdaftar
-                </p>
+      <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <Reveal>
+            <div className="max-w-xl">
+              <h1
+                className="text-4xl sm:text-6xl leading-[1.08] font-extrabold tracking-tight"
+                style={{ color: COLORS.teal }}
+              >
+                ARSIP KEBAIKAN.
+              </h1>
+              <h1
+                className="text-4xl sm:text-6xl leading-[1.08] font-extrabold tracking-tight mb-6"
+                style={{ color: COLORS.navy }}
+              >
+                DONASI TEPAT SASARAN.
+              </h1>
+              <p
+                className="text-lg sm:text-xl leading-relaxed mb-8 max-w-xl font-medium"
+                style={{ color: COLORS.navy, opacity: 0.8 }}
+              >
+                Platform donasi berbasis kebutuhan panti asuhan yang transparan dan terukur.
+                Kami mendokumentasikan setiap kebutuhan secara mendetail untuk memastikan amanah
+                Anda tersalurkan ke tujuan yang tepat.
+              </p>
+
+              <div className="flex gap-12 mt-10">
+                <div>
+                  <h3 className="text-3xl font-extrabold" style={{ color: COLORS.navy }}>
+                    {orphanages}+
+                  </h3>
+                  <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
+                  <p className="text-sm font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
+                    Panti Terdaftar
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-3xl font-extrabold" style={{ color: COLORS.navy }}>
+                    {(donors / 1000).toFixed(1)}K
+                  </h3>
+                  <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
+                  <p className="text-sm font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
+                    Donatur Aktif
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-3xl font-extrabold" style={{ color: COLORS.navy }}>
+                    {Math.floor(donated / 1000)}K+
+                  </h3>
+                  <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
+                  <p className="text-sm font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
+                    Barang Tersalurkan
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-3xl font-bold" style={{ color: COLORS.navy }}>
-                  {(donors / 1000).toFixed(1)}K
-                </h3>
-                <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
-                <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.6 }}>
-                  Donatur Aktif
-                </p>
-              </div>
-              <div>
-                <h3 className="text-3xl font-bold" style={{ color: COLORS.navy }}>
-                  {Math.floor(donated / 1000)}K+
-                </h3>
-                <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
-                <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.6 }}>
-                  Barang Tersalurkan
-                </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 mt-10">
+                <a
+                  href="#mulai"
+                  className="inline-flex items-center justify-center gap-2 text-base font-bold px-6 py-3.5 rounded-full text-white hover:brightness-110 shadow-lg shadow-[#4274D9]/30 transition bg-[#4274D9] hover:bg-[#293681]"
+                >
+                  Cari Panti Terdekat <ArrowRight size={20} />
+                </a>
+                <a
+                  href="#daftar-panti"
+                  className="inline-flex items-center justify-center gap-2 text-base font-bold px-6 py-3.5 rounded-full border-2 transition border-[#293681] text-[#293681] hover:bg-[#293681] hover:text-white"
+                >
+                  Daftarkan Panti Anda
+                </a>
               </div>
             </div>
+          </Reveal>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-10">
-              <a
-                href="#mulai"
-                className="inline-flex items-center justify-center gap-2 text-lg font-medium px-5 py-3 rounded-full text-white hover:brightness-110 transition bg-[#4274D9] hover:bg-[#293681]"
-              >
-                Cari Panti Terdekat <ArrowRight size={20} />
-              </a>
-              <a
-                href="#daftar-panti"
-                className="inline-flex items-center justify-center gap-2 text-lg font-medium px-5 py-3 rounded-full border-2 transition border border-[#293681] text-[#293681] hover:bg-[#293681] hover:text-white"
-              >
-                Daftarkan Panti Anda
-              </a>
+          <Reveal delay={150}>
+            <div className="relative h-[500px] sm:h-[560px] flex items-center justify-center">
+              {/* Background circular decorations with blur */}
+              <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-[#4274D9]/10 blur-3xl" />
+              <div className="absolute bottom-1/4 right-1/4 w-60 h-60 rounded-full bg-[#F59E0B]/5 blur-3xl" />
+              
+              {/* Mockup Card 1: GPS Radar Illustration */}
+              <div className="absolute left-4 top-10 sm:left-10 w-64 p-5 rounded-3xl bg-white/95 border border-gray-100 shadow-2xl float-slow relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#4274D9]/10 flex items-center justify-center text-[#4274D9]">
+                    <MapPin size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#293681]">Panti Terdekat</h4>
+                    <p className="text-[11px] text-[#4274D9] font-bold">Mencari via GPS...</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs p-2.5 rounded-2xl bg-gray-50 border border-gray-100">
+                    <span className="font-semibold text-gray-700">Panti Asuhan Nurul Iman</span>
+                    <span className="text-[10px] bg-[#4274D9]/10 text-[#4274D9] px-2 py-0.5 rounded-full font-bold">1.2 km</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs p-2.5 rounded-2xl bg-gray-50/50">
+                    <span className="font-medium text-gray-400">Yayasan Kasih Ibu</span>
+                    <span className="text-[10px] text-gray-400 px-2 py-0.5 font-semibold">3.8 km</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mockup Card 2: Transactional Quota Lock */}
+              <div className="absolute right-4 bottom-10 sm:right-6 w-72 p-5 rounded-3xl bg-[#293681] text-white shadow-2xl float-medium relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] bg-[#4274D9] text-white px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Quota Locked</span>
+                  <span className="text-xs text-gray-300">TRX-742</span>
+                </div>
+                <h4 className="font-bold text-base leading-snug">Donasi 20 Box Susu Bayi</h4>
+                <p className="text-[11px] text-gray-300 mt-1">Untuk Panti Asuhan Sayap Kasih</p>
+                
+                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Status Pengiriman</p>
+                    <p className="text-xs font-bold text-[#F59E0B] flex items-center gap-1 mt-0.5">
+                      <Truck size={14} /> Sedang Dikirim
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center font-bold text-xs text-white">
+                    100%
+                  </div>
+                </div>
+              </div>
+
+              {/* Mockup Card 3: Verification Badge / Impact Stats */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 p-4 rounded-2xl bg-white/95 border border-gray-100 shadow-xl float-fast flex items-center gap-3 relative z-10">
+                <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-400 font-medium">Sistem Donasi</p>
+                  <p className="text-xs font-extrabold text-emerald-700">100% Terverifikasi</p>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Problem Section ---------- */
+function ProblemSection() {
+  const problems = [
+    {
+      icon: Ban,
+      title: "Penumpukan Barang (Oversupply)",
+      body: "Panti kebanjiran barang tertentu secara berlebihan hingga mubazir dan kedaluwarsa.",
+    },
+    {
+      icon: HelpCircle,
+      title: "Kebutuhan Kritis Kosong",
+      body: "Bahan pangan pokok dan susu harian sering kali kosong karena donatur tidak tahu kebutuhan riil.",
+    },
+    {
+      icon: EyeOff,
+      title: "Kurang Transparansi",
+      body: "Donatur mengirim barang secara acak tanpa bukti serah terima atau kabar kelanjutan yang jelas.",
+    },
+  ];
+
+  return (
+    <section id="masalah" className="py-16 sm:py-24" style={{ backgroundColor: "#ffffff" }}>
+      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+        <div className="grid lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-5">
+            <Reveal>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs font-bold tracking-wide uppercase px-3 py-1 rounded-full bg-red-100 text-red-700">
+                  Tantangan Donasi
+                </span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold mb-6 leading-tight text-[#293681]">
+                Mengapa Donasi Konvensional Sering Mubazir?
+              </h2>
+              <p className="text-base sm:text-lg mb-8 leading-relaxed text-gray-600">
+                Niat baik Anda berisiko menjadi beban logistik bagi panti asuhan alih-alih menjadi bantuan yang tepat guna jika disalurkan tanpa data kebutuhan nyata.
+              </p>
+            </Reveal>
+
+            <div className="flex flex-col gap-6">
+              {problems.map((p, i) => (
+                <Reveal key={p.title} delay={i * 100}>
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 bg-red-50 border border-red-100 text-red-600">
+                      <p.icon size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-extrabold mb-1 text-[#293681]">
+                        {p.title}
+                      </h4>
+                      <p className="text-sm leading-relaxed text-gray-500">
+                        {p.body}
+                      </p>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </div>
-        </Reveal>
 
-        <Reveal delay={150}>
-          <div className="relative h-[560px]">
-            <div
-              className="absolute inset-0 rounded-[50px]"
-              style={{ background: "linear-gradient(180deg,#F9F9F9,#EEF6F5)" }}
-            />
-            <div
-              className="absolute left-10 top-10 w-60 h-40 rounded-3xl"
-              style={{ background: "white", boxShadow: "0 15px 40px rgba(0,0,0,.08)" }}
-            />
-            <div
-              className="absolute right-6 bottom-10 w-72 h-48 rounded-3xl"
-              style={{ background: "white", boxShadow: "0 15px 40px rgba(0,0,0,.08)" }}
-            />
-            <div
-              className="absolute left-40 bottom-32 w-36 h-36 rounded-full"
-              style={{ background: COLORS.mist }}
-            />
+          <div className="lg:col-span-7">
+            <Reveal delay={150}>
+              <div className="text-center mb-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+                  Geser pemisah di bawah ini untuk melihat simulasi
+                </p>
+              </div>
+              <BeforeAfterSlider />
+            </Reveal>
           </div>
-        </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -455,47 +845,49 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
   return (
     <Reveal delay={delay}>
       <div
-        className="rounded-2xl p-6 h-full flex flex-col border border-[#4274D9]/20"
-        style={{ backgroundColor: "#ffffff" }}
+        className="rounded-3xl p-6 h-full flex flex-col border border-white/20 bg-white/95 shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/25 hover:-translate-y-1.5 transition-all duration-300 group"
       >
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-5">
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#4274D9]/20"
+            className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#4274D9]/10 text-[#4274D9] group-hover:scale-110 transition-transform duration-300"
           >
-            <PackageCheck size={22} color={COLORS.teal} />
+            <PackageCheck size={22} />
           </div>
           {c.urgent && (
             <span
-              className="text-xs font-semibold px-3 py-1 rounded-full"
-              style={{ backgroundColor: "#FBEAEA", color: "#C0392B" }}
+              className="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider animate-pulse"
+              style={{ backgroundColor: "#FDF2F2", color: "#EC4899" }}
             >
               Mendesak
             </span>
           )}
         </div>
 
-        <h3 className="text-lg font-semibold mb-1" style={{ color: COLORS.navy }}>
+        <h3 className="text-lg font-extrabold mb-1 text-[#293681] group-hover:text-[#4274D9] transition-colors">
           {c.item}
         </h3>
-        <p className="text-sm flex items-center gap-1 mb-5" style={{ color: COLORS.navy, opacity: 0.6 }}>
-          <MapPin size={14} /> {c.name} · {c.location}
+        <p className="text-xs flex items-center gap-1 mb-6 text-gray-500 font-medium">
+          <MapPin size={13} className="text-[#4274D9]" /> {c.name} · {c.location}
         </p>
 
         <div className="mt-auto">
-          <div className="flex justify-between text-sm mb-2 tabular-nums" style={{ color: COLORS.navy, opacity: 0.7 }}>
+          <div className="flex justify-between text-xs mb-2.5 font-bold text-gray-500 tabular-nums">
             <span>Terpenuhi</span>
             <span>
-              {c.filled}/{c.total} {c.unit}
+              {c.filled}/{c.total} {c.unit} ({pct}%)
             </span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden mb-5 bg-gray-200">
-            <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: COLORS.teal }} />
+          <div className="h-2 rounded-full overflow-hidden mb-6 bg-gray-100">
+            <div 
+              className="h-full rounded-full bg-gradient-to-r from-[#4274D9] to-[#293681]" 
+              style={{ width: `${pct}%`, transition: "width 1s ease-out" }} 
+            />
           </div>
           <a
             href="#daftar"
-            className="inline-flex items-center justify-center gap-2 text-sm font-semibold w-full py-2.5 rounded-full text-white bg-[#4274D9] hover:bg-[#293681] transition"
+            className="inline-flex items-center justify-center gap-2 text-sm font-bold w-full py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/25 hover:bg-[#293681] hover:shadow-lg transition-all duration-300"
           >
-            Bantu Penuhi Kuota <ArrowRight size={16} />
+            Penuhi Kuota <ArrowRight size={16} />
           </a>
         </div>
       </div>
@@ -505,21 +897,24 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
 
 function ActiveNeeds() {
   return (
-    <section className="py-16 sm:py-24" style={{ backgroundColor: COLORS.navy }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+    <section className="relative overflow-hidden py-16 sm:py-24" style={{ background: "linear-gradient(180deg, #18224B 0%, #293681 100%)" }}>
+      {/* Background radial glowing circles */}
+      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#4274D9]/15 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-90 h-90 rounded-full bg-[#F59E0B]/5 blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
         <Reveal>
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={18} color={COLORS.gold} />
-            <span className="text-sm font-semibold tracking-wide" style={{ color: COLORS.gold }}>
-              KEBUTUHAN AKTIF
+            <span className="text-xs font-bold tracking-wider uppercase text-[#F59E0B]">
+              KEBUTUHAN AKTIF PANTI
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-medium mb-4" style={{ color: COLORS.cream }}>
-            Barang yang sedang ditunggu, hari ini
+          <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-[#F8FAFC]">
+            Barang yang Ditunggu Hari Ini
           </h2>
-          <p className="text-lg mb-14" style={{ color: COLORS.cream, opacity: 0.75 }}>
-            Daftar wishlist — kebutuhan nyata dengan kuota pasti dari panti yang
-            sudah terverifikasi.
+          <p className="text-base sm:text-lg mb-14 max-w-2xl text-gray-300 leading-relaxed">
+            Daftar wishlist kebutuhan riil dengan kuota transaksi terkunci aman. Salurkan sumbangan Anda ke panti terverifikasi.
           </p>
         </Reveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -584,45 +979,50 @@ function HowItWorks() {
   const steps = role === "donatur" ? STEPS_DONATUR : STEPS_PANTI;
 
   return (
-    <section id="cara-kerja" className="py-16 sm:py-24" style={{ backgroundColor: COLORS.cream }}>
-      <div className="max-w-6xl mx-auto px-5 sm:px-8">
+    <section id="cara-kerja" className="relative overflow-hidden py-16 sm:py-24 bg-[#F8FAFC]">
+      {/* Subtle backdrop mesh */}
+      <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-[#4274D9]/5 blur-3xl pointer-events-none" />
+      
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 relative z-10">
         <Reveal>
-          <h2 className="text-3xl sm:text-4xl font-medium mb-4" style={{ color: COLORS.navy }}>
-            Empat langkah, dari niat hingga dampak
-          </h2>
-          <p className="text-lg max-w-4xl mb-8" style={{ color: COLORS.navy, opacity: 0.75 }}>
-            Tidak perlu telepon satu per satu atau menebak-nebak. Pilih peran Anda untuk melihat alurnya.
-          </p>
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-[#293681] tracking-tight">
+              Empat Langkah Menuju Dampak Nyata
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 mb-8 leading-relaxed">
+              Mulai berbagi secara transparan tanpa tebak-tebak. Pilih peran Anda untuk melihat alurnya.
+            </p>
 
-          <div
-            className="inline-flex p-1 rounded-full mb-14 bg-[#4274D9]/15"
-            role="tablist"
-            aria-label="Pilih alur"
-          >
-            <button
-              role="tab"
-              aria-selected={role === "donatur"}
-              onClick={() => setRole("donatur")}
-              className="text-base font-semibold px-6 py-3 rounded-full transition"
-              style={{
-                backgroundColor: role === "donatur" ? COLORS.teal : "transparent",
-                color: role === "donatur" ? COLORS.cream : COLORS.navy,
-              }}
+            <div
+              className="inline-flex p-1.5 rounded-full bg-[#4274D9]/10 border border-[#4274D9]/5 shadow-inner"
+              role="tablist"
+              aria-label="Pilih alur"
             >
-              Sebagai Donatur
-            </button>
-            <button
-              role="tab"
-              aria-selected={role === "panti"}
-              onClick={() => setRole("panti")}
-              className="text-base font-semibold px-6 py-3 rounded-full transition"
-              style={{
-                backgroundColor: role === "panti" ? COLORS.teal : "transparent",
-                color: role === "panti" ? COLORS.cream : COLORS.navy,
-              }}
-            >
-              Sebagai Pengelola Panti
-            </button>
+              <button
+                role="tab"
+                aria-selected={role === "donatur"}
+                onClick={() => setRole("donatur")}
+                className="text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-sm"
+                style={{
+                  backgroundColor: role === "donatur" ? COLORS.teal : "transparent",
+                  color: role === "donatur" ? COLORS.cream : COLORS.navy,
+                }}
+              >
+                Sebagai Donatur
+              </button>
+              <button
+                role="tab"
+                aria-selected={role === "panti"}
+                onClick={() => setRole("panti")}
+                className="text-sm font-bold px-6 py-3 rounded-full transition-all duration-300 shadow-sm"
+                style={{
+                  backgroundColor: role === "panti" ? COLORS.teal : "transparent",
+                  color: role === "panti" ? COLORS.cream : COLORS.navy,
+                }}
+              >
+                Sebagai Pengelola Panti
+              </button>
+            </div>
           </div>
         </Reveal>
 
@@ -630,26 +1030,25 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <Reveal key={`${role}-${s.title}`} delay={i * 100}>
               <div
-                className="rounded-2xl p-6 h-full relative border border-[#4274D9]/20"
-                style={{ backgroundColor: "#ffffff", }}
+                className="rounded-3xl p-6 h-full relative border border-slate-100 bg-white shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/10 hover:-translate-y-1.5 transition-all duration-300 group"
               >
-                <div className="text-sm font-bold mb-4 tabular-nums" style={{ color: COLORS.gold }}>
-                  {String(i + 1).padStart(2, "0")}
+                <div className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-[#F59E0B]/10 text-[#F59E0B] inline-block uppercase tracking-wider mb-4">
+                  Langkah {String(i + 1).padStart(2, "0")}
                 </div>
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-[#4274D9]/20"
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 bg-[#4274D9]/10 text-[#4274D9] group-hover:scale-110 transition-transform duration-300"
                 >
-                  <s.icon size={22} color={COLORS.teal} />
+                  <s.icon size={22} />
                 </div>
-                <h3 className="text-lg font-semibold mb-2" style={{ color: COLORS.navy }}>
+                <h3 className="text-lg font-extrabold mb-2.5 text-[#293681] group-hover:text-[#4274D9] transition-colors">
                   {s.title}
                 </h3>
-                <p className="text-base leading-relaxed" style={{ color: COLORS.navy, opacity: 0.72 }}>
+                <p className="text-xs sm:text-sm leading-relaxed text-gray-500 font-medium">
                   {s.body}
                 </p>
                 {i < steps.length - 1 && (
                   <div
-                    className="hidden lg:block absolute top-1/2 -right-3 w-6 h-[2px] bg-[#4274D9]/20"
+                    className="hidden lg:block absolute top-1/2 -right-3.5 w-7 h-[2px] bg-slate-100 group-hover:bg-[#4274D9]/25 transition-colors z-20"
                   />
                 )}
               </div>
@@ -685,38 +1084,61 @@ const TESTIMONIALS = [
 
 function Trust() {
   return (
-    <section className="py-16 sm:py-24 bg-[#4274D9]/20">
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+    <section className="relative overflow-hidden py-16 sm:py-24 bg-[#F8FAFC]">
+      {/* Background decoration blur */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#4274D9]/5 blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
         <Reveal>
-          <div className="flex items-center gap-2 mb-3">
-            <BadgeCheck size={18} color={COLORS.navy} />
-            <span className="text-sm font-semibold tracking-wide" style={{ color: COLORS.navy, opacity: 0.7 }}>
-              DIPERCAYA PENGGUNA
-            </span>
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <BadgeCheck size={18} className="text-[#4274D9]" />
+              <span className="text-xs font-bold tracking-wider uppercase text-gray-400">
+                DIPERCAYA PENGGUNA
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#293681] tracking-tight">
+              Cerita Sukses Bersama KawanBerbagi
+            </h2>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-medium mb-14" style={{ color: COLORS.navy }}>
-            Cerita dari yang sudah menjalaninya
-          </h2>
         </Reveal>
+        
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.name} delay={i * 100}>
-              <div className="rounded-2xl p-7 h-full flex flex-col" style={{ backgroundColor: COLORS.cream }}>
-                <Quote size={26} color={COLORS.gold} className="mb-4" />
-                <p className="text-base leading-relaxed mb-6 flex-1" style={{ color: COLORS.navy, opacity: 0.85 }}>
-                  {t.quote}
-                </p>
-                <div>
-                  <p className="text-base font-semibold" style={{ color: COLORS.navy }}>
-                    {t.name}
+          {TESTIMONIALS.map((t, i) => {
+            const initials = t.name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .substring(0, 2)
+              .toUpperCase();
+
+            return (
+              <Reveal key={t.name} delay={i * 100}>
+                <div 
+                  className="rounded-3xl p-8 h-full flex flex-col border border-slate-100 bg-white shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/15 hover:-translate-y-1.5 transition-all duration-300 relative"
+                >
+                  <Quote size={28} className="text-[#F59E0B]/20 mb-4 self-start" />
+                  <p className="text-xs sm:text-sm leading-relaxed mb-6 flex-1 text-gray-500 font-medium italic">
+                    "{t.quote}"
                   </p>
-                  <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.6 }}>
-                    {t.role}
-                  </p>
+                  
+                  <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                    <div className="w-10 h-10 rounded-full bg-[#4274D9]/10 text-[#4274D9] flex items-center justify-center font-extrabold text-xs shrink-0">
+                      {initials}
+                    </div>
+                    <div>
+                      <p className="text-sm font-extrabold text-[#293681] leading-tight">
+                        {t.name}
+                      </p>
+                      <p className="text-xs text-gray-400 font-semibold mt-0.5 leading-none">
+                        {t.role}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -728,44 +1150,53 @@ function ForEveryone() {
   const personas = [
     {
       title: "Untuk Pengurus Panti",
-      body:
-        "Daftarkan yayasan Anda, buat daftar kebutuhan dengan kuota pasti, dan konfirmasi barang datang cukup dengan satu foto.",
-      points: ["Verifikasi legalitas terpercaya", "Kuota anti berlebih", "Notifikasi stok akan habis"],
+      body: "Daftarkan yayasan, buat wishlist kuota kebutuhan riil, dan konfirmasi barang tiba cukup dengan sekali foto.",
+      points: ["Verifikasi legalitas terpercaya", "Kuota anti-mubazir", "Notifikasi stok menipis otomatis"],
       cta: "Daftarkan Panti",
       href: "#daftar-panti",
     },
     {
       title: "Untuk Donatur",
-      body:
-        "Temukan panti yang cocok dengan barang Anda, dapat kepastian barang diterima, dan lihat cerita dampaknya.",
-      points: ["Chatbot pencari panti", "Resi & pelacakan langsung", "Bukti foto serah terima"],
+      body: "Temukan panti terdekat via GPS, dapatkan kepastian kuota terkunci, dan lacak status donasi secara transparan.",
+      points: ["Pencarian panti terdekat via GPS", "Pelacakan resi real-time", "Bukti foto serah terima langsung"],
       cta: "Mulai Donasi",
       href: "#mulai",
     },
   ];
   return (
-    <section id="untuk-siapa" className="py-16 sm:py-24" style={{ backgroundColor: COLORS.cream }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+    <section id="untuk-siapa" className="relative overflow-hidden py-16 sm:py-24 bg-white">
+      {/* Subtle decoration gradient */}
+      <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-[#F59E0B]/5 blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
         <Reveal>
-          <h2 className="text-3xl sm:text-4xl font-medium mb-14" style={{ color: COLORS.navy }}>
-            Dibuat untuk semua pihak yang terlibat
-          </h2>
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#293681] tracking-tight">
+              Dibuat untuk Semua Pihak yang Terlibat
+            </h2>
+            <p className="text-base text-gray-500 mt-4 leading-relaxed font-medium">
+              KawanBerbagi menghubungkan kebaikan donatur dengan kebutuhan nyata panti asuhan secara adil dan teratur.
+            </p>
+          </div>
         </Reveal>
+        
         <div className="grid md:grid-cols-2 gap-8">
           {personas.map((p, i) => (
             <Reveal key={p.title} delay={i * 120}>
-              <div className="rounded-2xl p-8 h-full flex flex-col bg-[#4274D9]/20">
-                <h3 className="text-2xl font-medium mb-3" style={{ color: COLORS.navy }}>
+              <div 
+                className="rounded-3xl p-8 h-full flex flex-col border border-slate-100 bg-white shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/15 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <h3 className="text-2xl font-extrabold mb-3 text-[#293681] group-hover:text-[#4274D9] transition-colors">
                   {p.title}
                 </h3>
-                <p className="text-lg leading-relaxed mb-6" style={{ color: COLORS.navy, opacity: 0.78 }}>
+                <p className="text-sm leading-relaxed text-gray-500 mb-6 font-medium">
                   {p.body}
                 </p>
-                <ul className="flex flex-col gap-3 mb-8">
+                <ul className="flex flex-col gap-3.5 mb-8">
                   {p.points.map((pt) => (
                     <li key={pt} className="flex items-start gap-3">
-                      <CheckCircle2 size={20} color={COLORS.teal} className="mt-0.5 shrink-0" />
-                      <span className="text-base" style={{ color: COLORS.navy }}>
+                      <CheckCircle2 size={18} className="text-[#4274D9] mt-0.5 shrink-0" />
+                      <span className="text-xs sm:text-sm font-semibold text-gray-600">
                         {pt}
                       </span>
                     </li>
@@ -773,9 +1204,9 @@ function ForEveryone() {
                 </ul>
                 <a
                   href={p.href}
-                  className="inline-flex items-center justify-center gap-2 text-base font-semibold px-6 py-3 rounded-full text-white hover:brightness-110 transition mt-auto self-start bg-[#4274D9] hover:bg-[#293681]"
+                  className="inline-flex items-center justify-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/25 hover:bg-[#293681] hover:shadow-lg transition-all duration-300 mt-auto self-start"
                 >
-                  {p.cta} <ArrowRight size={18} />
+                  {p.cta} <ArrowRight size={16} />
                 </a>
               </div>
             </Reveal>
@@ -792,14 +1223,14 @@ const FEATURE_GROUPS = [
     label: "Sebelum Kirim",
     features: [
       {
-        icon: MessageCircle,
-        title: "Chatbot pencocok panti",
-        body: "Ceritakan barang dan lokasi Anda dengan bahasa sehari-hari, AI menemukan panti yang tepat dalam hitungan detik.",
+        icon: MapPin,
+        title: "Pencarian Radius Terdekat",
+        body: "Temukan daftar kebutuhan panti asuhan di radius terdekat dari lokasi GPS Anda secara real-time.",
       },
       {
         icon: PackageCheck,
-        title: "Kuota anti-berlebih",
-        body: "Sistem mengunci kuota begitu terisi, jadi tidak ada lagi barang menumpuk melebihi kebutuhan.",
+        title: "Sistem Kunci Kuota",
+        body: "Sistem mengunci kuota barang setelah checkout untuk mencegah kelebihan pasokan di panti.",
       },
     ],
   },
@@ -807,14 +1238,14 @@ const FEATURE_GROUPS = [
     label: "Saat Perjalanan",
     features: [
       {
-        icon: Camera,
-        title: "Cek kelayakan otomatis",
-        body: "Foto barang non-pangan diperiksa AI sebelum dikirim, agar hanya barang layak pakai yang sampai ke panti.",
+        icon: Truck,
+        title: "Pilihan Ekspedisi / Mandiri",
+        body: "Kirim barang menggunakan kurir pilihan Anda (dengan nomor resi) atau antar sendiri langsung ke lokasi.",
       },
       {
         icon: TrendingUp,
-        title: "Pelacakan langsung",
-        body: "Status barang terlihat jelas: dipesan, dikirim, transit, hingga diterima — tanpa perlu bertanya.",
+        title: "Pelacakan Status Transparan",
+        body: "Pantau status pengiriman barang dari dipesan, dikirim, transit, hingga diterima langsung di dashboard Anda.",
       },
     ],
   },
@@ -822,14 +1253,14 @@ const FEATURE_GROUPS = [
     label: "Setelah Diterima",
     features: [
       {
-        icon: Handshake,
-        title: "Berbagi antar-panti",
-        body: "Panti dengan stok berlebih bisa mengalihkannya ke panti terdekat yang masih membutuhkan.",
+        icon: Camera,
+        title: "Bukti Foto Serah Terima",
+        body: "Pengurus panti mengunggah foto dokumentasi serah terima barang begitu donasi tiba sebagai konfirmasi sah.",
       },
       {
         icon: ShieldCheck,
-        title: "Legalitas terverifikasi",
-        body: "Setiap yayasan diverifikasi dokumennya oleh tim kami sebelum bisa membuka wishlist.",
+        title: "Dokumen Legal Terverifikasi",
+        body: "Setiap panti asuhan diperiksa berkas legalitas hukumnya oleh Admin demi menjamin kepercayaan donatur.",
       },
     ],
   },
@@ -837,51 +1268,55 @@ const FEATURE_GROUPS = [
 
 function Features() {
   return (
-    <section id="fitur" className="py-16 sm:py-24" style={{ backgroundColor: COLORS.cream }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
+    <section id="fitur" className="relative overflow-hidden py-16 sm:py-24 bg-[#F8FAFC]">
+      {/* Subtle backdrop circle decoration */}
+      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#4274D9]/5 blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 relative z-10">
         <Reveal>
-          <h2 className="text-3xl sm:text-4xl font-medium mb-4" style={{ color: COLORS.navy }}>
-            Semua yang dibutuhkan agar donasi tepat guna
-          </h2>
-          <p className="text-lg max-w-4xl mb-14" style={{ color: COLORS.navy, opacity: 0.75 }}>
-            Diurutkan sesuai perjalanan donasi Anda, dari sebelum kirim sampai barang sampai ke
-            panti.
-          </p>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#293681] tracking-tight">
+              Fitur Lengkap untuk Penyaluran Tepat
+            </h2>
+            <p className="text-base text-gray-500 mt-4 leading-relaxed font-medium">
+              Didukung oleh sistem pintar untuk menjamin setiap barang donasi Anda sampai ke penerima yang tepat tanpa sia-sia.
+            </p>
+          </div>
         </Reveal>
 
         <div className="flex flex-col gap-12">
           {FEATURE_GROUPS.map((group, gi) => (
             <div key={group.label}>
               <Reveal delay={gi * 80}>
-                <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3.5 mb-6">
                   <span
-                    className="text-sm font-bold tabular-nums w-7 h-7 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: COLORS.teal, color: COLORS.cream }}
+                    className="text-xs font-extrabold w-7 h-7 rounded-full flex items-center justify-center text-white"
+                    style={{ backgroundColor: COLORS.teal }}
                   >
                     {gi + 1}
                   </span>
-                  <h3 className="text-lg font-semibold" style={{ color: COLORS.navy }}>
+                  <h3 className="text-base sm:text-lg font-extrabold text-[#293681]">
                     {group.label}
                   </h3>
-                  <div className="flex-1 h-px bg-[#4274D9]/20"/>
+                  <div className="flex-1 h-px bg-slate-200/80"/>
                 </div>
               </Reveal>
               <div className="grid sm:grid-cols-2 gap-6">
                 {group.features.map((f, i) => (
                   <Reveal key={f.title} delay={gi * 80 + i * 100}>
                     <div
-                      className="rounded-2xl p-6 h-full flex gap-5 hover:shadow-md transition-shadow border border-[#4274D9]/20"
+                      className="rounded-3xl p-6 h-full flex gap-5 border border-slate-100 bg-white shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/10 hover:-translate-y-1 transition-all duration-300 group"
                     >
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[#4274D9]/20"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-[#4274D9]/10 text-[#4274D9] group-hover:scale-110 transition-transform duration-300"
                       >
-                        <f.icon size={22} color={COLORS.teal} />
+                        <f.icon size={22} />
                       </div>
                       <div>
-                        <h4 className="text-lg font-semibold mb-2" style={{ color: COLORS.navy }}>
+                        <h4 className="text-lg font-extrabold mb-2 text-[#293681] group-hover:text-[#4274D9] transition-colors">
                           {f.title}
                         </h4>
-                        <p className="text-base leading-relaxed" style={{ color: COLORS.navy, opacity: 0.72 }}>
+                        <p className="text-xs sm:text-sm leading-relaxed text-gray-500 font-medium">
                           {f.body}
                         </p>
                       </div>
@@ -900,36 +1335,38 @@ function Features() {
 /* ---------- Final CTA ---------- */
 function FinalCTA() {
   return (
-    <section id="mulai" className="py-16 sm:py-24" style={{ backgroundColor: COLORS.teal }}>
-      <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center">
+    <section id="mulai" className="relative overflow-hidden py-16 sm:py-24" style={{ background: "linear-gradient(135deg, #18224B 0%, #4274D9 100%)" }}>
+      {/* Glow decorations */}
+      <div className="absolute top-0 left-0 w-96 h-96 rounded-full bg-[#F59E0B]/10 blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-white/5 blur-3xl pointer-events-none" />
+
+      <div className="max-w-4xl mx-auto px-5 sm:px-8 text-center relative z-10">
         <Reveal>
-          <h2 className="text-3xl sm:text-4xl font-medium mb-5" style={{ color: "#ffffff" }}>
-            Kuota masih terbuka. Mari lengkapi bersama.
+          <h2 className="text-3xl sm:text-5xl font-extrabold mb-5 tracking-tight text-white leading-tight">
+            Kuota Masih Terbuka.<br />Mari Lengkapi Bersama.
           </h2>
-          <p className="text-lg mb-9 max-w-xl mx-auto" style={{ color: "#ffffff", opacity: 0.9 }}>
-            Baik Anda ingin menyumbang atau mendaftarkan yayasan, prosesnya singkat dan setiap
-            langkah bisa dipantau.
+          <p className="text-base sm:text-lg mb-10 max-w-xl mx-auto text-white/80 leading-relaxed font-semibold">
+            Baik Anda ingin menyumbang barang atau mendaftarkan panti asuhan, prosesnya singkat dan setiap langkah terpantau transparan.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
             <a
               href="#top"
-              className="inline-flex items-center justify-center gap-2 text-lg font-semibold px-7 py-3 rounded-full hover:brightness-95 transition"
-              style={{ backgroundColor: COLORS.cream, color: COLORS.navy }}
+              className="inline-flex items-center justify-center gap-2 text-base font-bold px-8 py-4 rounded-full text-[#293681] bg-white shadow-xl hover:shadow-2xl hover:shadow-white/20 hover:-translate-y-0.5 transition-all duration-300"
             >
               Jadi Donatur <ArrowRight size={20} />
             </a>
             <a
               href="#daftar-panti"
-              className="inline-flex items-center justify-center gap-2 text-lg font-semibold px-7 py-3 rounded-full border-2 border-white text-white hover:bg-white/10 transition"
+              className="inline-flex items-center justify-center gap-2 text-base font-bold px-8 py-4 rounded-full border-2 border-white/60 text-white hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300"
             >
               Daftarkan Yayasan
             </a>
           </div>
           <div
-            className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-full"
-            style={{ backgroundColor: "rgba(255,255,255,0.15)", color: "#ffffff" }}
+            className="inline-flex items-center gap-2 text-xs font-bold px-5 py-2.5 rounded-full border border-white/10"
+            style={{ backgroundColor: "rgba(255,255,255,0.08)", color: "#ffffff" }}
           >
-            <ShieldCheck size={16} /> 320+ panti terverifikasi dokumennya oleh tim kami
+            <ShieldCheck size={16} className="text-[#F59E0B]" /> 320+ Panti asuhan telah terverifikasi secara hukum oleh tim kami
           </div>
         </Reveal>
       </div>
@@ -1013,11 +1450,12 @@ export default function DonationLanding() {
     <div style={{ backgroundColor: COLORS.cream }}>
       <Nav />
       <Hero />
+      <ProblemSection />
       <ActiveNeeds />
       <HowItWorks />
-      <Trust />
       <ForEveryone />
       <Features />
+      <Trust />
       <FinalCTA />
       <Footer />
     </div>
