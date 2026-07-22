@@ -50,7 +50,7 @@ function Nav() {
   return (
     <header
       className="sticky top-0 z-50 backdrop-blur"
-      style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.mist}` }}
+      style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.teal}33` }}
     >
       <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-2">
@@ -66,18 +66,18 @@ function Nav() {
             const isActive = url === l.href || url.startsWith(l.href + '/');
             return (
               <a
-                key={l.href}
-                href={l.href}
-                className={`text-base font-bold transition-all ${
-                  isActive ? "border-b-2 pb-1" : "hover:opacity-70"
-                }`}
-                style={{ 
-                  color: isActive ? COLORS.teal : COLORS.navy,
-                  borderColor: isActive ? COLORS.teal : "transparent" 
-                }}
-              >
-                {l.label}
-              </a>
+                  key={l.href}
+                  href={l.href}
+                  className={`text-base font-bold transition-all ${
+                    isActive ? "border-b-2 pb-1" : "hover:opacity-70"
+                  }`}
+                  style={{ 
+                    color: isActive ? COLORS.teal : COLORS.navy,
+                    borderColor: isActive ? COLORS.teal : "transparent" 
+                  }}
+                >
+                  {l.label}
+                </a>
             );
           })}
         </div>
@@ -139,7 +139,7 @@ function Nav() {
       {open && (
         <div
           className="md:hidden px-5 pb-5 flex flex-col gap-4 absolute w-full shadow-md"
-          style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.mist}` }}
+          style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.teal}33` }}
         >
           {links.map((l) => {
             const isActive = url === l.href || url.startsWith(l.href + '/');
@@ -204,7 +204,7 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
 
       {/* ================= HERO SECTION ================= */}
       <section className="py-12 sm:py-16 text-center max-w-4xl mx-auto px-5" id="top">
-        <span className="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full" style={{ backgroundColor: COLORS.mist, color: COLORS.navy }}>
+        <span className="text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full bg-[#4274D9]/20" style={{ color: COLORS.navy }}>
           Arsip Transparansi
         </span>
         <h1 className="text-3xl sm:text-5xl font-bold mt-4 mb-4" style={{ color: COLORS.navy }}>
@@ -223,8 +223,8 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
             placeholder="Cari nama panti atau lokasi kota..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm outline-none border focus:border-[#407E8C] transition-colors shadow-sm"
-            style={{ backgroundColor: '#ffffff', borderColor: COLORS.mist, color: COLORS.navy }}
+            className="w-full pl-12 pr-4 py-3.5 rounded-2xl text-sm outline-none border focus:border-[#407E8C] border-[#4274D9]/20 transition-colors shadow-sm"
+            style={{ backgroundColor: '#ffffff', color: COLORS.navy }}
           />
         </div>
       </section>
@@ -240,8 +240,7 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
                 // Sesuaikan href ini dengan route detail panti di Laravel kamu
                 // Contoh jika pakai helper route: href={route('panti.detail', { id: shelter.id })}
                 href={`/panti/${shelter.id}`} 
-                className="bg-white rounded-[1.8rem] overflow-hidden border hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col md:flex-row h-full cursor-pointer group"
-                style={{ borderColor: COLORS.mist }}
+                className="bg-white rounded-[1.8rem] overflow-hidden border hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col md:flex-row h-full cursor-pointer group border-[#4274D9]/20"
               >
                 {/* Thumbnail Gambar */}
                 <div className="md:w-2/5 h-48 md:h-auto relative shrink-0">
@@ -310,7 +309,7 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
           </div>
         ) : (
           /* Empty State Pencarian */
-          <div className="rounded-[2rem] p-16 flex flex-col items-center justify-center text-center bg-white border border-dashed" style={{ borderColor: COLORS.mist }}>
+          <div className="rounded-[2rem] p-16 flex flex-col items-center justify-center text-center bg-white border border-dashed bg-[#4274D9]/20">
             <Building2 size={40} className="mb-4" style={{ color: COLORS.navy, opacity: 0.3 }} />
             <h3 className="text-lg font-bold mb-1" style={{ color: COLORS.navy }}>Panti Tidak Ditemukan</h3>
             <p className="text-sm" style={{ color: COLORS.navy, opacity: 0.55 }}>
@@ -325,7 +324,7 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setShowAuthModal(false)} />
           
-          <div className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 z-10 text-center border" style={{ borderColor: COLORS.mist }}>
+          <div className="relative bg-white rounded-[2rem] p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200 z-10 text-center border border-[#4274D9]/20">
             <button
               onClick={() => setShowAuthModal(false)}
               className="absolute right-5 top-5 p-1 rounded-full hover:bg-gray-100 transition"
@@ -334,29 +333,27 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
             </button>
 
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: 'rgba(165,141,102,0.15)' }}>
-              <Lock size={28} style={{ color: COLORS.gold }} />
+              <Lock size={28} style={{ color: COLORS.teal }} />
             </div>
 
             <h3 className="text-xl font-bold mb-2.5" style={{ color: COLORS.navy }}>
-              Aksi Terbatas! 🔒
+              Aksi Terbatas!
             </h3>
             
             <p className="text-sm leading-relaxed mb-6" style={{ color: COLORS.navy, opacity: 0.75 }}>
-              Anda harus masuk menggunakan akun donatur terlebih dahulu untuk dapat **mengunci kuota donasi**, **menginput resi kurir**, dan **memantau progres barang** Anda sampai ke panti ini.
+              Anda harus masuk sebagai donatur terlebih dahulu untuk dapat mengunci kuota donasi, menginput resi kurir, dan memantau progres barang Anda sampai ke panti ini.
             </p>
 
             <div className="flex flex-col gap-3">
               <Link
                 href={route("login")}
-                className="w-full py-3 rounded-xl font-bold text-sm text-white hover:brightness-110 transition text-center"
-                style={{ backgroundColor: COLORS.teal }}
+                className="w-full py-3 rounded-xl font-bold text-sm text-white transition text-center bg-[#4274D9] hover:bg-[#293681]"
               >
                 Masuk ke Akun Saya
               </Link>
               <Link
                 href={route("register")}
-                className="w-full py-3 rounded-xl font-bold text-sm border-2 transition text-center hover:bg-gray-50"
-                style={{ borderColor: COLORS.navy, color: COLORS.navy }}
+                className="w-full py-3 rounded-xl font-bold text-sm border border-[#293681] transition text-center text-[#293861] hover:text-white hover:bg-[#293681]"
               >
                 Belum Punya Akun? Daftar
               </Link>

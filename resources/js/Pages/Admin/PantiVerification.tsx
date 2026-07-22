@@ -4,10 +4,10 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { CheckCircle2, XCircle, ArrowLeft, Building2, User, Phone, MapPin, Users, FileText, Image as ImageIcon } from 'lucide-react';
 
 const COLORS = {
-  navy: '#293681',
-  gold: '#F59E0B',
-  mist: '#D0E7E6',
-  teal: '#4274D9',
+  navy: "#293681",
+  gold: "#F59E0B",
+  mist: "#D0E7E6",
+  teal: "#4274D9",
 };
 
 interface PantiProps {
@@ -49,7 +49,7 @@ export default function PantiVerification({ panti }: PantiProps) {
   const DocumentCard = ({ title, file, icon: Icon = FileText }: { title: string, file: string | null, icon?: any }) => (
     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between h-full hover:shadow-md transition-shadow">
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#407E8C] flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#4274D9] flex items-center justify-center shrink-0">
           <Icon size={24} />
         </div>
         <div>
@@ -64,7 +64,7 @@ export default function PantiVerification({ panti }: PantiProps) {
           href={`/storage/${file}`}
           target="_blank"
           rel="noreferrer"
-          className="w-full inline-flex justify-center items-center px-4 py-2 bg-[#EAE8E3] text-[#124354] rounded-lg text-sm font-semibold hover:bg-[#D4D2CD] transition-colors"
+          className="w-full inline-flex justify-center items-center px-4 py-2 bg-[#4274D9] text-white rounded-lg text-sm font-semibold hover:bg-[#293681] transition-colors"
         >
           Lihat Dokumen
         </a>
@@ -80,7 +80,7 @@ export default function PantiVerification({ panti }: PantiProps) {
     <AdminLayout activeTab="panti">
       <Head title={`Verifikasi - ${panti.nama}`} />
 
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
+      <div className="space-y-6">
 
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -89,7 +89,7 @@ export default function PantiVerification({ panti }: PantiProps) {
               <ArrowLeft size={20} />
             </Link>
             <div>
-              <h2 className="text-2xl font-bold text-[#124354]">Tinjau Pendaftaran Panti</h2>
+              <h2 className="text-2xl font-bold text-[#293681]">Tinjau Pendaftaran Panti</h2>
               <p className="text-sm text-gray-500 mt-1">Periksa kelengkapan dokumen sebelum memberikan persetujuan.</p>
             </div>
           </div>
@@ -100,9 +100,9 @@ export default function PantiVerification({ panti }: PantiProps) {
           {/* Informasi Profil */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="bg-[#083A4F] p-6 text-white text-center flex flex-col items-center">
+              <div className="bg-[#4274D9] p-6 text-white text-center flex flex-col items-center">
                 <div className="w-20 h-20 rounded-2xl bg-white/10 flex items-center justify-center mb-4 border border-white/20 backdrop-blur-sm shadow-inner">
-                  <Building2 size={36} className="text-[#C0D5D6]" />
+                  <Building2 size={36} className="text-[#fff]" />
                 </div>
                 <h3 className="text-xl font-bold">{panti.nama}</h3>
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mt-3 ${panti.status === 'Active'
@@ -221,7 +221,7 @@ export default function PantiVerification({ panti }: PantiProps) {
                       href={panti.orgPhotoUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-full inline-flex justify-center items-center px-4 py-2 bg-[#EAE8E3] text-[#124354] rounded-lg text-sm font-semibold hover:bg-[#D4D2CD] transition-colors"
+                      className="w-full inline-flex justify-center items-center px-4 py-2 bg-[#4274D9] text-white rounded-lg text-sm font-semibold hover:bg-[#293681] transition-colors"
                     >
                       Lihat Foto
                     </a>

@@ -35,7 +35,7 @@ function Nav() {
   return (
     <header
       className="sticky top-0 z-50 backdrop-blur"
-      style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.mist}` }}
+      style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.teal}33` }}
     >
       <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-2">
@@ -314,9 +314,6 @@ export default function ProfilPantiDetail({
 
   return (
     <div className={`font-sans bg-[#F8FAFC] text-[#293681] ${isLoggedIn ? "flex h-screen overflow-hidden" : "flex flex-col h-screen overflow-hidden"}`}>
-      
-      {/* TAMPILKAN HEADER NAV JIKA GUEST / TIDAK LOGIN */}
-      {!isLoggedIn && <Nav />}
 
       {/* LAYER PEMBUNGKUS UTAMA */}
       <div className={`flex flex-1 min-w-0 overflow-hidden relative ${!isLoggedIn ? "flex-col" : ""}`}>
@@ -336,9 +333,9 @@ export default function ProfilPantiDetail({
           {/* HEADER DASHBOARD*/}
           {isLoggedIn && (
             <>
-              <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30 shadow-md">
-                <div className="flex items-center gap-3 text-white">
-                  <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10"><Menu size={18} /></button>
+              <div className="lg:hidden flex items-center justify-between p-4 bg-white z-30 shadow-md">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-[#4274D9] text-white"><Menu size={18} /></button>
                   <span className="font-extrabold tracking-wide uppercase text-sm">Detail Panti</span>
                 </div>
               </div>
@@ -359,6 +356,17 @@ export default function ProfilPantiDetail({
                 {/* Cover Image */}
                 <div className="h-40 md:h-60 w-full relative overflow-hidden group bg-[#4274D9]/70">
                 
+                  {/* Tombol Back */}
+                  <div className="absolute top-4 left-4 z-20">
+                      <button 
+                          onClick={() => window.history.back()}
+                          className="bg-[#4274D9] hover:bg-[#293681] text-white p-2.5 rounded-full transition-colors shadow-lg backdrop-blur-sm"
+                          title="Kembali"
+                      >
+                          <ArrowLeft size={20} />
+                      </button>
+                  </div>
+
                   {/* Gambar Cover dengan Opsi Hapus (Jika Panti Owner) */}
                   {(panti?.foto_banner || panti?.cover) && (
                       <>

@@ -3,7 +3,8 @@ import { Head } from '@inertiajs/react';
 import {
   Flag, Search, Filter, Eye, CheckCircle, AlertTriangle,
   XCircle, Clock, ShieldAlert, ChevronLeft, ChevronRight,
-  MoreVertical, Building2, FileText, Heart, CheckCircle2, Image
+  MoreVertical, Building2, FileText, Heart, CheckCircle2, Image,
+  ExternalLink // Tambahan icon untuk link keluar
 } from 'lucide-react';
 import Dropdown from '@/Components/Dropdown';
 import Modal from '@/Components/Modal';
@@ -92,7 +93,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
 
     const oldStatus = targetReport.status;
 
-    // Optimistic UI: update local state immediately
     setLocalReports(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
     if (selectedReport?.id === id) {
       setSelectedReport(prev => prev ? { ...prev, status: newStatus } : null);
@@ -102,7 +102,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
     router.patch(route('admin.laporan.status', id), { status: newStatus }, {
       preserveScroll: true,
       onError: () => {
-        // Automatic rollback on failure
         setLocalReports(prev => prev.map(r => r.id === id ? { ...r, status: oldStatus } : r));
         if (selectedReport?.id === id) {
           setSelectedReport(prev => prev ? { ...prev, status: oldStatus } : null);
@@ -129,7 +128,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
 
   return (
     <div className="space-y-6">
-
       {/* Header & Actions */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
@@ -139,7 +137,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
           <p className="text-sm text-gray-500 mt-1">Pantau, moderasi, dan verifikasi aduan dari pengguna KawanBerbagi.</p>
         </div>
 
-        {/* Search Box */}
         <div className="relative w-full ml-12 sm:w-64">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
@@ -159,7 +156,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
             Ekspor Laporan
           </button>
 
-          {/* Tabs Filter */}
           <div className="flex bg-gray-50 p-1 rounded-xl border border-gray-100 w-full sm:w-auto">
             {(['semua', 'pending', 'diproses', 'selesai'] as const).map((tab) => (
               <button
@@ -177,7 +173,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
         </div>
       </div>
 
-      {/* Mini Stats (Opsional tapi mempercantik) */}
+      {/* Mini Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-col justify-center">
           <p className="text-xs text-gray-500 font-bold uppercase tracking-wide">Total Aduan</p>
@@ -197,7 +193,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
         </div>
       </div>
 
-      {/* Table Section (Sama persis dengan gaya PantiManagement) */}
+      {/* Table Section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible">
         <div className="overflow-visible">
           <table className="w-full text-left border-separate border-spacing-0">
@@ -229,86 +225,94 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                   </td>
                 </tr>
               ) : (
-                filteredReports.map((report) => (
-                  <tr key={report.id} className={`hover:bg-gray-50/80 transition-all ${report.status === 'selesai' || report.status === 'ditolak' ? 'opacity-50 grayscale hover:grayscale-0' : ''}`}>
-                    <td className="px-6 py-4 border-b border-gray-100 whitespace-nowrap">
-                      <span className="font-bold text-[#124354]">{report.id}</span>
-                      <p className="text-xs text-gray-400 mt-0.5">{report.tanggal}</p>
-                    </td>
-                    <td className="px-6 py-4 border-b border-gray-100">
-                      <div className="flex items-center gap-2">
-                        {getCategoryIcon(report.tipe_laporan)}
-                        <Link
-                          href={`/panti/${report.id_target}`}
-                          className="font-bold text-[#124354] hover:text-[#407E8C] max-w-[150px] truncate transition-colors underline decoration-dashed decoration-[#407E8C]/30 underline-offset-4"
-                          title={`Kunjungi Halaman: ${report.terlapor_nama}`}
-                        >
-                          {report.terlapor_nama}
-                        </Link>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-gray-600 border-b border-gray-100">{report.pelapor}</td>
-                    <td className="px-6 py-4 text-gray-500 border-b border-gray-100 max-w-[200px] truncate" title={report.alasan}>
-                      {report.alasan}
-                    </td>
-                    <td className="px-6 py-4 border-b border-gray-100 whitespace-nowrap">
-                      {getStatusBadge(report.status)}
-                    </td>
-                    <td className="px-6 py-4 text-center border-b border-gray-100">
-                      <div className="flex justify-center">
-                        <Dropdown>
-                          <Dropdown.Trigger>
-                            <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
-                              <MoreVertical size={18} />
-                            </button>
-                          </Dropdown.Trigger>
+                filteredReports.map((report) => {
+                  const isDoneOrRejected = report.status === 'selesai' || report.status === 'ditolak';
+                  const dimmedClass = isDoneOrRejected ? 'opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0' : '';
 
-                          <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl z-50">
-                            <button
-                              onClick={() => openDetailModal(report)}
-                              className="flex items-center gap-2 text-[#124354] hover:bg-[#F4F3EF] block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out font-medium"
-                            >
-                              <Eye size={16} className="text-[#407E8C]" /> Periksa Detail
-                            </button>
-
-                            {report.status === 'pending' && (
-                              <button
-                                onClick={() => handleUpdateStatus(report.id, 'diproses')}
-                                className="flex items-center gap-2 text-blue-600 hover:bg-blue-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium"
-                              >
-                                <ShieldAlert size={16} /> Proses Laporan
+                  return (
+                    <tr key={report.id} className="group hover:bg-gray-50/80 transition-all">
+                      <td className={`px-6 py-4 border-b border-gray-100 whitespace-nowrap transition-all ${dimmedClass}`}>
+                        <span className="font-bold text-[#124354]">{report.id}</span>
+                        <p className="text-xs text-gray-400 mt-0.5">{report.tanggal}</p>
+                      </td>
+                      <td className={`px-6 py-4 border-b border-gray-100 transition-all ${dimmedClass}`}>
+                        <div className="flex items-center gap-2">
+                          {getCategoryIcon(report.tipe_laporan)}
+                          {/* PERUBAHAN: Ubah Link menjadi Button yang membuka Modal. Mencegah navigasi ke halaman donatur */}
+                          <button
+                            onClick={() => openDetailModal(report)}
+                            className="font-bold text-[#124354] hover:text-[#407E8C] max-w-[150px] truncate text-left transition-colors underline decoration-dashed decoration-[#407E8C]/30 underline-offset-4 cursor-pointer"
+                            title={`Periksa Laporan: ${report.terlapor_nama}`}
+                          >
+                            {report.terlapor_nama}
+                          </button>
+                        </div>
+                      </td>
+                      <td className={`px-6 py-4 font-medium text-gray-600 border-b border-gray-100 transition-all ${dimmedClass}`}>
+                        {report.pelapor}
+                      </td>
+                      <td className={`px-6 py-4 text-gray-500 border-b border-gray-100 max-w-[200px] truncate transition-all ${dimmedClass}`} title={report.alasan}>
+                        {report.alasan}
+                      </td>
+                      <td className={`px-6 py-4 border-b border-gray-100 whitespace-nowrap transition-all ${dimmedClass}`}>
+                        {getStatusBadge(report.status)}
+                      </td>
+                      <td className="px-6 py-4 text-center border-b border-gray-100">
+                        <div className="flex justify-center">
+                          <Dropdown>
+                            <Dropdown.Trigger>
+                              <button className="p-2 text-gray-500 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                                <MoreVertical size={18} />
                               </button>
-                            )}
+                            </Dropdown.Trigger>
 
-                            {report.status === 'diproses' && (
+                            <Dropdown.Content align="right" width="48" contentClasses="py-1 bg-white border border-gray-100 shadow-xl rounded-xl z-50">
                               <button
-                                onClick={() => handleUpdateStatus(report.id, 'selesai')}
-                                className="flex items-center gap-2 text-green-600 hover:bg-green-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium"
+                                onClick={() => openDetailModal(report)}
+                                className="flex items-center gap-2 text-[#124354] hover:bg-[#F4F3EF] block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out font-medium"
                               >
-                                <CheckCircle2 size={16} /> Tandai Selesai
+                                <Eye size={16} className="text-[#407E8C]" /> Periksa Detail
                               </button>
-                            )}
 
-                            {(report.status === 'pending' || report.status === 'diproses') && (
-                              <button
-                                onClick={() => handleUpdateStatus(report.id, 'ditolak')}
-                                className="flex items-center gap-2 text-red-600 hover:bg-red-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium border-t border-gray-100"
-                              >
-                                <XCircle size={16} /> Tolak Laporan
-                              </button>
-                            )}
-                          </Dropdown.Content>
-                        </Dropdown>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                              {report.status === 'pending' && (
+                                <button
+                                  onClick={() => handleUpdateStatus(report.id, 'diproses')}
+                                  className="flex items-center gap-2 text-blue-600 hover:bg-blue-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium"
+                                >
+                                  <ShieldAlert size={16} /> Proses Laporan
+                                </button>
+                              )}
+
+                              {report.status === 'diproses' && (
+                                <button
+                                  onClick={() => handleUpdateStatus(report.id, 'selesai')}
+                                  className="flex items-center gap-2 text-green-600 hover:bg-green-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium"
+                                >
+                                  <CheckCircle2 size={16} /> Tandai Selesai
+                                </button>
+                              )}
+
+                              {(report.status === 'pending' || report.status === 'diproses') && (
+                                <button
+                                  onClick={() => handleUpdateStatus(report.id, 'ditolak')}
+                                  className="flex items-center gap-2 text-red-600 hover:bg-red-50 block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 font-medium border-t border-gray-100"
+                                >
+                                  <XCircle size={16} /> Tolak Laporan
+                                </button>
+                              )}
+                            </Dropdown.Content>
+                          </Dropdown>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
-        {/* Simple Pagination Footer */}
+        {/* Pagination Footer */}
         {filteredReports.length > 0 && (
           <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-between items-center text-xs text-gray-500 font-medium">
             <span>Menampilkan {filteredReports.length} data</span>
@@ -320,7 +324,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
         )}
       </div>
 
-      {/* Modal Detail menggunakan standard Inertia/Breeze Modal jika ada, atau Custom UI ini */}
+      {/* Modal Detail */}
       <Modal show={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} maxWidth="2xl">
         {selectedReport && (
           <div className="bg-white overflow-hidden rounded-2xl">
@@ -339,7 +343,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
 
             {/* Content Modal */}
             <div className="p-6 space-y-6">
-              {/* Dua Kolom Identitas */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                   <p className="text-xs text-gray-400 font-bold uppercase mb-1">Pihak Terlapor</p>
@@ -356,7 +359,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                 </div>
               </div>
 
-              {/* Substansi Laporan */}
               <div>
                 <p className="text-sm font-bold text-[#124354] mb-2">Alasan Utama Pengaduan:</p>
                 <div className="p-4 bg-rose-50 border border-rose-100 rounded-xl text-sm font-medium text-rose-900 leading-relaxed">
@@ -373,32 +375,56 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                 </div>
               )}
 
-              {/* Obyek Bukti (Visualisasi) */}
-              {selectedReport.tipe_laporan === 'postingan' && (
+              {/* PERUBAHAN: Menyediakan tautan aksi spesifik agar admin dapat melihat bukti */}
+              {selectedReport.tipe_laporan === 'panti' && (
                 <div>
-                  <p className="text-sm font-bold text-[#124354] mb-2">Konten Postingan yang Dilaporkan:</p>
-                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex gap-4 items-start">
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center">
-                      <Image size={24} className="text-gray-400" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">Isi atau deskripsi lengkap postingan tidak ditampilkan penuh dalam mode ringkas. Kunjungi langsung halaman Panti untuk melihat secara detail konten yang diduga melanggar.</p>
-                    </div>
+                  <p className="text-sm font-bold text-[#124354] mb-2">Obyek yang Dilaporkan:</p>
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3">
+                    <p className="text-sm text-gray-600">Laporan ini ditujukan pada entitas panti asuhan secara umum (profil, legalitas, atau aktivitas fisik).</p>
+                    <a href={`/admin/panti/${selectedReport.id_target}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-max text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                      <ExternalLink size={16} /> Tinjau Profil Panti di Panel Admin
+                    </a>
                   </div>
                 </div>
               )}
+
+              {selectedReport.tipe_laporan === 'postingan' && (
+                <div>
+                  <p className="text-sm font-bold text-[#124354] mb-2">Konten Postingan yang Dilaporkan:</p>
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-4">
+                    <div className="flex gap-4 items-start">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center">
+                        <Image size={24} className="text-gray-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">Deskripsi postingan atau pembaruan yang dianggap melanggar aturan KawanBerbagi.</p>
+                      </div>
+                    </div>
+                    {/* Mengarahkan ke preview admin/url spesifik postingan */}
+                    <a href={`/admin/postingan/${selectedReport.id_target}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-max text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                      <ExternalLink size={16} /> Buka Postingan Asli
+                    </a>
+                  </div>
+                </div>
+              )}
+
               {selectedReport.tipe_laporan === 'keuangan' && (
                 <div>
                   <p className="text-sm font-bold text-[#124354] mb-2">Dokumen Keuangan yang Dilaporkan:</p>
-                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex gap-4 items-center">
-                    <div className="w-12 h-12 bg-red-50 text-red-500 rounded-lg shrink-0 flex items-center justify-center">
-                      <FileText size={20} />
+                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-4">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-12 h-12 bg-red-50 text-red-500 rounded-lg shrink-0 flex items-center justify-center">
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
+                        <p className="text-xs text-gray-500 mt-0.5">Laporan Transparansi / Audit Dokumen</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">Laporan PDF / Audit Dokumen</p>
-                    </div>
+                    <a href={`/admin/keuangan/dokumen/${selectedReport.id_target}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-max text-sm font-bold text-red-600 hover:text-red-800 transition-colors bg-red-50 px-3 py-1.5 rounded-lg border border-red-100">
+                      <ExternalLink size={16} /> Unduh & Periksa Dokumen
+                    </a>
                   </div>
                 </div>
               )}
@@ -416,7 +442,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                     handleUpdateStatus(selectedReport.id, 'diproses');
                     setIsDetailModalOpen(false);
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   Proses Laporan
                 </button>
@@ -428,7 +454,7 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                     handleUpdateStatus(selectedReport.id, 'selesai');
                     setIsDetailModalOpen(false);
                   }}
-                  className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-green-700 transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-green-700 transition-colors cursor-pointer"
                 >
                   Tandai Selesai
                 </button>
@@ -444,7 +470,6 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
         label="Mengekspor Laporan Data"
         sublabel="Menyiapkan berkas dokumen laporan untuk diunduh..."
       />
-
     </div>
   );
 }

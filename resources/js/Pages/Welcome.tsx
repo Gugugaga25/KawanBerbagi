@@ -165,7 +165,7 @@ function Nav() {
     return (
       <header
         className="sticky top-0 z-50 backdrop-blur"
-        style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.mist}` }}
+        style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.teal}33` }}
       >
         <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
           <a href="#top" className="flex items-center gap-2">
@@ -265,7 +265,7 @@ function Nav() {
         {open && (
           <div
             className="md:hidden px-5 pb-5 flex flex-col gap-4 absolute w-full shadow-md"
-            style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.mist}` }}
+            style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.teal}33` }}
           >
             {links.map((l) => {
               let isActive = false;
@@ -370,15 +370,13 @@ function Hero() {
             <div className="flex flex-col sm:flex-row gap-4 mt-10">
               <a
                 href="#mulai"
-                className="inline-flex items-center justify-center gap-2 text-lg font-medium px-5 py-3 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.teal }}
+                className="inline-flex items-center justify-center gap-2 text-lg font-medium px-5 py-3 rounded-full text-white hover:brightness-110 transition bg-[#4274D9] hover:bg-[#293681]"
               >
                 Cari Panti Terdekat <ArrowRight size={20} />
               </a>
               <a
                 href="#daftar-panti"
-                className="inline-flex items-center justify-center gap-2 text-lg font-medium px-5 py-3 rounded-full border-2 hover:opacity-70 transition"
-                style={{ borderColor: COLORS.navy, color: COLORS.navy }}
+                className="inline-flex items-center justify-center gap-2 text-lg font-medium px-5 py-3 rounded-full border-2 transition border border-[#293681] text-[#293681] hover:bg-[#293681] hover:text-white"
               >
                 Daftarkan Panti Anda
               </a>
@@ -456,13 +454,12 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
   return (
     <Reveal delay={delay}>
       <div
-        className="rounded-2xl p-6 h-full flex flex-col"
-        style={{ backgroundColor: "#ffffff", border: `1px solid ${COLORS.mist}` }}
+        className="rounded-2xl p-6 h-full flex flex-col border border-[#4274D9]/20"
+        style={{ backgroundColor: "#ffffff" }}
       >
         <div className="flex items-start justify-between mb-4">
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: COLORS.mist }}
+            className="w-11 h-11 rounded-xl flex items-center justify-center bg-[#4274D9]/20"
           >
             <PackageCheck size={22} color={COLORS.teal} />
           </div>
@@ -490,13 +487,12 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
               {c.filled}/{c.total} {c.unit}
             </span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden mb-5" style={{ backgroundColor: COLORS.mist }}>
+          <div className="h-2 rounded-full overflow-hidden mb-5 bg-gray-200">
             <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: COLORS.teal }} />
           </div>
           <a
             href="#daftar"
-            className="inline-flex items-center justify-center gap-2 text-sm font-semibold w-full py-2.5 rounded-full text-white hover:brightness-110 transition"
-            style={{ backgroundColor: COLORS.navy }}
+            className="inline-flex items-center justify-center gap-2 text-sm font-semibold w-full py-2.5 rounded-full text-white bg-[#4274D9] hover:bg-[#293681] transition"
           >
             Bantu Penuhi Kuota <ArrowRight size={16} />
           </a>
@@ -520,8 +516,8 @@ function ActiveNeeds() {
           <h2 className="text-3xl sm:text-4xl font-medium mb-4" style={{ color: COLORS.cream }}>
             Barang yang sedang ditunggu, hari ini
           </h2>
-          <p className="text-lg max-w-2xl mb-14" style={{ color: COLORS.cream, opacity: 0.75 }}>
-            Bukan daftar wishlist umum — ini kebutuhan nyata dengan kuota pasti dari panti yang
+          <p className="text-lg mb-14" style={{ color: COLORS.cream, opacity: 0.75 }}>
+            Daftar wishlist — kebutuhan nyata dengan kuota pasti dari panti yang
             sudah terverifikasi.
           </p>
         </Reveal>
@@ -598,8 +594,7 @@ function HowItWorks() {
           </p>
 
           <div
-            className="inline-flex p-1 rounded-full mb-14"
-            style={{ backgroundColor: COLORS.mist }}
+            className="inline-flex p-1 rounded-full mb-14 bg-[#4274D9]/15"
             role="tablist"
             aria-label="Pilih alur"
           >
@@ -609,7 +604,7 @@ function HowItWorks() {
               onClick={() => setRole("donatur")}
               className="text-base font-semibold px-6 py-3 rounded-full transition"
               style={{
-                backgroundColor: role === "donatur" ? COLORS.navy : "transparent",
+                backgroundColor: role === "donatur" ? COLORS.teal : "transparent",
                 color: role === "donatur" ? COLORS.cream : COLORS.navy,
               }}
             >
@@ -621,7 +616,7 @@ function HowItWorks() {
               onClick={() => setRole("panti")}
               className="text-base font-semibold px-6 py-3 rounded-full transition"
               style={{
-                backgroundColor: role === "panti" ? COLORS.navy : "transparent",
+                backgroundColor: role === "panti" ? COLORS.teal : "transparent",
                 color: role === "panti" ? COLORS.cream : COLORS.navy,
               }}
             >
@@ -634,15 +629,14 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <Reveal key={`${role}-${s.title}`} delay={i * 100}>
               <div
-                className="rounded-2xl p-6 h-full relative"
-                style={{ backgroundColor: "#ffffff", border: `1px solid ${COLORS.mist}` }}
+                className="rounded-2xl p-6 h-full relative border border-[#4274D9]/20"
+                style={{ backgroundColor: "#ffffff", }}
               >
                 <div className="text-sm font-bold mb-4 tabular-nums" style={{ color: COLORS.gold }}>
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                  style={{ backgroundColor: COLORS.mist }}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-[#4274D9]/20"
                 >
                   <s.icon size={22} color={COLORS.teal} />
                 </div>
@@ -654,8 +648,7 @@ function HowItWorks() {
                 </p>
                 {i < steps.length - 1 && (
                   <div
-                    className="hidden lg:block absolute top-1/2 -right-3 w-6 h-[2px]"
-                    style={{ backgroundColor: COLORS.mist }}
+                    className="hidden lg:block absolute top-1/2 -right-3 w-6 h-[2px] bg-[#4274D9]/20"
                   />
                 )}
               </div>
@@ -691,7 +684,7 @@ const TESTIMONIALS = [
 
 function Trust() {
   return (
-    <section className="py-16 sm:py-24" style={{ backgroundColor: COLORS.mist }}>
+    <section className="py-16 sm:py-24 bg-[#4274D9]/20">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <Reveal>
           <div className="flex items-center gap-2 mb-3">
@@ -760,7 +753,7 @@ function ForEveryone() {
         <div className="grid md:grid-cols-2 gap-8">
           {personas.map((p, i) => (
             <Reveal key={p.title} delay={i * 120}>
-              <div className="rounded-2xl p-8 h-full flex flex-col" style={{ backgroundColor: COLORS.mist }}>
+              <div className="rounded-2xl p-8 h-full flex flex-col bg-[#4274D9]/20">
                 <h3 className="text-2xl font-medium mb-3" style={{ color: COLORS.navy }}>
                   {p.title}
                 </h3>
@@ -779,8 +772,7 @@ function ForEveryone() {
                 </ul>
                 <a
                   href={p.href}
-                  className="inline-flex items-center justify-center gap-2 text-base font-semibold px-6 py-3 rounded-full text-white hover:brightness-110 transition mt-auto self-start"
-                  style={{ backgroundColor: COLORS.navy }}
+                  className="inline-flex items-center justify-center gap-2 text-base font-semibold px-6 py-3 rounded-full text-white hover:brightness-110 transition mt-auto self-start bg-[#4274D9] hover:bg-[#293681]"
                 >
                   {p.cta} <ArrowRight size={18} />
                 </a>
@@ -863,26 +855,24 @@ function Features() {
                 <div className="flex items-center gap-3 mb-6">
                   <span
                     className="text-sm font-bold tabular-nums w-7 h-7 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: COLORS.navy, color: COLORS.cream }}
+                    style={{ backgroundColor: COLORS.teal, color: COLORS.cream }}
                   >
                     {gi + 1}
                   </span>
                   <h3 className="text-lg font-semibold" style={{ color: COLORS.navy }}>
                     {group.label}
                   </h3>
-                  <div className="flex-1 h-px" style={{ backgroundColor: COLORS.mist }} />
+                  <div className="flex-1 h-px bg-[#4274D9]/20"/>
                 </div>
               </Reveal>
               <div className="grid sm:grid-cols-2 gap-6">
                 {group.features.map((f, i) => (
                   <Reveal key={f.title} delay={gi * 80 + i * 100}>
                     <div
-                      className="rounded-2xl p-6 h-full flex gap-5 hover:shadow-md transition-shadow"
-                      style={{ border: `1px solid ${COLORS.mist}` }}
+                      className="rounded-2xl p-6 h-full flex gap-5 hover:shadow-md transition-shadow border border-[#4274D9]/20"
                     >
                       <div
-                        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: COLORS.mist }}
+                        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-[#4274D9]/20"
                       >
                         <f.icon size={22} color={COLORS.teal} />
                       </div>

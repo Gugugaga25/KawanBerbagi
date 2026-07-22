@@ -359,6 +359,17 @@ export default function ProfilPantiDetail({
                 {/* Cover Image */}
                 <div className="h-40 md:h-60 w-full relative overflow-hidden group bg-[#4274D9]/70">
                 
+                  {/* Tombol Back */}
+                  <div className="absolute top-4 left-4 z-20">
+                      <button 
+                          onClick={() => window.history.back()}
+                          className="bg-[#4274D9] hover:bg-[#293681] text-white p-2.5 rounded-full transition-colors shadow-lg backdrop-blur-sm"
+                          title="Kembali"
+                      >
+                          <ArrowLeft size={20} />
+                      </button>
+                  </div>
+
                   {/* Gambar Cover dengan Opsi Hapus (Jika Panti Owner) */}
                   {(panti?.foto_banner || panti?.cover) && (
                       <>
@@ -404,7 +415,7 @@ export default function ProfilPantiDetail({
                     {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
                       <Link 
                       href={route('donatur.chat.init', panti?.id_shelter)} 
-                      className="px-5 py-2 md:px-6 md:py-2.5 text-[#4274D9] rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base border border-[#4274D9] hover:bg-[#293681] hover:text-white"
+                      className="px-5 py-2 md:px-6 md:py-2.5 text-[#4274D9] rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base border border-[#4274D9] hover:bg-[#293681] hover:text-white hover:border-[#293681]"
                       >
                       <MessageCircle size={18} /> Hubungi Panti
                       </Link>
@@ -419,7 +430,7 @@ export default function ProfilPantiDetail({
                     {!isPantiOwner && (
                       <button 
                         onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
-                        className="p-2.5 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-400 border border-gray-200 transition-colors cursor-pointer"
+                        className="p-2.5 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-400 border border-gray-300 transition-colors cursor-pointer"
                         title="Laporkan Akun Panti Ini"
                       >
                         <Flag size={18} />

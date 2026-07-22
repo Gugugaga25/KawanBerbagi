@@ -187,22 +187,23 @@ export default function Register() {
         }`}
       >
         <div className="px-6 sm:px-10 lg:px-20 xl:px-28 pt-10 sm:pt-12 lg:pt-16 pb-14">
-          <div className="mb-8 sm:mb-10">
-            {/* @ts-ignore */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full backdrop-blur-md transition-all duration-200 border hover:opacity-80 shadow-sm"
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                borderColor: "rgba(192, 213, 214, 0.5)",
-                color: COLORS.navy,
-              }}
-            >
-              <ArrowLeft size={16} /> Kembali
-            </Link>
-          </div>
+          {/* Tombol Kembali */}
+          <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-20">
+          {/* @ts-ignore */}
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full backdrop-blur-md transition-all duration-200 border hover:opacity-80 shadow-sm"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.6)",
+              borderColor: "rgba(192, 213, 214, 0.5)",
+              color: COLORS.navy,
+            }}
+          >
+            <ArrowLeft size={16} /> Kembali
+          </Link>
+        </div>
 
-          <div className="max-w-md w-full mx-auto">
+          <div className="w-full mx-auto pt-8">
           {submitted ? (
             role === "yayasan" ? (
               /* ---------- YAYASAN: pending verification ---------- */
@@ -285,10 +286,9 @@ export default function Register() {
               </div>
             ) : (
               /* ---------- DONATUR: instant success ---------- */
-              <div>
+              <div className="pt-32">
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-                  style={{ backgroundColor: COLORS.mist }}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-[#4274D9]/20"
                 >
                   <CheckCircle2 size={28} color={COLORS.teal} />
                 </div>
@@ -313,7 +313,7 @@ export default function Register() {
             <div key={role} className="transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
               {/* Single Toggle Role Switcher Button */}
               <div className="flex justify-between items-center mb-6">
-                <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#D0E7E6]/40 px-3 py-1.5 rounded-lg border border-[#D0E7E6]">
+                <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#4274D9]/20 px-3 py-1.5 rounded-lg border border-[#D0E7E6]">
                   {role === "donatur" ? "Pendaftaran Donatur" : "Pendaftaran Yayasan"}
                 </span>
                 <button
@@ -323,7 +323,7 @@ export default function Register() {
                 >
                   {role === "donatur" ? (
                     <>
-                      <Building2 size={15} className="text-[#F59E0B]" />
+                      <Building2 size={15} className="text-[#4274D9]" />
                       <span>Daftar sebagai Yayasan</span>
                       <ArrowRight size={14} className="text-[#4274D9] group-hover:translate-x-0.5 transition-transform" />
                     </>
@@ -845,7 +845,7 @@ export default function Register() {
         />
 
         {/* Scrollable content */}
-        <div className="relative z-10 px-6 sm:px-10 lg:px-16 pt-10 sm:pt-12 lg:pt-16 pb-16">
+        <div className="relative z-10 px-6 sm:px-10 lg:px-20 pt-10 sm:pt-12 lg:pt-16 pb-16">
           {/* Logo */}
           <div className="mb-10 lg:mb-12">
             {/* @ts-ignore */}
@@ -857,7 +857,7 @@ export default function Register() {
             </Link>
           </div>
 
-          <div key={role} className="max-w-md w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
+          <div key={role} className="w-full transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
           {role === "donatur" ? (
             <>
               <div
