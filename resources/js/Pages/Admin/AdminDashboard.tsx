@@ -11,7 +11,6 @@ import Laporan from './Laporan';
 import AdminSettings from './AdminSettings';
 import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
-import { ToastProvider } from '@/Components/UI/Toast';
 
 interface AdminDashboardProps {
   auth: any; 
@@ -99,8 +98,7 @@ export default function AdminDashboard({
   };
 
   return (
-    <ToastProvider>
-      <div className="flex h-screen bg-[#F8FAFC] font-sans antialiased overflow-hidden">
+    <div className="flex h-screen bg-[#F8FAFC] font-sans antialiased overflow-hidden">
         
         {/* ================= MOBILE OVERLAY ================= */}
         {isMobileMenuOpen && (
@@ -156,6 +154,5 @@ export default function AdminDashboard({
 
         </main>
       </div>
-    </ToastProvider>
   );
 }

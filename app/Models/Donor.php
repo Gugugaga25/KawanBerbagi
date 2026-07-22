@@ -28,4 +28,9 @@ class Donor extends Model
     {
         return $this->hasMany(Donation::class, 'id_donor', 'id_donor');
     }
+
+    public function cashDonations()
+    {
+        return $this->hasMany(CashDonation::class, 'id_donor', 'id_donor');
+    }
 }

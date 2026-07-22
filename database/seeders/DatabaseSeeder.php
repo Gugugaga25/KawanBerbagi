@@ -15,12 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Hubungkan ulang database untuk membersihkan cache skema PgBouncer (Supabase)
+        \Illuminate\Support\Facades\DB::purge();
+        \Illuminate\Support\Facades\DB::reconnect();
 
         $this->call([
             RoleUserSeeder::class,
             UserSeeder::class,
             DonationSeeder::class,
+            ReportSeeder::class,
         ]);
     }
 }

@@ -152,8 +152,8 @@ export default function PantiVerification({ panti }: PantiProps) {
                     <Users size={18} />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Jumlah Anak Asuh</p>
-                    <p className="font-medium text-[#124354]">{panti.anak} Anak</p>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Jumlah Penerima Manfaat</p>
+                    <p className="font-medium text-[#124354]">{panti.anak} Orang</p>
                   </div>
                 </div>
               </div>

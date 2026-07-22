@@ -9,6 +9,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import InlineSpinner from "@/Components/UI/InlineSpinner";
+import { useToast } from "@/Components/UI/Toast";
 
 const COLORS = {
   navy: "#293681",
@@ -20,6 +21,7 @@ const COLORS = {
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const { showToast } = useToast();
   const { data, setData, post, processing, errors, reset } = useForm({
     email: '',
     password: '',
@@ -35,6 +37,13 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     post('/login', {
+      onError: (errors) => {
+        if (errors.email) {
+          showToast(errors.email, 'error', 'Login Gagal');
+        } else {
+          showToast('Terjadi kesalahan saat masuk. Silakan coba lagi.', 'error', 'Login Gagal');
+        }
+      },
       onFinish: () => reset('password'),
     });
   };
@@ -103,13 +112,6 @@ export default function Login() {
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Error Message */}
-              {errors.email && (
-                <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-semibold text-center border border-red-200">
-                  Email atau password tidak sesuai
-                </div>
-              )}
-
               {/* Input Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
@@ -249,13 +251,6 @@ export default function Login() {
             </p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* Error Message */}
-              {errors.email && (
-                <div className="bg-red-50 text-red-500 p-3.5 rounded-xl text-sm font-semibold text-center border border-red-200">
-                  Email atau password tidak sesuai
-                </div>
-              )}
-
               {/* Input Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>

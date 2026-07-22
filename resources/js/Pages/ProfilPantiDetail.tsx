@@ -360,7 +360,7 @@ export default function ProfilPantiDetail({
                 </Link>
                 <div onClick={scrollToTop} className="cursor-pointer flex-1 py-1">
                     <h2 className="font-bold text-[16px] leading-tight">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</h2>
-                    <p className="text-[12px] text-[#D0E7E6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Anak Asuh</p>
+                    <p className="text-[12px] text-[#D0E7E6]">{posts.length} Postingan • {panti?.jumlah_anak || 45} Penerima Manfaat</p>
                 </div>
                 {!isPantiOwner && (
                   <button 

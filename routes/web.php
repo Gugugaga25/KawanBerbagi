@@ -88,15 +88,34 @@ Route::middleware('auth')->group(function () {
             ];
         });
 
-        $donaturs = \App\Models\Donor::with('user')->get()->map(function ($donor) {
+        $donaturs = \App\Models\Donor::with(['user', 'donations', 'cashDonations'])->get()->map(function ($donor) {
+            $totalCash = $donor->cashDonations->where('status', 'Sukses')->sum('nominal');
+            $freqGoods = $donor->donations->where('status', 'Diterima')->count();
+            $freqCash = $donor->cashDonations->where('status', 'Sukses')->count();
+            $freqTotal = $freqGoods + $freqCash;
+
+            // Cari tanggal donasi terakhir
+            $lastGoodsDate = $donor->donations->where('status', 'Diterima')->max('created_at');
+            $lastCashDate = $donor->cashDonations->where('status', 'Sukses')->max('created_at');
+            $latest = collect([$lastGoodsDate, $lastCashDate])->filter()->max();
+
+            // Tentukan tier berdasarkan nominal donasi uang
+            if ($totalCash >= 5000000) {
+                $tier = 'Gold';
+            } elseif ($totalCash >= 1000000) {
+                $tier = 'Silver';
+            } else {
+                $tier = 'Bronze';
+            }
+
             return [
                 'id' => $donor->id_donor,
                 'nama' => $donor->nama_lengkap,
                 'email' => $donor->user ? $donor->user->email : '',
-                'total' => 'Rp 0',
-                'frekuensi' => 0,
-                'tier' => 'Bronze',
-                'terakhir' => '-',
+                'total' => 'Rp ' . number_format($totalCash, 0, ',', '.'),
+                'frekuensi' => $freqTotal,
+                'tier' => $tier,
+                'terakhir' => $latest ? \Carbon\Carbon::parse($latest)->format('d M Y') : '-',
                 'phone' => $donor->no_wa,
                 'city' => $donor->kota,
             ];
@@ -368,6 +387,7 @@ Route::middleware('auth')->group(function () {
 
                     return [
                         'id' => $need->id_needs,
+                        'id_shelter' => $need->id_shelter,
                         'org' => $need->shelter ? $need->shelter->nama_yayasan : '-',
                         'location' => $need->shelter ? $need->shelter->alamat : '-',
                         'address' => $need->shelter ? $need->shelter->alamat : '-',

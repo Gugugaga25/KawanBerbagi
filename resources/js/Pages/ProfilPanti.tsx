@@ -291,7 +291,7 @@ export default function ProfilPanti({ pantis = [] }: { pantis?: Shelter[] }) {
                   {/* Tombol Interaksi */}
                   <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: 'rgba(0,0,0,0.05)' }}>
                     <div className="flex items-center gap-1 text-xs font-bold" style={{ color: COLORS.navy, opacity: 0.75 }}>
-                      <Users size={14} /> {shelter.jumlah_anak} Anak Asuh
+                      <Users size={14} /> {shelter.jumlah_anak} Penerima Manfaat
                     </div>
                     
                     <button

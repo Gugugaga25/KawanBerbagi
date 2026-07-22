@@ -6,7 +6,7 @@ import {
 import AdminSidebar, { TabType } from '@/Components/Admin/AdminSidebar';
 import AdminHeader from '@/Components/Admin/AdminHeader';
 import InlineSpinner from '@/Components/UI/InlineSpinner';
-import { useToast, ToastProvider } from '@/Components/UI/Toast';
+import { useToast } from '@/Components/UI/Toast';
 import EmptyState from '@/Components/UI/EmptyState';
 
 interface ChatItem {
@@ -455,8 +455,6 @@ function AdminChatContent({ chats: initialChats, activeChatId: initialActiveChat
 
 export default function AdminChat(props: AdminChatProps) {
   return (
-    <ToastProvider>
-      <AdminChatContent {...props} />
-    </ToastProvider>
+    <AdminChatContent {...props} />
   );
 }

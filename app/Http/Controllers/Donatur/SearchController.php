@@ -33,6 +33,7 @@ class SearchController extends Controller
 
             return [
                 'id'       => $item->id_needs,
+                'id_shelter' => $item->id_shelter,
                 'org'      => $item->shelter ? $item->shelter->nama_yayasan : 'Panti Asuhan Anonim',
                 'location' => $item->shelter ? $item->shelter->alamat : 'Lokasi tidak diketahui',
                 'address'  => $item->shelter ? $item->shelter->alamat : 'Lokasi tidak diketahui',

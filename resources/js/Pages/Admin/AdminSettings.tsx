@@ -48,6 +48,10 @@ export default function AdminSettings({ auth }: { auth: any }) {
     patchProfile(route('profile.update'), {
       onSuccess: () => {
         showToast('Informasi profil Anda berhasil diperbarui.', 'success', 'Profil Diperbarui');
+      },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui profil. Periksa kembali input Anda.', 'error', 'Pembaruan Gagal');
       }
     });
   };
@@ -59,6 +63,10 @@ export default function AdminSettings({ auth }: { auth: any }) {
         resetPassword();
         showToast('Kata sandi Anda berhasil diperbarui.', 'success', 'Keamanan Terjaga');
       },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui kata sandi. Periksa kembali input Anda.', 'error', 'Keamanan Gagal');
+      }
     });
   };
 

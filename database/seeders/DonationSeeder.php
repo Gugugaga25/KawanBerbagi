@@ -2,12 +2,13 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-
 use App\Models\Need;
 use App\Models\Donor;
+use App\Models\Shelter;
 use App\Models\Donation;
+use App\Models\CashDonation;
+use Illuminate\Support\Str;
 
 class DonationSeeder extends Seeder
 {
@@ -16,129 +17,88 @@ class DonationSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ambil semua donatur yang sudah dibuat di UserSeeder
+        $faker = fake('id_ID');
+
         $donors = Donor::all();
-        if ($donors->count() < 3) {
+        $needs = Need::all();
+        $shelters = Shelter::all();
+
+        if ($donors->isEmpty() || $needs->isEmpty() || $shelters->isEmpty()) {
+            $this->command->warn("Missing base records to seed donations. Run UserSeeder first.");
             return;
         }
 
-        $donor1 = $donors[0]; // Rizky Ramadhan
-        $donor2 = $donors[1]; // Budi Santoso
-        $donor3 = $donors[2]; // Siti Aminah
+        $this->command->info("=== SEEDING DONATIONS ===");
 
-        // Ambil beberapa kebutuhan panti asuhan
-        $needBeras1 = Need::where('nama_kebutuhan', 'Beras Putih Premium')->first();
-        $needSusu1 = Need::where('nama_kebutuhan', 'Susu Formula Bayi (6-12 bln)')->first();
-        $needSelimut1 = Need::where('nama_kebutuhan', 'Selimut & Pakaian Hangat')->first();
+        // ================= 1. GOODS DONATIONS (5-15 per Donor) =================
+        $this->command->info("Seeding Goods Donations (5-15 per donor)...");
+        $couriers = ['JNE Reguler', 'GrabExpress', 'Gojek Instant', 'SiCepat Reguler', 'J&T Express', 'JNE Trucking'];
+        $statuses = ['Pending', 'Diproses', 'Dikirim', 'Diterima', 'Batal'];
 
-        $needSusu2 = Need::where('nama_kebutuhan', 'Susu Bayi SGM')->first();
-        $needBuku2 = Need::where('nama_kebutuhan', 'Buku Iqra & Juz Amma')->first();
+        foreach ($donors as $donor) {
+            $numDonations = rand(5, 15);
+            for ($i = 0; $i < $numDonations; $i++) {
+                $need = $needs->random();
+                $status = $statuses[array_rand($statuses)];
+                $qty = rand(1, min(15, $need->jumlah));
 
-        $needSelimut3 = Need::where('nama_kebutuhan', 'Selimut Hangat Tebal')->first();
-        $needPopok3 = Need::where('nama_kebutuhan', 'Popok Dewasa Size L')->first();
+                $donationData = [
+                    'id_needs' => $need->id_needs,
+                    'id_donor' => $donor->id_donor,
+                    'jumlah_donasi' => $qty,
+                    'status' => $status,
+                    'pesan' => $faker->sentence(),
+                ];
 
-        $needSeragam4 = Need::where('nama_kebutuhan', 'Seragam SD & Celana')->first();
-        $needBeras4 = Need::where('nama_kebutuhan', 'Beras Pandan Wangi')->first();
+                if (in_array($status, ['Dikirim', 'Diterima'])) {
+                    $donationData['kurir'] = $couriers[array_rand($couriers)];
+                    $donationData['resi'] = 'RES' . strtoupper(Str::random(10));
+                }
 
-        // --- Donasi dari Donatur 1 (Rizky Ramadhan) ---
-        if ($needBeras1) {
-            Donation::create([
-                'id_needs' => $needBeras1->id_needs,
-                'id_donor' => $donor1->id_donor,
-                'jumlah_donasi' => 10,
-                'status' => 'Diterima',
-                'kurir' => 'Gojek (Instant)',
-                'resi' => '-',
-                'pesan' => 'Semoga membantu mencukupi kebutuhan beras adik-adik.',
-                'bukti_penerimaan' => 'bukti_penerimaan/dummy_bukti.jpg',
-                'ucapan_terimakasih' => 'Terima kasih banyak atas donasi beras putih premiumnya. Sangat membantu kebutuhan pangan anak-anak di panti kami.',
+                if ($status === 'Diterima') {
+                    $donationData['bukti_penerimaan'] = 'bukti_penerimaan/dummy_bukti_' . rand(1, 4) . '.jpg';
+                    $donationData['ucapan_terimakasih'] = 'Terima kasih banyak atas donasinya. Bantuan ' . $need->nama_kebutuhan . ' ini sangat membantu anak-anak.';
+                }
+
+                Donation::create($donationData);
+            }
+        }
+
+        // Update 'terkumpul' count in Needs table based on accepted donations (status = 'Diterima')
+        foreach ($needs as $need) {
+            $totalReceived = Donation::where('id_needs', $need->id_needs)
+                ->where('status', 'Diterima')
+                ->sum('jumlah_donasi');
+            
+            $need->update([
+                'terkumpul' => min($need->jumlah, $totalReceived),
             ]);
         }
 
-        if ($needSusu1) {
-            Donation::create([
-                'id_needs' => $needSusu1->id_needs,
-                'id_donor' => $donor1->id_donor,
-                'jumlah_donasi' => 2,
-                'status' => 'Dikirim',
-                'kurir' => 'JNE Reguler',
-                'resi' => 'JNE98124912984',
-                'pesan' => 'Susu formula untuk balita di panti asuhan.',
-            ]);
+        // ================= 2. CASH DONATIONS (10-20 per Shelter) =================
+        $this->command->info("Seeding Cash Donations (10-20 per shelter)...");
+        $paymentMethods = ['Transfer Bank', 'QRIS', 'E-Wallet (Gopay/OVO)', 'Kartu Kredit'];
+        $cashStatuses = ['Sukses', 'Pending', 'Batal'];
+
+        foreach ($shelters as $shelter) {
+            $numCashDonations = rand(10, 20);
+            for ($j = 0; $j < $numCashDonations; $j++) {
+                $randomDonor = $donors->random();
+                $cashStatus = $cashStatuses[array_rand($cashStatuses)];
+
+                CashDonation::create([
+                    'id_donor' => $randomDonor->id_donor,
+                    'id_shelter' => $shelter->id_shelter,
+                    'nominal' => rand(5, 100) * 10000, // 50.000 to 1.000.000
+                    'metode_pembayaran' => $paymentMethods[array_rand($paymentMethods)],
+                    'pesan' => rand(0, 2) === 0 ? null : $faker->sentence(), // 33% chance of null message
+                    'is_anonim' => rand(0, 5) === 0, // 16% chance of anonymous
+                    'developer_tip' => rand(0, 10) === 0, // 9% chance of tip
+                    'status' => $cashStatus,
+                ]);
+            }
         }
 
-        if ($needSelimut1) {
-            Donation::create([
-                'id_needs' => $needSelimut1->id_needs,
-                'id_donor' => $donor1->id_donor,
-                'jumlah_donasi' => 5,
-                'status' => 'Diproses',
-                'pesan' => 'Sedang kami kemas dan persiapkan untuk dikirim.',
-            ]);
-        }
-
-        // --- Donasi dari Donatur 2 (Budi Santoso) ---
-        if ($needSusu2) {
-            Donation::create([
-                'id_needs' => $needSusu2->id_needs,
-                'id_donor' => $donor2->id_donor,
-                'jumlah_donasi' => 4,
-                'status' => 'Diterima',
-                'kurir' => 'GrabExpress',
-                'resi' => '-',
-                'pesan' => 'Semoga susu formula ini berkah buat anak-anak bayi.',
-                'bukti_penerimaan' => 'bukti_penerimaan/dummy_susu2.jpg',
-                'ucapan_terimakasih' => 'Terima kasih banyak atas bantuan susu bayi SGM untuk anak-anak kami. Semoga Allah membalas kebaikan Anda.',
-            ]);
-        }
-
-        if ($needBuku2) {
-            Donation::create([
-                'id_needs' => $needBuku2->id_needs,
-                'id_donor' => $donor2->id_donor,
-                'jumlah_donasi' => 10,
-                'status' => 'Dikirim',
-                'kurir' => 'SiCepat Reguler',
-                'resi' => 'SIS9831938928',
-                'pesan' => 'Paket buku Iqra dan Juz Amma untuk mengaji sore hari.',
-            ]);
-        }
-
-        // --- Donasi dari Donatur 3 (Siti Aminah) ---
-        if ($needSelimut3) {
-            Donation::create([
-                'id_needs' => $needSelimut3->id_needs,
-                'id_donor' => $donor3->id_donor,
-                'jumlah_donasi' => 5,
-                'status' => 'Diproses',
-                'pesan' => 'Pakaian hangat dan selimut tebal untuk lansia.',
-            ]);
-        }
-
-        if ($needPopok3) {
-            Donation::create([
-                'id_needs' => $needPopok3->id_needs,
-                'id_donor' => $donor3->id_donor,
-                'jumlah_donasi' => 10,
-                'status' => 'Diterima',
-                'kurir' => 'J&T Express',
-                'resi' => 'JT981249129',
-                'pesan' => 'Semoga popok dewasa membantu kenyamanan kakek nenek di panti wreda.',
-                'bukti_penerimaan' => 'bukti_penerimaan/dummy_popok.jpg',
-                'ucapan_terimakasih' => 'Terima kasih banyak atas bantuan popok dewasa untuk kakek nenek di panti. Bantuan ini sangat bermanfaat bagi kami.',
-            ]);
-        }
-
-        if ($needBeras4) {
-            Donation::create([
-                'id_needs' => $needBeras4->id_needs,
-                'id_donor' => $donor3->id_donor,
-                'jumlah_donasi' => 50,
-                'status' => 'Dikirim',
-                'kurir' => 'JNE Trucking (JTR)',
-                'resi' => 'JTR881298412',
-                'pesan' => 'Beras pandan wangi untuk konsumsi harian.',
-            ]);
-        }
+        $this->command->info("Seeding completed successfully!");
     }
 }

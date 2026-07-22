@@ -15,6 +15,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import PasswordChecklist from '@/Components/Form/PasswordChecklist';
 import { sanitizePhoneNumber, validatePasswordRequirements } from '@/Utils/formUtils';
 import InlineSpinner from '@/Components/UI/InlineSpinner';
+import { useToast } from '@/Components/UI/Toast';
 
 const COLORS = {
   navy: "#293681",
@@ -41,6 +42,8 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const { showToast } = useToast();
 
   // ---- Form: Informasi Profil ----
   const profileForm = useForm({
@@ -76,18 +79,40 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
     e.preventDefault();
     profileForm.post(route('donatur.profil.update'), {
       forceFormData: true,
+      onSuccess: () => {
+        showToast('Informasi profil Anda berhasil diperbarui.', 'success', 'Profil Diperbarui');
+      },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui profil. Periksa kembali input Anda.', 'error', 'Pembaruan Gagal');
+      }
     });
   };
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    emailForm.patch(route('donatur.profil.updateEmail'));
+    emailForm.patch(route('donatur.profil.updateEmail'), {
+      onSuccess: () => {
+        showToast('Alamat email Anda berhasil diperbarui.', 'success', 'Email Diperbarui');
+      },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui email. Periksa kembali input Anda.', 'error', 'Pembaruan Gagal');
+      }
+    });
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     passwordForm.patch(route('donatur.profil.updatePassword'), {
-      onSuccess: () => passwordForm.reset(),
+      onSuccess: () => {
+        passwordForm.reset();
+        showToast('Kata sandi Anda berhasil diperbarui.', 'success', 'Keamanan Terjaga');
+      },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui kata sandi. Periksa kembali input Anda.', 'error', 'Keamanan Gagal');
+      }
     });
   };
 
@@ -156,6 +181,9 @@ export default function ProfilSaya({ donaturData }: { donaturData?: DonaturData 
           <p className="text-xs mt-1" style={{ color: COLORS.navy, opacity: 0.45 }}>
             Donatur sejak {donaturData?.member_since ?? '-'}
           </p>
+          {profileForm.errors.foto_profil && (
+            <p className="text-red-500 text-xs mt-1.5 font-bold">{profileForm.errors.foto_profil}</p>
+          )}
         </div>
       </div>
 

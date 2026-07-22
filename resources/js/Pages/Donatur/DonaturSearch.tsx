@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   Search, MapPin, Package, SlidersHorizontal, X, Building2, 
   UserCheck, Truck, MapPinOff, Minus, Plus, Home, 
-  ShieldCheck, Clock, Phone, Filter 
+  ShieldCheck, Clock, Phone, Filter, MessageSquare
 } from 'lucide-react';
 import { useForm, Link, router } from '@inertiajs/react';
 import EmptyState from '@/Components/UI/EmptyState';
@@ -157,6 +157,11 @@ export default function CariPanti({
     setSelectedCampaign(null);
     formBarang.reset();
     formBarang.clearErrors();
+  };
+
+  const handleChatTanya = (c: any) => {
+    const messageText = `Halo, saya ingin bertanya tentang kebutuhan barang '${c.item}' di ${c.org}.`;
+    router.visit(`/donatur/chat/init/${c.id_shelter}?message=${encodeURIComponent(messageText)}`);
   };
 
   const adjustAmount = (delta: number) => {
@@ -335,7 +340,21 @@ export default function CariPanti({
                       <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: COLORS.teal }} />
                     </div>
                     {remaining > 0 ? (
-                      <button onClick={() => handleOpenModalBarang(c)} className="text-sm font-semibold w-full py-2.5 rounded-full text-white bg-[#4274D9] hover:bg-[#293681] transition shadow-sm">Donasi Barang</button>
+                      <div className="flex gap-2 w-full">
+                        <button 
+                          onClick={() => handleOpenModalBarang(c)} 
+                          className="text-sm font-semibold flex-1 py-2.5 rounded-full text-white bg-[#4274D9] hover:bg-[#293681] transition shadow-sm"
+                        >
+                          Donasi Barang
+                        </button>
+                        <button 
+                          onClick={() => handleChatTanya(c)}
+                          title="Tanya Chat"
+                          className="p-2.5 rounded-full border border-[#4274D9] text-[#4274D9] hover:bg-[#4274D9]/10 transition flex items-center justify-center shrink-0"
+                        >
+                          <MessageSquare size={18} />
+                        </button>
+                      </div>
                     ) : (
                       <button disabled className="text-sm font-semibold w-full py-2.5 rounded-full text-gray-400 bg-gray-100 cursor-not-allowed">Terpenuhi</button>
                     )}

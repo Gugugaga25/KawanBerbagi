@@ -134,7 +134,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                 <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.teal}}>Nama Panti</th>
                 <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Pimpinan</th>
                 <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Lokasi</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Jml. Anak</th>
+                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Jumlah Binaan</th>
                 <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Status</th>
                 <th className="px-6 py-4 font-bold text-right rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
@@ -171,7 +171,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                     </td>
                     <td className="px-6 py-4 font-medium border-b border-gray-100">{panti.pimpinan}</td>
                     <td className="px-6 py-4 text-gray-500 border-b border-gray-100">{panti.alamat}</td>
-                    <td className="px-6 py-4 font-semibold border-b border-gray-100">{panti.anak} Anak</td>
+                    <td className="px-6 py-4 font-semibold border-b border-gray-100">{panti.anak} Orang</td>
                     <td className="px-6 py-4 border-b border-gray-100">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                         panti.status === 'Active' 

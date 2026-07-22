@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm } from '@inertiajs/react';
 import { User, Lock, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { useToast } from '@/Components/UI/Toast';
 
 export default function PantiSettings({ auth }: { auth: any }) {
   // Form Info Profil
@@ -35,15 +36,32 @@ export default function PantiSettings({ auth }: { auth: any }) {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
+  const { showToast } = useToast();
+
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    patchProfile(route('profile.update'));
+    patchProfile(route('profile.update'), {
+      onSuccess: () => {
+        showToast('Informasi profil Anda berhasil diperbarui.', 'success', 'Profil Diperbarui');
+      },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui profil. Periksa kembali input Anda.', 'error', 'Pembaruan Gagal');
+      }
+    });
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     putPassword(route('password.update'), {
-      onSuccess: () => resetPassword(),
+      onSuccess: () => {
+        resetPassword();
+        showToast('Kata sandi Anda berhasil diperbarui.', 'success', 'Keamanan Terjaga');
+      },
+      onError: (errors) => {
+        const firstError = Object.values(errors)[0];
+        showToast(firstError || 'Gagal memperbarui kata sandi. Periksa kembali input Anda.', 'error', 'Keamanan Gagal');
+      }
     });
   };
 

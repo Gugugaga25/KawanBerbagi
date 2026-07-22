@@ -125,7 +125,7 @@ class ChatController extends Controller
         ]);
     }
 
-    public function initChat($id_shelter)
+    public function initChat(Request $request, $id_shelter)
     {
         $donor = Donor::where('id_user', auth()->id())->firstOrFail();
 
@@ -135,7 +135,12 @@ class ChatController extends Controller
             'id_shelter' => $id_shelter,
         ]);
 
-        return redirect()->route('donatur.chat', ['active_chat' => $chat->id_chat]);
+        $params = ['active_chat' => $chat->id_chat];
+        if ($request->query('message')) {
+            $params['message'] = $request->query('message');
+        }
+
+        return redirect()->route('donatur.chat', $params);
     }
 
     public function getMessages($id_chat)

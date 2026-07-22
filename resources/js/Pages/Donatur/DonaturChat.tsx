@@ -189,6 +189,20 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
     };
   }, [activeChatId]);
 
+  useEffect(() => {
+    if (activeChatId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialMessage = urlParams.get('message');
+      if (initialMessage) {
+        setInputMessage(initialMessage);
+        
+        // Clean up parameter from URL so it doesn't reappear on page refresh
+        const newUrl = `${window.location.pathname}?active_chat=${activeChatId}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+      }
+    }
+  }, [activeChatId]);
+
   const handleSelectChat = (chatId: number | string) => {
     setActiveChatId(chatId);
     // Update URL to make it bookmarkable
