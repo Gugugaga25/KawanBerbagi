@@ -5,16 +5,20 @@ import {
   Package,
   Plus,
   TrendingUp,
+  AlertTriangle,
+  ShieldAlert,
+  ExternalLink,
 } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 
 interface PantiOverviewProps {
   pantiData?: any;
   needs?: any[];
   donations?: any[];
+  notifications?: any[];
 }
 
-export default function PantiOverview({ pantiData, needs = [], donations = [] }: PantiOverviewProps) {
+export default function PantiOverview({ pantiData, needs = [], donations = [], notifications = [] }: PantiOverviewProps) {
   const orgName = pantiData?.nama_yayasan || "Panti Asuhan";
 
   // --- 1. Perhitungan Donasi & Rincian Logistik ---
@@ -53,14 +57,14 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
   }
 
   donations.forEach((d: any) => {
-    if (d.created_at_raw) {
-      const dt = new Date(d.created_at_raw);
-      const m = dt.getMonth();
-      const y = dt.getFullYear();
-      const found = last6Months.find(x => x.monthIdx === m && x.year === y);
-      if (found) {
-        found.value += 1;
-      }
+    if (!d.created_at_raw) return;
+    const dDate = new Date(d.created_at_raw);
+    const itemMonth = dDate.getMonth();
+    const itemYear = dDate.getFullYear();
+
+    const targetIndex = last6Months.findIndex(m => m.monthIdx === itemMonth && m.year === itemYear);
+    if (targetIndex !== -1) {
+      last6Months[targetIndex].value += 1;
     }
   });
 
@@ -81,12 +85,6 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
   const getY = (val: number) => PAD_T + G_H - ((val / maxVal) * G_H);
   const pathD = `M ${chartData.map((d, i) => `${getX(i)} ${getY(d.value)}`).join(' L ')}`;
 
-  // --- 3. Paket Menunggu Konfirmasi ---
-  const incomingDeliveries = donations.filter((d: any) => d.status === 'Dikirim' || d.status === 'Proses' || d.status === 'Pending');
-
-  // --- 4. Priority Wishlist Needs ---
-  const priorityNeeds = needs.filter((n: any) => n.status === 'aktif' || (n.target && n.terkumpul < n.target)).slice(0, 3);
-
   const handleNavDonasi = () => {
     router.visit('/panti/dashboard?tab=donasi');
   };
@@ -95,10 +93,16 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
     router.visit('/panti/dashboard?tab=kebutuhan');
   };
 
+  // --- 3. Paket Menunggu Konfirmasi ---
+  const incomingDeliveries = donations.filter((d: any) => d.status === 'Dikirim' || d.status === 'Proses' || d.status === 'Pending');
+
+  // --- 4. Priority Wishlist Needs ---
+  const priorityNeeds = needs.filter((n: any) => n.status === 'aktif' || (n.target && n.terkumpul < n.target)).slice(0, 3);
+
   return (
     <div className="space-y-6 w-full">
       
-      {/* ================= HEADER SECTION (Card Navy) ================= */}
+      {/* ================= HERO SECTION (Card Navy) ================= */}
       <div className="bg-[#4274D9] rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6 shadow-sm">
         <div>
           <div className="flex items-center gap-3 mb-4">
@@ -114,6 +118,48 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
           </p>
         </div>
       </div>
+
+      {/* ================= BANNER PERINGATAN RESMI DARI ADMIN (DI BAWAH HERO SECTION) ================= */}
+      {notifications && notifications.filter((n: any) => (!n.is_read) && (n.type === 'admin_warning' || n.type === 'admin_takedown')).length > 0 && (
+        <div className="space-y-3">
+          {notifications.filter((n: any) => (!n.is_read) && (n.type === 'admin_warning' || n.type === 'admin_takedown')).map((notif: any) => (
+            <div key={notif.id} className="bg-rose-50 border-2 border-rose-300 rounded-[2rem] p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-start gap-4 flex-1 min-w-0">
+                <div className="w-11 h-11 rounded-2xl bg-rose-600 text-white flex items-center justify-center shrink-0 font-bold shadow-sm">
+                  <AlertTriangle size={22} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                    <h4 className="font-extrabold text-sm md:text-base text-rose-900 uppercase tracking-wide flex items-center gap-2">
+                      <span>{notif.title}</span>
+                      <span className="text-[10px] bg-rose-200 text-rose-900 px-2.5 py-0.5 rounded-full font-black uppercase">
+                        {notif.type === 'admin_warning' ? 'PERINGATAN RESMI' : 'TAKEDOWN KONTEN'}
+                      </span>
+                    </h4>
+                    <span className="text-xs font-semibold text-rose-500">
+                      {new Date(notif.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <p className="text-xs md:text-sm text-rose-800 font-bold leading-relaxed bg-white/70 p-3 rounded-xl border border-rose-200 mt-2 truncate">
+                    Catatan Admin: "{notif.body}"
+                  </p>
+                </div>
+              </div>
+
+              {/* Tombol Lihat Detail Peringatan Halaman Baru */}
+              <div className="w-full md:w-auto shrink-0 pt-2 md:pt-0">
+                <Link
+                  href={`/panti/peringatan/${notif.id}`}
+                  className="w-full md:w-auto px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Lihat Detail Peringatan</span>
+                  <ExternalLink size={14} />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ================= DATA GRID ROW 1: Statistik & Grafik Garis ================= */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -297,7 +343,7 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
         </div>
 
         {/* Kolom Kanan: Wishlist Kebutuhan (Real Database Needs) */}
-        <div className="lg:col-span-5 bg-[#4274D9] rounded-[2rem] p-6 md:p-8 text-white flex flex-col justify-between shadow-sm">
+        <div className="lg:col-span-5 bg-[#4274D9] rounded-[2rem] p-6 md:p-8 text-white flex flex-col h-fit self-start shadow-sm">
           <div>
             <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 rounded bg-white/10 border border-white/10">
               <Package className="text-[#fff]" size={14} />
@@ -309,7 +355,7 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
             </p>
             
             {priorityNeeds.length > 0 ? (
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {priorityNeeds.map((c: any) => {
                   const pct = Math.min(100, Math.round(((c.terkumpul || 0) / (c.target || 1)) * 100));
                   return (
@@ -337,7 +383,7 @@ export default function PantiOverview({ pantiData, needs = [], donations = [] }:
 
           <button 
             onClick={handleNavKebutuhan}
-            className="mt-8 w-full py-3 rounded-xl bg-white text-[#293681] text-sm font-bold hover:bg-[#293681] hover:text-white transition-colors flex items-center justify-center gap-2 shadow-sm"
+            className="mt-6 w-full py-3 rounded-xl bg-white text-[#293681] text-sm font-extrabold hover:bg-[#293681] hover:text-white transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
           >
             <Plus size={16} /> Buat Item Baru
           </button>

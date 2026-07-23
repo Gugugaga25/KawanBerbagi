@@ -223,4 +223,88 @@ PROMPT;
 
         return $this->generateContentWithHistory($history, $systemInstruction) ?? "Halo! Maaf, saya sedang mengalami kendala koneksi ke server AI. Namun berikut adalah beberapa panti asuhan yang berhasil ditemukan berdasarkan pencarian database.";
     }
+
+    /**
+     * Analyze image using Gemini Vision API to detect donation item details.
+     */
+    public function analyzeImageForDonation(string $base64Image, string $mimeType = 'image/jpeg'): ?array
+    {
+        if (!$this->apiKey) {
+            Log::error('Gemini API key is not configured in .env file.');
+            return null;
+        }
+
+        $url = "{$this->baseUrl}/{$this->model}:generateContent?key={$this->apiKey}";
+
+        $prompt = <<<PROMPT
+Anda adalah sistem AI Vision khusus untuk menganalisis foto barang donasi dari masyarakat yang ditujukan untuk panti asuhan.
+Analisis gambar berikut secara cermat dan ekstrak informasi berikut:
+
+1. "item": Nama barang spesifik dalam bahasa Indonesia yang sesuai (misal: "Buku Pelajaran Sekolah", "Pakaian Layak Pakai", "Sepatu Sekolah", "Beras", "Minyak Goreng", "Bahan Sembako", "Alat Tulis", "Susu Formula", "Popok Bayi"). Gunakan istilah umum yang biasa digunakan panti asuhan.
+2. "kategori": Harus tepat SALAH SATU dari 5 opsi ini: "Pangan", "Sandang", "Pendidikan", "Kesehatan", atau "Lain-lain".
+3. "estimasi_jumlah": Estimasi kuantitas barang yang terlihat pada gambar (sebagai angka atau rentang sederhana, misal: 5 atau "Beberapa").
+4. "deskripsi": Deskripsi ringkas 1 kalimat dalam bahasa Indonesia tentang barang yang terlihat pada gambar.
+
+Kembalikan HANYA objek JSON valid tanpa markdown code block dengan struktur persis seperti ini:
+{
+  "item": "Buku Pelajaran Sekolah",
+  "kategori": "Pendidikan",
+  "estimasi_jumlah": "5-10 buah",
+  "deskripsi": "Tumpukan buku tulis dan buku pelajaran sekolah yang masih bersih dan layak dipakai."
+}
+PROMPT;
+
+        $payload = [
+            'contents' => [
+                [
+                    'parts' => [
+                        ['text' => $prompt],
+                        [
+                            'inline_data' => [
+                                'mime_type' => $mimeType,
+                                'data' => $base64Image,
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'generationConfig' => [
+                'maxOutputTokens' => 300,
+            ]
+        ];
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+            ])->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+
+                if ($text) {
+                    $cleanResponse = trim($text);
+                    if (str_starts_with($cleanResponse, '```')) {
+                        $cleanResponse = preg_replace('/^```(?:json)?\s*/i', '', $cleanResponse);
+                        $cleanResponse = preg_replace('/\s*```$/', '', $cleanResponse);
+                    }
+                    $cleanResponse = trim($cleanResponse);
+
+                    $decoded = json_decode($cleanResponse, true);
+                    if (is_array($decoded) && isset($decoded['item'])) {
+                        return $decoded;
+                    }
+                }
+            }
+
+            Log::error('Gemini Vision API request failed', [
+                'status' => $response->status(),
+                'body' => $response->body()
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Gemini Vision API exception', ['message' => $e->getMessage()]);
+            return null;
+        }
+    }
 }

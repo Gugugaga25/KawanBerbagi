@@ -179,6 +179,10 @@ Route::middleware('auth')->group(function () {
                 'tipe_laporan' => $report->tipe_laporan,
                 'pelapor' => $report->pelapor ? $report->pelapor->name : 'Anonim',
                 'terlapor_nama' => $report->judul_target,
+                'target_image' => $report->target_image,
+                'target_content' => $report->target_content,
+                'tindakan_admin' => $report->tindakan_admin,
+                'catatan_admin' => $report->catatan_admin,
                 'alasan' => $report->alasan,
                 'catatan_tambahan' => $report->catatan_tambahan,
                 'tanggal' => $report->created_at->format('Y-m-d'),
@@ -237,6 +241,14 @@ Route::middleware('auth')->group(function () {
         $donations = [];
 
         if ($panti) {
+            $takedownIds = \App\Models\Report::where('tindakan_admin', 'takedown')->pluck('id_target')->map(fn($id) => (string)$id)->toArray();
+            if (is_array($panti->posts)) {
+                $panti->posts = array_values(array_filter($panti->posts, function ($p) use ($takedownIds) {
+                    $postId = is_array($p) ? (string)($p['id'] ?? '') : '';
+                    return !in_array($postId, $takedownIds);
+                }));
+            }
+
             $needs = \App\Models\Need::where('id_shelter', $panti->id_shelter)->get()->map(function ($need) {
                 return [
                     'id' => $need->id_needs,
@@ -299,12 +311,119 @@ Route::middleware('auth')->group(function () {
             $donations = $goodsDonations->concat($cashDonations)->sortByDesc('created_at_raw')->values()->all();
         }
 
+        $notifications = [];
+        if ($panti && $panti->id_user) {
+            $notifications = \App\Models\DonaturNotification::where('id_user', $panti->id_user)
+                ->latest()
+                ->get();
+        } elseif (auth()->check()) {
+            $notifications = \App\Models\DonaturNotification::where('id_user', auth()->id())
+                ->latest()
+                ->get();
+        }
+
         return Inertia::render('Panti/PantiDashboard', [
             'pantiData' => $panti,
             'needs' => $needs,
-            'donations' => $donations
+            'donations' => $donations,
+            'notifications' => $notifications,
         ]);
     })->name('panti.dashboard');
+
+    Route::get('/panti/peringatan/{id}', function ($id) {
+        $notification = \App\Models\DonaturNotification::where('id', $id)->first();
+        if (!$notification) {
+            $notification = \App\Models\DonaturNotification::where('id_user', auth()->id())->latest()->firstOrFail();
+        }
+
+        $panti = \App\Models\Shelter::where('id_user', auth()->id())->first();
+        $notifData = is_array($notification->data) ? $notification->data : (json_decode($notification->data, true) ?? []);
+        
+        $reportData = null;
+        $targetImage = $notifData['target_image'] ?? null;
+        $targetContent = $notifData['target_content'] ?? null;
+        $judulTarget = $notifData['judul_target'] ?? null;
+
+        if (!empty($notifData['report_id'])) {
+            $reportData = \App\Models\Report::find($notifData['report_id']);
+        }
+
+        if (!$reportData) {
+            $reportData = \App\Models\Report::latest()->first();
+        }
+
+        if ($reportData) {
+            $targetImage = $targetImage ?: $reportData->target_image;
+            $targetContent = $targetContent ?: $reportData->target_content;
+            $judulTarget = $judulTarget ?: $reportData->judul_target;
+
+            // Deep Fallback into Need / Post database if image/content is still null
+            if (!$targetImage || !$targetContent) {
+                $need = \App\Models\Need::find($reportData->id_target);
+                if ($need) {
+                    if (!$targetImage && $need->foto) {
+                        $targetImage = str_starts_with($need->foto, 'http') ? $need->foto : '/storage/' . $need->foto;
+                    }
+                    if (!$targetContent) {
+                        $targetContent = $need->nama_kebutuhan ?: ($need->deskripsi ?: $need->nama_barang);
+                    }
+                }
+            }
+        }
+
+        // Format Image URL cleanly if needed
+        if ($targetImage && !str_starts_with($targetImage, 'http') && !str_starts_with($targetImage, '/storage/')) {
+            $targetImage = '/storage/' . ltrim($targetImage, '/');
+        }
+
+        return Inertia::render('Panti/PantiWarningDetail', [
+            'notification' => $notification,
+            'reportData' => $reportData,
+            'targetImage' => $targetImage,
+            'targetContent' => $targetContent,
+            'judulTarget' => $judulTarget,
+            'pantiData' => $panti,
+        ]);
+    })->name('panti.peringatan.detail');
+
+    Route::post('/panti/peringatan/{id}/konfirmasi', function (\Illuminate\Http\Request $request, $id) {
+        $notification = \App\Models\DonaturNotification::where('id', $id)
+            ->where('id_user', auth()->id())
+            ->first();
+
+        if ($notification) {
+            $notification->is_read = true;
+            $notification->save();
+        }
+
+        $panti = \App\Models\Shelter::where('id_user', auth()->id())->first();
+        $pantiName = $panti ? $panti->nama_yayasan : 'Pengurus Panti';
+
+        // Send confirmation notification to admin
+        $adminUser = \App\Models\User::first();
+        if ($adminUser) {
+            try {
+                \App\Models\DonaturNotification::kirim(
+                    (int)$adminUser->id_user,
+                    'panti_confirmation',
+                    'Konfirmasi Tindak Lanjut dari Panti',
+                    "Panti '{$pantiName}' telah membaca dan mengonfirmasi peringatan admin terkait pengaduan postingan/konten.",
+                    [
+                        'notification_id' => $id,
+                        'panti_name' => $pantiName,
+                        'panti_id' => $panti ? $panti->id_shelter : null,
+                    ]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Error kirim notif konfirmasi admin: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Peringatan berhasil dikonfirmasi dan ditandai selesai.',
+        ]);
+    })->name('panti.peringatan.konfirmasi');
 
 
     // ================= ROUTE DASHBOARD DONATUR =================
@@ -538,6 +657,9 @@ Route::middleware('auth')->group(function () {
 
 
 
+    // AI Vision Scan Barang Donasi
+    Route::post('/donatur/ai-vision/analyze', [App\Http\Controllers\Donatur\AiVisionController::class, 'analyze'])->name('donatur.ai_vision.analyze');
+
     // Pencarian Panti & Detail Panti
     Route::get('/donatur/cari-panti', [App\Http\Controllers\Donatur\SearchController::class, 'index'])->name('donatur.cari_panti');
     Route::get('/donatur/panti/{id}', [App\Http\Controllers\Donatur\PantiController::class, 'show'])->name('donatur.panti.show');
@@ -554,6 +676,7 @@ Route::middleware('auth')->group(function () {
 
     // ================= ROUTE LAPORAN =================
     Route::post('/laporan', [ReportController::class, 'store'])->name('laporan.store');
+    Route::post('/admin/laporan/{id}/respond', [ReportController::class, 'respond'])->name('admin.laporan.respond');
 
     Route::get('/donasi/{id}', [App\Http\Controllers\Donatur\DonasiController::class, 'show'])->name('donatur.donasi.show');
     Route::post('/donatur/donasi', [App\Http\Controllers\Donatur\DonasiController::class, 'store'])->name('donatur.donasi.store');

@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Search, MapPin, Package, SlidersHorizontal, X, Building2, 
   UserCheck, Truck, MapPinOff, Minus, Plus, Home, 
-  ShieldCheck, Clock, Phone, Filter, MessageSquare
+  ShieldCheck, Clock, Phone, Filter, MessageSquare, Sparkles
 } from 'lucide-react';
 import { useForm, Link, router } from '@inertiajs/react';
 import EmptyState from '@/Components/UI/EmptyState';
+import AiVisionScannerModal from '@/Components/Donatur/AiVisionScannerModal';
 
 const COLORS = {
   navy: "#293681",
@@ -199,6 +200,21 @@ export default function CariPanti({
     });
   }, [pantis, query, selectedLocation]);
 
+  // Deteksi URL query parameters (q & openScanner)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const qParam = params.get('q');
+    const scannerParam = params.get('openScanner');
+
+    if (qParam) {
+      setSearchMode('kebutuhan');
+      setQuery(qParam);
+    }
+    if (scannerParam === 'true') {
+      setIsAiVisionOpen(true);
+    }
+  }, []);
+
   // === HANDLER MODAL BARANG ===
   const handleOpenModalBarang = (campaign: any) => {
     formBarang.clearErrors();
@@ -241,24 +257,46 @@ export default function CariPanti({
     });
   };
 
+  const [isAiVisionOpen, setIsAiVisionOpen] = useState(false);
+
+  const handleAiVisionConfirm = (item: string, kategori?: string) => {
+    setSearchMode('kebutuhan');
+    if (kategori && CATEGORIES.includes(kategori)) {
+      setCategory(kategori);
+    }
+    setQuery(item);
+  };
+
   return (
     <div className="space-y-6">
 
-      {/* TABS PEMILIH MODE */}
-      <div className="flex p-1.5 rounded-2xl w-max border shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: COLORS.mist }}>
+      {/* TABS PEMILIH MODE & AI SCANNER BUTTON */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex p-1.5 rounded-2xl w-max border shadow-sm" style={{ backgroundColor: '#ffffff', borderColor: COLORS.mist }}>
+          <button
+            onClick={() => { setSearchMode('kebutuhan'); setQuery(''); setSelectedLocation(userCity || 'Semua'); setCategory('Semua'); }}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'kebutuhan' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
+            style={{ backgroundColor: searchMode === 'kebutuhan' ? COLORS.teal : 'transparent', color: searchMode === 'kebutuhan' ? '#fff' : COLORS.navy }}
+          >
+            <Package size={16} /> Kebutuhan Barang
+          </button>
+          <button
+            onClick={() => { setSearchMode('panti'); setQuery(''); setSelectedLocation(userCity || 'Semua'); }}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'panti' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
+            style={{ backgroundColor: searchMode === 'panti' ? COLORS.teal : 'transparent', color: searchMode === 'panti' ? '#fff' : COLORS.navy }}
+          >
+            <Building2 size={16} /> Profil Panti
+          </button>
+        </div>
+
+        {/* Tombol AI Vision Scanner */}
         <button
-          onClick={() => { setSearchMode('kebutuhan'); setQuery(''); setSelectedLocation(userCity || 'Semua'); setCategory('Semua'); }}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'kebutuhan' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
-          style={{ backgroundColor: searchMode === 'kebutuhan' ? COLORS.teal : 'transparent', color: searchMode === 'kebutuhan' ? '#fff' : COLORS.navy }}
+          type="button"
+          onClick={() => setIsAiVisionOpen(true)}
+          className="px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all flex items-center gap-2 shadow-sm text-white bg-gradient-to-r from-[#4274D9] to-[#293681] hover:shadow-md hover:scale-[1.02] cursor-pointer"
         >
-          <Package size={16} /> Kebutuhan Barang
-        </button>
-        <button
-          onClick={() => { setSearchMode('panti'); setQuery(''); setSelectedLocation(userCity || 'Semua'); }}
-          className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${searchMode === 'panti' ? 'shadow-sm' : 'hover:bg-gray-50'}`}
-          style={{ backgroundColor: searchMode === 'panti' ? COLORS.teal : 'transparent', color: searchMode === 'panti' ? '#fff' : COLORS.navy }}
-        >
-          <Building2 size={16} /> Profil Panti
+          <Sparkles size={18} className="animate-pulse text-amber-300" />
+          <span>Scan Foto Barang (AI Vision)</span>
         </button>
       </div>
 
@@ -755,6 +793,13 @@ export default function CariPanti({
           </div>
         </div>
       )}
+
+      {/* Modal Scanner AI Vision */}
+      <AiVisionScannerModal
+        isOpen={isAiVisionOpen}
+        onClose={() => setIsAiVisionOpen(false)}
+        onConfirmSearch={handleAiVisionConfirm}
+      />
 
     </div>
   );

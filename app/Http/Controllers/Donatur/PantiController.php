@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Donatur;
 use App\Http\Controllers\Controller;
 use App\Models\Shelter;
 use App\Models\Need;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,6 +15,7 @@ class PantiController extends Controller
     {
         // 1. Ambil data Panti
         $panti = Shelter::with('user')->findOrFail($id);
+        $this->filterTakedownPosts($panti);
 
         $needs = Need::where('id_shelter', $id)
             ->where('terkumpul', '<', \DB::raw('jumlah'))
@@ -37,6 +39,7 @@ class PantiController extends Controller
     {
         // 1. Ambil data Panti
         $panti = Shelter::with('user')->findOrFail($id);
+        $this->filterTakedownPosts($panti);
 
         $needs = Need::where('id_shelter', $id)
             ->where('terkumpul', '<', \DB::raw('jumlah'))
@@ -54,5 +57,20 @@ class PantiController extends Controller
             'panti' => $panti,
             'needs' => $needs
         ]);
+    }
+
+    private function filterTakedownPosts($panti)
+    {
+        $takedownIds = Report::where('tindakan_admin', 'takedown')
+            ->pluck('id_target')
+            ->map(fn($id) => (string)$id)
+            ->toArray();
+
+        if ($panti && is_array($panti->posts)) {
+            $panti->posts = array_values(array_filter($panti->posts, function ($p) use ($takedownIds) {
+                $postId = is_array($p) ? (string)($p['id'] ?? '') : '';
+                return !in_array($postId, $takedownIds);
+            }));
+        }
     }
 }

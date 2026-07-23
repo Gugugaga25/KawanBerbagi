@@ -3,7 +3,7 @@ import { Head } from '@inertiajs/react';
 import {
   Flag, Search, Filter, Eye, CheckCircle, AlertTriangle,
   XCircle, Clock, ShieldAlert, ChevronLeft, ChevronRight,
-  MoreVertical, Building2, FileText, Heart, CheckCircle2, Image,
+  MoreVertical, Building2, FileText, Heart, CheckCircle2, Image as ImageIcon,
   ExternalLink // Tambahan icon untuk link keluar
 } from 'lucide-react';
 import Dropdown from '@/Components/Dropdown';
@@ -27,21 +27,30 @@ interface Report {
   id: string;
   tipe_laporan: 'panti' | 'postingan' | 'keuangan';
   id_target: string;
+  judul_target?: string;
+  target_image?: string;
+  target_content?: string;
+  id_shelter?: number;
   pelapor: string;
   terlapor_nama: string;
   alasan: string;
   catatan_tambahan?: string;
   tanggal: string;
   status: 'pending' | 'diproses' | 'selesai' | 'ditolak';
+  tindakan_admin?: 'peringatan' | 'takedown' | 'ditolak';
+  catatan_admin?: string;
 }
 
 export default function Laporan({ auth, reports }: { auth?: any; reports?: Report[] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'semua' | 'pending' | 'diproses' | 'selesai'>('semua');
 
-  // State Modal Detail
+  // State Modal Detail & Action
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [adminAction, setAdminAction] = useState<'peringatan' | 'takedown' | null>(null);
+  const [catatanAdminInput, setCatatanAdminInput] = useState('');
+  const [isSubmittingAdminResponse, setIsSubmittingAdminResponse] = useState(false);
 
   const [localReports, setLocalReports] = useState<Report[]>(reports || []);
   const [isExporting, setIsExporting] = useState(false);
@@ -63,7 +72,61 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
 
   const openDetailModal = (report: Report) => {
     setSelectedReport(report);
+    setAdminAction(null);
+    setCatatanAdminInput('');
     setIsDetailModalOpen(true);
+  };
+
+  const handleAdminRespond = async (tindakan: 'peringatan' | 'takedown' | 'ditolak') => {
+    if (!selectedReport) return;
+    if ((tindakan === 'peringatan' || tindakan === 'takedown') && !catatanAdminInput.trim()) {
+      showToast('Mohon berikan catatan penjelasan tindakan untuk pihak panti.', 'warning', 'Catatan Wajib Diisi');
+      return;
+    }
+
+    setIsSubmittingAdminResponse(true);
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const response = await fetch(`/admin/laporan/${selectedReport.id}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({
+          tindakan_admin: tindakan,
+          catatan_admin: catatanAdminInput,
+        }),
+      });
+
+      if (response.ok) {
+        showToast(
+          tindakan === 'peringatan' 
+            ? 'Peringatan resmi berhasil dikirimkan ke akun panti.' 
+            : tindakan === 'takedown' 
+            ? 'Konten berhasil di-takedown dan notifikasi telah dikirim ke panti.' 
+            : 'Laporan ditolak.',
+          'success',
+          'Respon Berhasil'
+        );
+        setLocalReports(prev => prev.map(r => r.id === selectedReport.id ? { ...r, status: 'selesai', tindakan_admin: tindakan, catatan_admin: catatanAdminInput } : r));
+        if (selectedReport) {
+          setSelectedReport({ ...selectedReport, status: 'selesai', tindakan_admin: tindakan, catatan_admin: catatanAdminInput });
+        }
+        setIsDetailModalOpen(false);
+        setAdminAction(null);
+        setCatatanAdminInput('');
+      } else {
+        showToast('Gagal memproses tindakan admin. Silakan coba lagi.', 'error', 'Gagal Memproses');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('Terjadi kesalahan koneksi saat memproses respon admin.', 'error', 'Gagal Memproses');
+    } finally {
+      setIsSubmittingAdminResponse(false);
+    }
   };
 
   const { showToast } = useToast();
@@ -327,9 +390,9 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
       {/* Modal Detail */}
       <Modal show={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} maxWidth="2xl">
         {selectedReport && (
-          <div className="bg-white overflow-hidden rounded-2xl">
+          <div className="bg-white rounded-2xl flex flex-col max-h-[85vh] overflow-hidden">
             {/* Header Modal */}
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/90 backdrop-blur-xs shrink-0 z-10">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#EAE8E3] text-[#124354] flex items-center justify-center">
                   <AlertTriangle size={20} />
@@ -339,10 +402,17 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                   <p className="text-xs text-gray-500 font-medium">ID Laporan: {selectedReport.id}</p>
                 </div>
               </div>
+              <button
+                onClick={() => setIsDetailModalOpen(false)}
+                className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 transition-colors cursor-pointer"
+                title="Tutup Modal"
+              >
+                <XCircle size={22} />
+              </button>
             </div>
 
             {/* Content Modal */}
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 overflow-y-auto flex-1 scroll-smooth">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
                   <p className="text-xs text-gray-400 font-bold uppercase mb-1">Pihak Terlapor</p>
@@ -375,90 +445,109 @@ export default function Laporan({ auth, reports }: { auth?: any; reports?: Repor
                 </div>
               )}
 
-              {/* PERUBAHAN: Menyediakan tautan aksi spesifik agar admin dapat melihat bukti */}
-              {selectedReport.tipe_laporan === 'panti' && (
-                <div>
-                  <p className="text-sm font-bold text-[#124354] mb-2">Obyek yang Dilaporkan:</p>
-                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-3">
-                    <p className="text-sm text-gray-600">Laporan ini ditujukan pada entitas panti asuhan secara umum (profil, legalitas, atau aktivitas fisik).</p>
-                    <a href={`/admin/panti/${selectedReport.id_target}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-max text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors">
-                      <ExternalLink size={16} /> Tinjau Profil Panti di Panel Admin
-                    </a>
+              {/* Pratinjau Foto Konten jika ada */}
+              {selectedReport.target_image && (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-[#124354] uppercase tracking-wider flex items-center gap-1.5">
+                    <ImageIcon size={16} className="text-[#4274D9]" /> Snapshot Foto Konten Dilaporkan:
+                  </p>
+                  <div className="w-full h-64 rounded-2xl overflow-hidden border border-gray-200 bg-gray-950 flex items-center justify-center shadow-xs">
+                    <img src={selectedReport.target_image} alt="Snapshot Konten" className="w-full h-full object-contain" />
                   </div>
                 </div>
               )}
 
-              {selectedReport.tipe_laporan === 'postingan' && (
-                <div>
-                  <p className="text-sm font-bold text-[#124354] mb-2">Konten Postingan yang Dilaporkan:</p>
-                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-4">
-                    <div className="flex gap-4 items-start">
-                      <div className="w-16 h-16 bg-gray-100 rounded-lg shrink-0 flex items-center justify-center">
-                        <Image size={24} className="text-gray-400" />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">Deskripsi postingan atau pembaruan yang dianggap melanggar aturan KawanBerbagi.</p>
-                      </div>
-                    </div>
-                    {/* Mengarahkan ke preview admin/url spesifik postingan */}
-                    <a href={`/admin/postingan/${selectedReport.id_target}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-max text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
-                      <ExternalLink size={16} /> Buka Postingan Asli
-                    </a>
+              {/* Pratinjau Teks Konten jika ada */}
+              {selectedReport.target_content && (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-[#124354] uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText size={16} className="text-amber-600" /> Snapshot Teks Deskripsi Konten Dilaporkan:
+                  </p>
+                  <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl text-xs font-mono text-gray-800 leading-relaxed whitespace-pre-line shadow-2xs">
+                    "{selectedReport.target_content}"
                   </div>
                 </div>
               )}
 
-              {selectedReport.tipe_laporan === 'keuangan' && (
+              {/* Catatan Admin yang Sudah Diberikan (Jika Kasus Selesai) */}
+              {selectedReport.catatan_admin && (
                 <div>
-                  <p className="text-sm font-bold text-[#124354] mb-2">Dokumen Keuangan yang Dilaporkan:</p>
-                  <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm flex flex-col gap-4">
-                    <div className="flex gap-4 items-center">
-                      <div className="w-12 h-12 bg-red-50 text-red-500 rounded-lg shrink-0 flex items-center justify-center">
-                        <FileText size={20} />
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-[#124354]">{selectedReport.terlapor_nama}</h4>
-                        <p className="text-xs text-gray-500 mt-0.5">Laporan Transparansi / Audit Dokumen</p>
-                      </div>
-                    </div>
-                    <a href={`/admin/keuangan/dokumen/${selectedReport.id_target}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 w-max text-sm font-bold text-red-600 hover:text-red-800 transition-colors bg-red-50 px-3 py-1.5 rounded-lg border border-red-100">
-                      <ExternalLink size={16} /> Unduh & Periksa Dokumen
-                    </a>
+                  <p className="text-sm font-bold text-[#124354] mb-2">Tindakan & Catatan Respon Admin:</p>
+                  <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl text-xs font-semibold text-blue-900 leading-relaxed">
+                    Tindakan: <span className="font-extrabold uppercase">{selectedReport.tindakan_admin || 'Respon Admin'}</span> — "{selectedReport.catatan_admin}"
+                  </div>
+                </div>
+              )}
+
+              {/* Form Input Catatan Tindakan Admin jika memilih aksi */}
+              {adminAction && (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-3">
+                  <h4 className="font-bold text-xs text-[#293681] uppercase tracking-wider">
+                    {adminAction === 'peringatan' ? 'Konfirmasi Kirim Peringatan ke Panti' : 'Konfirmasi Takedown Konten'}
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    {adminAction === 'peringatan' 
+                      ? 'Catatan peringatan di bawah ini akan terkirim langsung sebagai notifikasi ke akun Panti.'
+                      : 'Konten/postingan ini akan dihapus dari sistem dan notifikasi pemberitahuan takedown akan dikirimkan ke panti.'}
+                  </p>
+                  <textarea
+                    rows={3}
+                    value={catatanAdminInput}
+                    onChange={(e) => setCatatanAdminInput(e.target.value)}
+                    placeholder="Tuliskan catatan alasan peringatan / takedown untuk panti..."
+                    className="w-full p-3 bg-white border border-gray-300 rounded-xl text-xs font-semibold text-[#293681] focus:outline-none focus:border-[#4274D9] resize-none"
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setAdminAction(null)}
+                      className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-bold rounded-lg hover:bg-gray-50"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={() => handleAdminRespond(adminAction)}
+                      disabled={isSubmittingAdminResponse}
+                      className={`px-4 py-1.5 text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer ${
+                        adminAction === 'peringatan' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-rose-600 hover:bg-rose-700'
+                      }`}
+                    >
+                      {isSubmittingAdminResponse ? 'Memproses...' : adminAction === 'peringatan' ? 'Kirim Peringatan' : 'Eksekusi Takedown'}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Footer Modal Aksi Cepat */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
+            {/* Footer Modal Aksi Admin */}
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap justify-between items-center gap-3 rounded-b-2xl shrink-0 z-10">
               <SecondaryButton onClick={() => setIsDetailModalOpen(false)}>
                 Tutup
               </SecondaryButton>
 
-              {selectedReport.status === 'pending' && (
-                <button
-                  onClick={() => {
-                    handleUpdateStatus(selectedReport.id, 'diproses');
-                    setIsDetailModalOpen(false);
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 transition-colors cursor-pointer"
-                >
-                  Proses Laporan
-                </button>
-              )}
-
-              {selectedReport.status === 'diproses' && (
-                <button
-                  onClick={() => {
-                    handleUpdateStatus(selectedReport.id, 'selesai');
-                    setIsDetailModalOpen(false);
-                  }}
-                  className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-green-700 transition-colors cursor-pointer"
-                >
-                  Tandai Selesai
-                </button>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                {selectedReport.status !== 'selesai' && !adminAction && (
+                  <>
+                    <button
+                      onClick={() => setAdminAction('peringatan')}
+                      className="px-4 py-2 bg-amber-600 text-white text-xs font-extrabold rounded-xl shadow-xs hover:bg-amber-700 transition-colors cursor-pointer"
+                    >
+                      Kirim Peringatan ke Panti
+                    </button>
+                    <button
+                      onClick={() => setAdminAction('takedown')}
+                      className="px-4 py-2 bg-rose-600 text-white text-xs font-extrabold rounded-xl shadow-xs hover:bg-rose-700 transition-colors cursor-pointer"
+                    >
+                      Takedown Konten Ini
+                    </button>
+                    <button
+                      onClick={() => handleAdminRespond('ditolak')}
+                      className="px-3 py-2 bg-gray-200 text-gray-700 text-xs font-bold rounded-xl hover:bg-gray-300 transition-colors cursor-pointer"
+                    >
+                      Tolak Laporan
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}

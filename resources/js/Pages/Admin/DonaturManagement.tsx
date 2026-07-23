@@ -126,9 +126,9 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
       </div>
 
       {/* Table Data */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto w-full no-scrollbar">
-          <table className="w-full text-left border-separate border-spacing-0 min-w-[760px]">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="overflow-x-auto w-full pb-16 -mb-16">
+          <table className="w-full text-left border-separate border-spacing-0 min-w-[950px]">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider rounded-tl-2xl" style={{background: COLORS.teal}}>Informasi Donatur</th>
@@ -136,7 +136,7 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.teal}}>Tier</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center" style={{background: COLORS.teal}}>Status</th>
                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{background: COLORS.teal}}>Terakhir Donasi</th>
-                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-right rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
+                <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-center rounded-tr-2xl w-36" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -200,18 +200,21 @@ export default function DonaturManagement({ donaturs = [] }: { donaturs?: any[] 
                     <td className="px-6 py-4 text-sm font-medium text-[#5A7C85] border-b border-gray-100">
                       {donor.terakhir}
                     </td>
-                    <td className="px-6 py-4 text-right border-b border-gray-100">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-6 py-4 text-center border-b border-gray-100 min-w-[130px]">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button 
                           onClick={() => router.visit(route('admin.chat.init_donatur', { id_donatur: donor.id }))}
-                          className="p-2 text-[#5A7C85] hover:text-[#407E8C] hover:bg-[#407E8C]/10 rounded-lg transition-colors mr-1"
+                          className="p-2 text-[#4274D9] hover:text-[#293681] hover:bg-[#4274D9]/10 rounded-xl transition-colors"
                           title="Hubungi Donatur"
                         >
                           <MessageSquare size={18} />
                         </button>
                         <Dropdown>
                           <Dropdown.Trigger>
-                            <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
+                            <button 
+                              className="p-2 text-[#293681] hover:text-[#4274D9] bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors shadow-2xs flex items-center justify-center"
+                              title="Menu Aksi"
+                            >
                               <MoreVertical size={18} />
                             </button>
                           </Dropdown.Trigger>

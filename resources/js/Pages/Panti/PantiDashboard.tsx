@@ -10,7 +10,7 @@ import PantiProfile from './PantiProfile';
 import PantiDonasiMasuk from './PantiDonasiMasuk';
 import PantiSettings from './PantiSettings';
 
-export default function PantiDashboard({ auth, pantiData, needs = [], donations = [] }: { auth: any, pantiData?: any, needs?: any[], donations?: any[] }) {
+export default function PantiDashboard({ auth, pantiData, needs = [], donations = [], notifications = [] }: { auth: any, pantiData?: any, needs?: any[], donations?: any[], notifications?: any[] }) {
   const [activeTab, setActiveTab] = useState<PantiTabType>('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -66,7 +66,7 @@ export default function PantiDashboard({ auth, pantiData, needs = [], donations 
       case 'pengaturan': return <PantiSettings auth={auth} />;
       case 'dashboard':
       default:
-        return <PantiOverview pantiData={pantiData} needs={needs} donations={donations} />;
+        return <PantiOverview pantiData={pantiData} needs={needs} donations={donations} notifications={notifications} />;
     }
   };
 

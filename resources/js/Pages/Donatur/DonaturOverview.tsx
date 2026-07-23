@@ -14,9 +14,11 @@ import {
   Box,
   Wallet,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 import { Link, router } from '@inertiajs/react';
+import AiVisionScannerModal from '@/Components/Donatur/AiVisionScannerModal';
 
 const COLORS = {
   navy: "#293681",
@@ -72,12 +74,18 @@ export default function DonaturOverview({
   // Gunakan data real jika ada, jika tidak pakai fallback
   const storiesToDisplay = impactStories.length > 0 ? impactStories : DEFAULT_IMPACT_STORIES;
 
+  const [isAiVisionOpen, setIsAiVisionOpen] = useState(false);
+
   const goToDonasi = () => {
     router.visit(window.location.pathname + '?tab=donasi');
   };
 
-  const goToCari = () => {
-    router.visit(window.location.pathname + '?tab=cari');
+  const goToCari = (item?: string) => {
+    if (item) {
+      router.visit(`${window.location.pathname}?tab=cari&q=${encodeURIComponent(item)}`);
+    } else {
+      router.visit(`${window.location.pathname}?tab=cari`);
+    }
   };
 
   const [activeStory, setActiveStory] = useState(0);
@@ -200,7 +208,7 @@ export default function DonaturOverview({
                     Belum ada donasi. Mulai berdonasi sekarang!
                   </p>
                   <button
-                    onClick={goToCari}
+                    onClick={() => goToCari()}
                     className="mt-4 text-xs font-bold px-5 py-2 rounded-full text-white"
                     style={{ backgroundColor: COLORS.teal }}
                   >
@@ -276,10 +284,42 @@ export default function DonaturOverview({
           </div>
         </div>
 
-        {/* ================= KOLOM KANAN: KISAH DAMPAK FULL HEIGHT ================= */}
-        <div className="lg:col-span-5 relative flex flex-col min-h-[320px] lg:min-h-0 w-full mt-6 lg:mt-0">
+        {/* ================= KOLOM KANAN: AI VISION + KISAH DAMPAK ================= */}
+        <div className="lg:col-span-5 flex flex-col gap-6 w-full mt-6 lg:mt-0">
           
-          <div className="absolute inset-0 w-full h-full">
+          {/* Card AI Vision Scanner */}
+          <div className="bg-gradient-to-r from-[#293681] to-[#4274D9] rounded-[2rem] p-6 text-white shadow-md border border-white/10 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute -top-10 -right-10 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+            
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center">
+                  <Sparkles size={16} className="text-amber-300 animate-pulse" />
+                </div>
+                <span className="text-[10px] font-black bg-amber-400 text-[#293681] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  AI Vision
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h3 className="font-extrabold text-base text-white">Scan Foto Barang Donasi</h3>
+              <p className="text-xs text-white/80 mt-1 leading-snug">
+                Foto barang di rumah Anda, AI mendeteksi otomatis & mencarikan panti asuhan penerima.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsAiVisionOpen(true)}
+              className="w-full py-2.5 px-4 bg-amber-400 hover:bg-amber-300 text-[#293681] font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm hover:scale-[1.01] cursor-pointer"
+            >
+              Coba AI Vision <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Kisah Dampak Stack */}
+          <div className="relative flex-1 min-h-[260px] w-full">
             {storiesToDisplay.map((story, index) => {
               let diff = index - activeStory;
               if (diff < 0) diff += storiesToDisplay.length;
@@ -374,7 +414,7 @@ export default function DonaturOverview({
             </p>
           </div>
           <button
-            onClick={goToCari}
+            onClick={() => goToCari()}
             className="text-xs font-bold flex items-center gap-1 hover:opacity-70 transition-opacity"
             style={{ color: COLORS.teal }}
           >
@@ -423,7 +463,7 @@ export default function DonaturOverview({
                       />
                     </div>
                     <button
-                      onClick={goToCari}
+                      onClick={() => goToCari()}
                       className="w-full py-2.5 bg-[#4274D9] hover:bg-[#293681] text-xs font-bold rounded-xl border transition-colors text-white"
                     >
                       Bantu Sekarang
@@ -435,6 +475,13 @@ export default function DonaturOverview({
           </div>
         )}
       </div>
+
+      {/* Modal Scanner AI Vision */}
+      <AiVisionScannerModal
+        isOpen={isAiVisionOpen}
+        onClose={() => setIsAiVisionOpen(false)}
+        onConfirmSearch={(item) => goToCari(item)}
+      />
 
     </div>
   );

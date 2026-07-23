@@ -12,6 +12,7 @@ import {
 
 import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
 import DonaturHeader from '@/Components/Donatur/DonaturHeader';
+import ReportModal, { ReportTargetData } from '@/Components/Donatur/ReportModal';
 
 const COLORS = {
   navy: "#293681",
@@ -25,7 +26,7 @@ const COLORS = {
 function Nav() {
   const [open, setOpen] = useState(false);
   const { auth } = usePage().props as any;
-  const { url } = usePage(); 
+  const { url } = usePage();
 
   const links = [
     { label: "Cara Kerja", href: "/#cara-kerja" },
@@ -33,46 +34,51 @@ function Nav() {
     { label: "Fitur", href: "/#fitur" },
     { label: "Profil Panti", href: "/profil-panti" },
     { label: "Tentang Kami", href: "/about" },
+    { label: "FAQ", href: "/faq" },
   ];
 
   return (
     <header
-      className="sticky top-0 z-50 backdrop-blur"
-      style={{ backgroundColor: `${COLORS.cream}f2`, borderBottom: `1px solid ${COLORS.teal}33` }}
+      className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100/80 transition-all duration-300 shadow-sm"
     >
       <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
-        <a href="#top" className="flex items-center gap-2">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2.5 hover:opacity-90 transition-opacity"
+        >
           <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
-          <span className="text-2xl sm:text-3xl font-bold" style={{ color: COLORS.navy }}>
+          <span className="text-xl sm:text-2xl font-extrabold tracking-tight" style={{ color: COLORS.navy }}>
             KawanBerbagi
-            <span style={{ color: COLORS.teal }}>.</span>
+            <span className="text-[#4274D9]">.</span>
           </span>
-        </a>
+        </Link>
         
         {/* === MENU DEKSTOP === */}
         <div className="hidden md:flex items-center gap-8">
           {links.map((l) => {
-            const isActive = url === l.href || url.startsWith(l.href + '/');
+            const isActive = url === l.href || (l.href !== '/' && url.startsWith(l.href));
             return (
               <a
                 key={l.href}
                 href={l.href}
-                className={`text-base font-bold transition-all ${
-                  isActive ? "border-b-2 pb-1" : "hover:opacity-70"
+                className={`text-base font-bold transition-all duration-200 relative pb-1 hover:text-[#4274D9] ${
+                  isActive ? "text-[#4274D9]" : "text-[#293681]/80"
                 }`}
-                style={{ 
-                  color: isActive ? COLORS.teal : COLORS.navy,
-                  borderColor: isActive ? COLORS.teal : "transparent" 
-                }}
               >
                 {l.label}
+                {isActive && (
+                  <span 
+                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full" 
+                    style={{ backgroundColor: COLORS.teal }}
+                  />
+                )}
               </a>
             );
           })}
         </div>
 
         {/* === TOMBOL AUTH === */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-4">
           {auth?.user ? (
             <>
               <Link
@@ -81,8 +87,7 @@ function Nav() {
                   auth.user.id_role_user === 'RL02PAN' ? route('panti.dashboard') :
                   route('donatur.dashboard')
                 }
-                className="text-sm font-bold mr-2 hover:underline transition-all"
-                style={{ color: COLORS.navy }}
+                className="text-sm font-bold text-[#293681] hover:text-[#4274D9] hover:underline transition-all"
               >
                 Halo, {auth.user.name}
               </Link>
@@ -90,8 +95,8 @@ function Nav() {
                 href={route("logout")}
                 method="post"
                 as="button"
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition shadow-sm"
-                style={{ backgroundColor: COLORS.teal }}>
+                className="text-sm font-bold px-5 py-2.5 rounded-full text-white bg-[#293681] shadow-md shadow-[#293681]/10 hover:bg-[#1A2151] hover:shadow-lg transition-all duration-300"
+              >
                 Keluar
               </Link>
             </>
@@ -99,14 +104,14 @@ function Nav() {
             <>
               <Link
                 href={route("login")}
-                className="text-base font-medium px-4 py-2 rounded-full hover:opacity-80 transition-opacity"
-                style={{ color: COLORS.navy }}>
+                className="text-base font-bold text-[#293681] hover:text-[#4274D9] transition-colors"
+              >
                 Masuk
               </Link>
               <Link
                 href={route("register")}
-                className="text-base font-semibold px-5 py-2.5 rounded-full text-white hover:brightness-110 transition"
-                style={{ backgroundColor: COLORS.teal }}>
+                className="text-sm font-bold px-5 py-2.5 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20 hover:bg-[#293681] hover:shadow-lg transition-all duration-300"
+              >
                 Daftar
               </Link>
             </>
@@ -115,47 +120,74 @@ function Nav() {
 
         {/* === TOMBOL HAMBURGER MOBILE === */}
         <button
-          className="md:hidden p-2 rounded-lg"
+          className="md:hidden p-2 rounded-xl hover:bg-slate-100/50 transition-colors"
           style={{ color: COLORS.navy }}
           onClick={() => setOpen((o) => !o)}
           aria-label="Buka menu"
         >
-          {open ? <X size={26} /> : <Menu size={26} />}
+          {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </nav>
 
       {/* === MENU MOBILE === */}
       {open && (
         <div
-          className="md:hidden px-5 pb-5 flex flex-col gap-4 absolute w-full shadow-md"
-          style={{ backgroundColor: COLORS.cream, borderTop: `1px solid ${COLORS.mist}` }}
+          className="md:hidden px-5 pb-6 pt-2 flex flex-col gap-4 absolute left-0 right-0 w-full shadow-lg border-b border-slate-100 bg-white/95 backdrop-blur-md z-50"
         >
           {links.map((l) => {
-            const isActive = url === l.href || url.startsWith(l.href + '/');
+            const isActive = url === l.href || (l.href !== '/' && url.startsWith(l.href));
             return (
               <a
                 key={l.href}
                 href={l.href}
-                onClick={() => setOpen(false)}
-                className={`text-lg font-medium py-1 transition-colors ${
-                  isActive ? "font-bold" : ""
+                className={`text-base font-bold py-1.5 transition-colors ${
+                  isActive ? "text-[#4274D9]" : "text-[#293681]"
                 }`}
-                style={{ 
-                  color: isActive ? COLORS.teal : COLORS.navy,
-                }}
               >
                 {l.label}
               </a>
             );
           })}
-          <a
-            href="#mulai"
-            onClick={() => setOpen(false)}
-            className="text-lg font-semibold text-center px-5 py-3 rounded-full text-white mt-2"
-            style={{ backgroundColor: COLORS.teal }}
-          >
-            Mulai Donasi
-          </a>
+
+          <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
+            {auth?.user ? (
+              <>
+                <Link
+                  href={
+                    auth.user.id_role_user === 'RL01ADM' ? route('admin.dashboard') :
+                    auth.user.id_role_user === 'RL02PAN' ? route('panti.dashboard') :
+                    route('donatur.dashboard')
+                  }
+                  className="w-full text-center text-sm font-bold py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20"
+                >
+                  Dashboard ({auth.user.name})
+                </Link>
+                <Link
+                  href={route("logout")}
+                  method="post"
+                  as="button"
+                  className="w-full text-center text-sm font-bold py-2.5 rounded-full text-[#293681] border border-[#293681]/30 hover:bg-slate-50"
+                >
+                  Keluar
+                </Link>
+              </>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Link
+                  href={route("login")}
+                  className="w-full text-center text-sm font-bold py-3 rounded-full text-[#293681] border-2 border-[#293681] hover:bg-[#293681] hover:text-white transition-all"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href={route("register")}
+                  className="w-full text-center text-sm font-bold py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20 hover:bg-[#293681] transition-all"
+                >
+                  Daftar
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </header>
@@ -244,17 +276,26 @@ export default function ProfilPantiDetail({
     });
   };
 
-  const openReportModal = (type: 'panti' | 'postingan' | 'keuangan', id: string | number, title: string) => {
+  const [reportTargetData, setReportTargetData] = useState<ReportTargetData | null>(null);
+
+  const openReportModal = (
+    type: 'panti' | 'postingan' | 'keuangan', 
+    id: string | number, 
+    title: string,
+    targetImage?: string,
+    targetContent?: string
+  ) => {
     if (!isLoggedIn) {
       window.location.href = '/login';
       return;
     }
-    setReportTarget({ type, id, title });
-    formReport.setData({
-      ...formReport.data,
+    setReportTargetData({
       tipe_laporan: type,
       id_target: id.toString(),
-      judul_target: title
+      judul_target: title,
+      target_image: targetImage || undefined,
+      target_content: targetContent || undefined,
+      id_shelter: panti?.id_shelter || panti?.id,
     });
     setIsReportModalOpen(true);
   };
@@ -348,7 +389,7 @@ export default function ProfilPantiDetail({
     <div className={`font-sans bg-[#F8FAFC] text-[#293681] ${isLoggedIn ? "flex h-screen overflow-hidden" : "flex flex-col h-screen overflow-hidden"}`}>
 
       {/* LAYER PEMBUNGKUS UTAMA */}
-      <div className={`flex flex-1 min-w-0 overflow-hidden relative ${!isLoggedIn ? "flex-col" : ""}`}>
+      <div className={`flex flex-1 min-w-0 overflow-hidden relative ${!isLoggedIn ? "flex-col pt-16 sm:pt-20" : ""}`}>
         
         {/* SIDEBAR & MOBILE BACKDROP (HANYA MUNCUL JIKA USER LOGIN) */}
         {isLoggedIn && (
@@ -390,13 +431,14 @@ export default function ProfilPantiDetail({
                 
                   {/* Tombol Back */}
                   <div className="absolute top-4 left-4 z-20">
-                      <button 
-                          onClick={() => window.history.back()}
-                          className="bg-[#4274D9] hover:bg-[#293681] text-white p-2.5 rounded-full transition-colors shadow-lg backdrop-blur-sm"
-                          title="Kembali"
-                      >
-                          <ArrowLeft size={20} />
-                      </button>
+                    <Link 
+                      href="/profil-panti"
+                      className="bg-white/90 hover:bg-white text-[#293681] px-4 py-2 rounded-full transition-all shadow-md backdrop-blur-md font-extrabold text-xs flex items-center gap-2 cursor-pointer border border-white/50"
+                      title="Kembali ke Daftar Panti"
+                    >
+                      <ArrowLeft size={16} />
+                      <span>Kembali</span>
+                    </Link>
                   </div>
 
                   {/* Gambar Cover dengan Opsi Hapus (Jika Panti Owner) */}
@@ -458,7 +500,7 @@ export default function ProfilPantiDetail({
                       
                       {!isPantiOwner && (
                         <button 
-                          onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
+                          onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama, panti?.foto_profil ? '/storage/' + panti?.foto_profil : (panti?.logo_url || panti?.foto), panti?.deskripsi)} 
                           className="p-2 sm:p-2.5 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-400 border border-gray-300 transition-colors cursor-pointer shrink-0"
                           title="Laporkan Akun Panti Ini"
                         >
@@ -583,8 +625,8 @@ export default function ProfilPantiDetail({
 
                               {!isPantiOwner && (
                                 <button 
-                                  onClick={() => openReportModal('postingan', panti?.id_shelter || 1, `Postingan #${post.id}`)}
-                                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                  onClick={() => openReportModal('postingan', post.id, `Postingan: ${post.content ? post.content.substring(0, 30) + '...' : 'Panti'}`, post.image ? '/storage/' + post.image : undefined, post.content)}
+                                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors cursor-pointer"
                                   title="Laporkan Postingan"
                                 >
                                   <Flag size={14} />
@@ -622,9 +664,21 @@ export default function ProfilPantiDetail({
                                   <h4 className="font-extrabold text-[15px] text-[#293681] leading-tight">
                                     {need.nama_barang || need.nama_kebutuhan || need.barang || need.item || need.nama || 'Item Kebutuhan'}
                                   </h4>
-                                  <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 font-extrabold px-2 py-0.5 rounded shrink-0">
-                                    Sisa {sisa} {need.satuan || 'pcs'}
-                                  </span>
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <span className="text-[10px] bg-orange-50 text-orange-700 border border-orange-200 font-extrabold px-2 py-0.5 rounded">
+                                      Sisa {sisa} {need.satuan || 'pcs'}
+                                    </span>
+                                    {!isPantiOwner && (
+                                      <button 
+                                        type="button"
+                                        onClick={() => openReportModal('postingan', need.id_needs, need.nama_kebutuhan || need.nama_barang || 'Kebutuhan Barang', need.foto ? '/storage/' + need.foto : undefined, `Kebutuhan Barang: ${need.nama_kebutuhan || 'Item'} (${need.jumlah || 0} ${need.satuan || 'pcs'})`)}
+                                        className="p-1 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                        title="Laporkan Kebutuhan Ini"
+                                      >
+                                        <Flag size={14} />
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mt-4 mb-1.5">
                                   <div className="h-full bg-[#4274D9] rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
@@ -1121,6 +1175,13 @@ export default function ProfilPantiDetail({
             </div>
           </div>
         )}
+
+        {/* Modal Laporan Konten */}
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          targetData={reportTargetData}
+        />
 
       </div>
     </div>

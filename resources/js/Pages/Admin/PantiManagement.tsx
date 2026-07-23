@@ -126,17 +126,17 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto w-full no-scrollbar">
-          <table className="w-full text-left border-separate border-spacing-0 min-w-[760px]">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div className="overflow-x-auto w-full pb-16 -mb-16">
+          <table className="w-full text-left border-separate border-spacing-0 min-w-[950px]">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.teal}}>Nama Panti</th>
                 <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Pimpinan</th>
                 <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Lokasi</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Jumlah Binaan</th>
-                <th className="px-6 py-4 font-bold" style={{background: COLORS.teal}}>Status</th>
-                <th className="px-6 py-4 font-bold text-right rounded-tr-2xl" style={{background: COLORS.teal}}>Aksi</th>
+                <th className="px-6 py-4 font-bold text-center" style={{background: COLORS.teal}}>Jumlah Binaan</th>
+                <th className="px-6 py-4 font-bold text-center" style={{background: COLORS.teal}}>Status</th>
+                <th className="px-6 py-4 font-bold text-center rounded-tr-2xl w-36" style={{background: COLORS.teal}}>Aksi</th>
               </tr>
             </thead>
             <tbody className="text-[#124354] text-sm">
@@ -171,8 +171,8 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                     </td>
                     <td className="px-6 py-4 font-medium border-b border-gray-100">{panti.pimpinan}</td>
                     <td className="px-6 py-4 text-gray-500 border-b border-gray-100">{panti.alamat}</td>
-                    <td className="px-6 py-4 font-semibold border-b border-gray-100">{panti.anak} Orang</td>
-                    <td className="px-6 py-4 border-b border-gray-100">
+                    <td className="px-6 py-4 font-semibold text-center border-b border-gray-100">{panti.anak} Orang</td>
+                    <td className="px-6 py-4 text-center border-b border-gray-100">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                         panti.status === 'Active' 
                           ? 'bg-green-50 text-green-700 border border-green-200' 
@@ -184,18 +184,21 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
                         {panti.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right border-b border-gray-100">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-6 py-4 text-center border-b border-gray-100 min-w-[130px]">
+                      <div className="flex items-center justify-center gap-1.5">
                         <button 
                           onClick={() => router.visit(route('admin.chat.init_panti', { id_panti: panti.id }))}
-                          className="p-2 text-[#5A7C85] hover:text-[#407E8C] hover:bg-[#407E8C]/10 rounded-lg transition-colors mr-1"
+                          className="p-2 text-[#4274D9] hover:text-[#293681] hover:bg-[#4274D9]/10 rounded-xl transition-colors"
                           title="Hubungi Panti"
                         >
                           <MessageSquare size={18} />
                         </button>
                         <Dropdown>
                           <Dropdown.Trigger>
-                            <button className="p-2 text-gray-400 hover:text-[#124354] hover:bg-gray-100 rounded-lg transition-colors">
+                            <button 
+                              className="p-2 text-[#293681] hover:text-[#4274D9] bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors shadow-2xs flex items-center justify-center"
+                              title="Menu Aksi"
+                            >
                               <MoreVertical size={18} />
                             </button>
                           </Dropdown.Trigger>

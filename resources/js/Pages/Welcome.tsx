@@ -431,7 +431,7 @@ function Nav() {
   
     return (
       <header
-        className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-slate-100/80 transition-all duration-300 shadow-sm"
+        className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-100/80 transition-all duration-300 shadow-sm"
       >
         <nav className="max-w-7xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
           <a 
@@ -614,7 +614,7 @@ function Hero() {
   const donors = useCountUp(5200);
 
   return (
-    <section id="top" className="relative w-full max-w-full overflow-hidden pt-12 sm:pt-16 pb-16 sm:pb-24" style={{ backgroundColor: COLORS.cream }}>
+    <section id="top" className="relative w-full max-w-full overflow-hidden pt-24 sm:pt-28 pb-16 sm:pb-24" style={{ backgroundColor: COLORS.cream }}>
       {/* Dynamic particles live background */}
       <InteractiveParticles />
 
