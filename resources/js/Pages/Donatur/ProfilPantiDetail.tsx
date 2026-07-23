@@ -22,6 +22,12 @@ const COLORS = {
   cream: "#F8FAFC",
 };
 
+const getImgUrl = (path?: string | null) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return path.startsWith('/') ? path : '/storage/' + path;
+};
+
 // ================= KOMPONEN NAVIGASI (GUEST / LUAR LUAR) =================
 function Nav() {
   const [open, setOpen] = useState(false);
@@ -444,7 +450,7 @@ export default function ProfilPantiDetail({
                   {/* Gambar Cover dengan Opsi Hapus (Jika Panti Owner) */}
                   {(panti?.foto_banner || panti?.cover) && (
                       <>
-                        <img src={panti.foto_banner ? '/storage/' + panti.foto_banner : panti.cover} alt="Cover" className="w-full h-full object-cover transition-all group-hover:brightness-90" />
+                        <img src={panti.foto_banner ? getImgUrl(panti.foto_banner) : panti.cover} alt="Cover" className="w-full h-full object-cover transition-all group-hover:brightness-90" />
                         {isPantiOwner && (
                           <button 
                             onClick={handleDeleteCover}
@@ -465,7 +471,7 @@ export default function ProfilPantiDetail({
                     <div className="-mt-12 sm:-mt-20 w-24 h-24 sm:w-36 sm:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-md bg-[#4274D9] text-white font-black text-3xl sm:text-5xl overflow-hidden relative z-10 group shrink-0">
                       {panti?.logo_url || panti?.foto || panti?.foto_profil ? (
                         <>
-                          <img src={panti.foto_profil ? '/storage/' + panti.foto_profil : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover transition-all group-hover:brightness-75" />
+                          <img src={panti.foto_profil ? getImgUrl(panti.foto_profil) : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover transition-all group-hover:brightness-75" />
                           {isPantiOwner && (
                             <button 
                               onClick={handleDeleteProfilePhoto}
@@ -604,8 +610,8 @@ export default function ProfilPantiDetail({
                               {post.content}
                             </p>
                             {post.image && (
-                              <div className="mt-3 rounded-xl overflow-hidden border border-gray-200 aspect-video max-w-xl bg-gray-100">
-                                <img src={'/storage/' + post.image} className="w-full h-full object-cover" alt="Post" />
+                              <div className="mt-3 rounded-2xl overflow-hidden max-h-[420px] bg-slate-100 border border-slate-100 shadow-sm">
+                                <img src={getImgUrl(post.image)} className="w-full h-full object-cover" alt="Post" />
                               </div>
                             )}
 
@@ -771,7 +777,7 @@ export default function ProfilPantiDetail({
                                 <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm hover:border-[#4274D9] transition-colors">
                                 <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-gray-100 bg-gray-50">
                                     {p.image ? (
-                                      <img src={'/storage/' + p.image} alt={p.nama} className="w-full h-full object-cover" />
+                                      <img src={getImgUrl(p.image)} alt={p.nama} className="w-full h-full object-cover" />
                                     ) : (
                                       <div className="w-full h-full flex items-center justify-center text-gray-400"><Briefcase size={20}/></div>
                                     )}

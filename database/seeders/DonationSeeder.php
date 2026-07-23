@@ -30,17 +30,17 @@ class DonationSeeder extends Seeder
 
         $this->command->info("=== SEEDING DONATIONS ===");
 
-        // ================= 1. GOODS DONATIONS (5-15 per Donor) =================
-        $this->command->info("Seeding Goods Donations (5-15 per donor)...");
+        // ================= 1. GOODS DONATIONS (3 per Donor = 30 total) =================
+        $this->command->info("Seeding Goods Donations (30 total)...");
         $couriers = ['JNE Reguler', 'GrabExpress', 'Gojek Instant', 'SiCepat Reguler', 'J&T Express', 'JNE Trucking'];
         $statuses = ['Pending', 'Diproses', 'Dikirim', 'Diterima', 'Batal'];
 
         foreach ($donors as $donor) {
-            $numDonations = rand(5, 15);
+            $numDonations = 3;
             for ($i = 0; $i < $numDonations; $i++) {
                 $need = $needs->random();
                 $status = $statuses[array_rand($statuses)];
-                $qty = rand(1, min(15, $need->jumlah));
+                $qty = rand(1, max(1, min(15, $need->jumlah)));
 
                 $donationData = [
                     'id_needs' => $need->id_needs,
@@ -57,7 +57,7 @@ class DonationSeeder extends Seeder
 
                 if ($status === 'Diterima') {
                     $donationData['bukti_penerimaan'] = 'bukti_penerimaan/dummy_bukti_' . rand(1, 4) . '.jpg';
-                    $donationData['ucapan_terimakasih'] = 'Terima kasih banyak atas donasinya. Bantuan ' . $need->nama_kebutuhan . ' ini sangat membantu anak-anak.';
+                    $donationData['ucapan_terimakasih'] = 'Terima kasih banyak atas donasinya. Bantuan ' . $need->nama_kebutuhan . ' ini sangat bermanfaat bagi kami.';
                 }
 
                 Donation::create($donationData);
@@ -75,13 +75,13 @@ class DonationSeeder extends Seeder
             ]);
         }
 
-        // ================= 2. CASH DONATIONS (10-20 per Shelter) =================
-        $this->command->info("Seeding Cash Donations (10-20 per shelter)...");
+        // ================= 2. CASH DONATIONS (3 per Shelter = 30 total) =================
+        $this->command->info("Seeding Cash Donations (30 total)...");
         $paymentMethods = ['Transfer Bank', 'QRIS', 'E-Wallet (Gopay/OVO)', 'Kartu Kredit'];
         $cashStatuses = ['Sukses', 'Pending', 'Batal'];
 
         foreach ($shelters as $shelter) {
-            $numCashDonations = rand(10, 20);
+            $numCashDonations = 3;
             for ($j = 0; $j < $numCashDonations; $j++) {
                 $randomDonor = $donors->random();
                 $cashStatus = $cashStatuses[array_rand($cashStatuses)];

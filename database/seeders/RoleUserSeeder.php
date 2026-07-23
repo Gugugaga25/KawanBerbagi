@@ -14,10 +14,14 @@ class RoleUserSeeder extends Seeder
      */
     public function run(): void
     {
-        RoleUser::insert([
+        $roles = [
             ['id_role_user' => 'RL01ADM', 'role' => 'admin'],
             ['id_role_user' => 'RL02PAN', 'role' => 'panti'],
             ['id_role_user' => 'RL03DON', 'role' => 'donatur'],
-        ]);
+        ];
+
+        foreach ($roles as $r) {
+            RoleUser::updateOrCreate(['id_role_user' => $r['id_role_user']], $r);
+        }
     }
 }

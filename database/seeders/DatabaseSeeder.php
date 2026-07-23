@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             DonationSeeder::class,
             ReportSeeder::class,
+            ChatSeeder::class,
+            NotificationSeeder::class,
+            AiMessageSeeder::class,
         ]);
     }
 }

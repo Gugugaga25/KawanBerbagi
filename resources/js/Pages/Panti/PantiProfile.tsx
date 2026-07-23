@@ -15,6 +15,12 @@ const COLORS = {
   cream: "#E5E1DD",
 };
 
+const getImgUrl = (path?: string | null) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return path.startsWith('/') ? path : '/storage/' + path;
+};
+
 export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiData?: any, needs?: any[] }) {
   // ================= STATES UNTUK TABS & MODALS =================
   const [activeProfileTab, setActiveProfileTab] = useState('postingan');
@@ -294,7 +300,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
           {/* Gambar hanya akan dirender JIKA ada foto_banner */}
           {pantiData?.foto_banner && (
-            <img src={'/storage/' + pantiData.foto_banner} alt="Cover" className="w-full h-full object-cover" />
+            <img src={getImgUrl(pantiData.foto_banner)} alt="Cover" className="w-full h-full object-cover" />
           )}
 
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
@@ -321,7 +327,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
             <div className="-mt-14 md:-mt-20 relative z-10 w-fit">
               <div className="w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#4274D9] text-white font-black text-5xl overflow-hidden relative group">
                 {pantiData?.foto_profil ? (
-                  <img src={'/storage/' + pantiData.foto_profil} className="w-full h-full object-cover" />
+                  <img src={getImgUrl(pantiData.foto_profil)} className="w-full h-full object-cover" />
                 ) : (
                   <span>{getInitials(pantiData?.nama_yayasan)}</span>
                 )}
@@ -515,7 +521,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                       </p>
                       {post.image && (
                         <div className="mt-3 rounded-xl overflow-hidden border border-gray-200 aspect-video max-w-xl bg-gray-100">
-                          <img src={'/storage/' + post.image} className="w-full h-full object-cover" alt="Post" />
+                          <img src={getImgUrl(post.image)} className="w-full h-full object-cover" alt="Post" />
                         </div>
                       )}
                     </div>
@@ -656,7 +662,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                       </div>
                       <div className="w-12 h-12 md:w-16 md:h-16 mx-auto rounded-full overflow-hidden mb-2 border-2 border-gray-100 bg-gray-50">
                         {p.image ? (
-                          <img src={'/storage/' + p.image} alt={p.nama} className="w-full h-full object-cover" />
+                          <img src={getImgUrl(p.image)} alt={p.nama} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-400"><Briefcase size={20} /></div>
                         )}
