@@ -847,28 +847,28 @@ export default function ProfilPantiDetail({
 
         {/* ================= MODAL BOOKING BARANG ================= */}
         {isNeedModalOpen && selectedNeed && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-xs transition-opacity">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-xs transition-opacity">
             <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col">
               {/* Header */}
               <div className="flex justify-between items-center mb-5 shrink-0">
                 <h3 className="text-lg font-black text-[#293681] flex items-center gap-2">
-                  <Package size={20} className="text-[#4274D9]" /> Donasi Sekarang
+                  <Package size={20} className="text-[#293681]" /> Donasi Sekarang
                 </h3>
-                <button onClick={() => setIsNeedModalOpen(false)} className="p-2 text-gray-400 hover:text-[#293681] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
+                <button onClick={() => setIsNeedModalOpen(false)} className="p-2 text-gray-400 hover:text-[#124354] bg-gray-50 hover:bg-gray-100 rounded-full transition-colors">
                   <X size={18} />
                 </button>
               </div>
 
               <form onSubmit={submitBookingBarang} className="space-y-5 flex-1">
                 {/* Info Campaign */}
-                <div className="rounded-2xl p-4 bg-[#F8FAFC] border border-gray-200">
+                <div className="rounded-2xl p-4 bg-[#4274D9]/10 border border-gray-200">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#D0E7E6]">
-                      <Package size={20} color="#4274D9" />
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#4274D9]/20">
+                      <Package size={20} color="#293681" />
                     </div>
                     <div>
                       <p className="text-sm font-bold text-[#293681]">{selectedNeed.nama_barang || selectedNeed.nama || 'Item'}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-[#293691]/70 mt-0.5">
                         {selectedNeed.kategori} · {panti.nama_yayasan}
                       </p>
                     </div>
@@ -877,7 +877,7 @@ export default function ProfilPantiDetail({
                     <span>Terpenuhi</span>
                     <span>{selectedNeed.terkumpul}/{selectedNeed.jumlah} {selectedNeed.satuan}</span>
                   </div>
-                  <div className="h-1.5 rounded-full overflow-hidden bg-[#D0E7E6]">
+                  <div className="h-1.5 rounded-full overflow-hidden bg-[#4274D9]/20">
                     <div 
                       className="h-full rounded-full bg-[#4274D9]" 
                       style={{ width: `${(selectedNeed.terkumpul / selectedNeed.jumlah) * 100}%` }} 
@@ -898,19 +898,19 @@ export default function ProfilPantiDetail({
                       type="button"
                       onClick={() => adjustAmount(-1)}
                       disabled={formBarang.data.jumlah_donasi <= 1}
-                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#D0E7E6] text-[#293681]"
+                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#4274D9]/40 text-[#083A4F]"
                     >
                       <Minus size={16} />
                     </button>
                     <div className="text-center min-w-[80px]">
-                      <p className="text-2xl font-bold tabular-nums text-[#293681]">{formBarang.data.jumlah_donasi}</p>
+                      <p className="text-2xl font-bold tabular-nums text-[#083A4F]">{formBarang.data.jumlah_donasi}</p>
                       <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{selectedNeed.satuan}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => adjustAmount(1)}
                       disabled={formBarang.data.jumlah_donasi >= (selectedNeed.remaining !== undefined ? selectedNeed.remaining : (selectedNeed.jumlah - selectedNeed.terkumpul))}
-                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#D0E7E6] text-[#293681]"
+                      className="w-10 h-10 rounded-full flex items-center justify-center border transition disabled:opacity-30 border-[#4274D9]/40 text-[#083A4F]"
                     >
                       <Plus size={16} />
                     </button>
@@ -929,7 +929,7 @@ export default function ProfilPantiDetail({
                     value={formBarang.data.pesan}
                     onChange={(e) => formBarang.setData('pesan', e.target.value)}
                     placeholder="Tulis pesan atau info tambahan mengenai barang donasi Anda..."
-                    className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:border-[#4274D9] outline-none h-20 resize-none text-[#293681] font-semibold"
+                    className="w-full p-3 text-xs rounded-xl border border-gray-200 focus:border-[#407E8C] outline-none h-20 resize-none text-[#083A4F] font-semibold"
                   />
                   {formBarang.errors.pesan && (
                     <p className="text-xs text-red-500 mt-1">{formBarang.errors.pesan}</p>
@@ -955,11 +955,11 @@ export default function ProfilPantiDetail({
                       }}
                       className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                       style={{
-                        borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#D0E7E6',
-                        backgroundColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D910' : '#ffffff',
+                        borderColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#C1D6FF',
+                        backgroundColor: formBarang.data.metode_pengiriman === 'ekspedisi' ? 'rgba(64,126,140,0.06)' : '#ffffff',
                       }}
                     >
-                      <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#293681'} className="mb-2" />
+                      <Truck size={18} color={formBarang.data.metode_pengiriman === 'ekspedisi' ? '#4274D9' : '#C1D6FF'} className="mb-2" />
                       <p className="text-[10px] font-extrabold text-[#293681]">Kirim Ekspedisi</p>
                     </button>
 
@@ -976,11 +976,11 @@ export default function ProfilPantiDetail({
                       }}
                       className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                       style={{
-                        borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#D0E7E6',
-                        backgroundColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D910' : '#ffffff',
+                        borderColor: formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#C1D6FF',
+                        backgroundColor: formBarang.data.metode_pengiriman === 'mandiri' ? 'rgba(64,126,140,0.06)' : '#ffffff',
                       }}
                     >
-                      <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#293681'} className="mb-2" />
+                      <Home size={18} color={formBarang.data.metode_pengiriman === 'mandiri' ? '#4274D9' : '#C1D6FF'} className="mb-2" />
                       <p className="text-[10px] font-extrabold text-[#293681]">Antar Mandiri</p>
                     </button>
 
@@ -997,11 +997,11 @@ export default function ProfilPantiDetail({
                       }}
                       className="text-left p-3 rounded-xl border-2 transition flex flex-col justify-between h-full"
                       style={{
-                        borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#D0E7E6',
-                        backgroundColor: formBarang.data.metode_pengiriman === 'jemput' ? '#4274D910' : '#ffffff',
+                        borderColor: formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#C1D6FF',
+                        backgroundColor: formBarang.data.metode_pengiriman === 'jemput' ? 'rgba(64,126,140,0.06)' : '#ffffff',
                       }}
                     >
-                      <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#293681'} className="mb-2" />
+                      <Package size={18} color={formBarang.data.metode_pengiriman === 'jemput' ? '#4274D9' : '#C1D6FF'} className="mb-2" />
                       <p className="text-[10px] font-extrabold text-[#293681]">Jemput Panti</p>
                     </button>
                   </div>
@@ -1013,8 +1013,8 @@ export default function ProfilPantiDetail({
                         <select
                           value={formBarang.data.kurir}
                           onChange={(e) => formBarang.setData('kurir', e.target.value)}
-                          className="px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#4274D9] bg-white text-[#293681]"
-                          style={{ borderColor: '#D0E7E6' }}
+                          className="px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#407E8C] bg-white text-[#083A4F]"
+                          style={{ borderColor: '#C0D5D6' }}
                         >
                           <option>JNE</option>
                           <option>SiCepat</option>
@@ -1027,8 +1027,8 @@ export default function ProfilPantiDetail({
                           placeholder="Nomor resi (bisa dikosongkan dahulu)"
                           value={formBarang.data.resi}
                           onChange={(e) => formBarang.setData('resi', e.target.value)}
-                          className="flex-1 px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#4274D9] text-[#293681]"
-                          style={{ borderColor: '#D0E7E6' }}
+                          className="flex-1 px-3 py-2 rounded-lg text-xs font-bold outline-none border focus:border-[#407E8C] text-[#083A4F]"
+                          style={{ borderColor: '#C0D5D6' }}
                         />
                       </div>
                       
@@ -1037,14 +1037,14 @@ export default function ProfilPantiDetail({
                           type="checkbox"
                           checked={formBarang.data.konfirmasi_langsung}
                           onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
-                          className="rounded border-gray-300 text-[#4274D9] focus:ring-[#4274D9]"
+                          className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
                         />
-                        <span className="text-[10px] font-extrabold text-[#293681]/85">
+                        <span className="text-[12px] font-extrabold text-[#083A4F]/85">
                           Barang sudah diserahkan ke ekspedisi sekarang
                         </span>
                       </label>
                       
-                      <p className="text-[9px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
+                      <p className="text-[11px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
                         <Clock size={11} className="shrink-0 mt-0.5" /> 
                         Belum punya resinya? Jangan khawatir - Anda punya waktu 24 jam untuk melengkapinya dari menu Riwayat Donasi agar tidak batal otomatis.
                       </p>
@@ -1058,13 +1058,13 @@ export default function ProfilPantiDetail({
                           type="checkbox"
                           checked={formBarang.data.konfirmasi_langsung}
                           onChange={(e) => formBarang.setData('konfirmasi_langsung', e.target.checked)}
-                          className="rounded border-gray-300 text-[#4274D9] focus:ring-[#4274D9]"
+                          className="rounded border-gray-300 text-[#407E8C] focus:ring-[#407E8C]"
                         />
-                        <span className="text-[10px] font-extrabold text-[#293681]/85">
+                        <span className="text-[12px] font-extrabold text-[#083A4F]/85">
                           Barang sudah mulai saya antar ke lokasi panti sekarang
                         </span>
                       </label>
-                      <p className="text-[9px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
+                      <p className="text-[11px] mt-2 flex items-start gap-1 text-gray-400 font-semibold">
                         <Clock size={11} className="shrink-0 mt-0.5" /> 
                         Jika Anda belum berangkat sekarang, lakukan konfirmasi jalan dalam waktu 24 jam atau kuota akan otomatis dilepas.
                       </p>
@@ -1074,7 +1074,7 @@ export default function ProfilPantiDetail({
                   {formBarang.data.metode_pengiriman === 'jemput' && (
                     <div className="mt-4 pt-3 border-t border-gray-100">
                       <div className="rounded-xl p-3 bg-amber-50 border border-amber-100 flex items-start gap-2">
-                        <Clock size={13} className="text-[#F59E0B] shrink-0 mt-0.5" />
+                        <Clock size={13} className="text-[#A58D66] shrink-0 mt-0.5" />
                         <p className="text-[9px] leading-normal text-amber-800 font-semibold">
                           Penjemputan memerlukan konfirmasi pihak panti. Panti memiliki waktu 24 jam untuk menyetujui request penjemputan ini sebelum booking otomatis dibatalkan.
                         </p>
@@ -1084,10 +1084,10 @@ export default function ProfilPantiDetail({
                 </div>
 
                 {/* Alamat Tujuan */}
-                <div className="rounded-2xl p-4 bg-[#D0E7E6] text-[#293681]">
+                <div className="rounded-2xl p-4 bg-[#4274D9]/10 border border-gray-200 text-[#083A4F]">
                   <div className="flex items-center gap-1.5 mb-2">
-                    <MapPin size={14} color="#293681" />
-                    <span className="text-[10px] font-black uppercase tracking-wider opacity-75">
+                    <MapPin size={14} color="#4274D9" />
+                    <span className="text-[10px] font-black text-[#4274D9] uppercase tracking-wider">
                       Alamat Penerima
                     </span>
                   </div>
@@ -1112,7 +1112,7 @@ export default function ProfilPantiDetail({
                   <button 
                     type="submit" 
                     disabled={!formBarang.data.metode_pengiriman || formBarang.processing} 
-                    className="flex-1 py-3.5 bg-[#293681] text-white text-xs font-extrabold rounded-xl hover:bg-[#1A2359] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3.5 bg-[#4274D9] text-white text-xs font-extrabold rounded-xl hover:bg-[#293681] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
                     <ShieldCheck size={14} /> {formBarang.processing ? 'Memproses...' : 'Kunci Donasi Ini'}
                   </button>

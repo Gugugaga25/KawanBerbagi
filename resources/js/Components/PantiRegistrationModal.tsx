@@ -91,8 +91,7 @@ function FileField({
         style={{ borderColor: COLORS.mist, backgroundColor: "#f9fafb" }}
       >
         <div
-          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-          style={{ backgroundColor: COLORS.mist }}
+          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-[#4274D9]/20"
         >
           <Icon size={16} color={COLORS.teal} />
         </div>

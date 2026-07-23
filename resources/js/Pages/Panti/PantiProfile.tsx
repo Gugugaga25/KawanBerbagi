@@ -349,7 +349,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
             <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
               <button
                 onClick={() => setIsEditProfileModalOpen(true)}
-                className="px-5 py-2 md:px-4 md:py-2 bg-[#4274D9] hover:bg-[#083A4F] text-white rounded-full font-bold shadow-sm transition-colors flex items-center gap-2 text-[14px]"
+                className="px-5 py-2 md:px-4 md:py-2 bg-[#4274D9] hover:bg-[#293681] text-white rounded-full font-bold shadow-sm transition-colors flex items-center gap-2 text-[14px]"
               >
                 <Edit2 size={16} /> Edit Profil
               </button>
@@ -476,7 +476,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                   <button
                     onClick={handleCreatePost}
                     disabled={!newPostContent.trim() && !imagePreview} // Tombol aktif jika ada teks ATAU ada gambar
-                    className="bg-[#4274D9] hover:bg-[#083A4F] text-[15px] text-white px-6 py-2 rounded-full font-bold transition-colors disabled:opacity-50"
+                    className="bg-[#4274D9] hover:bg-[#293681] text-[15px] text-white px-6 py-2 rounded-full font-bold transition-colors disabled:opacity-50"
                   >
                     Posting
                   </button>
@@ -537,7 +537,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
               </h3>
               <button
                 onClick={() => setIsNeedModalOpen(true)}
-                className="px-4 py-2 bg-[#4274D9] hover:bg-[#083A4F] text-white text-xs md:text-sm font-bold rounded-lg flex items-center gap-2 transition-colors"
+                className="px-4 py-2 bg-[#4274D9] hover:bg-[#293681] text-white text-xs md:text-sm font-bold rounded-lg flex items-center gap-2 transition-colors"
               >
                 <Plus size={16} /> Tambah Kebutuhan
               </button>
@@ -678,7 +678,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
           <div className="p-5 md:p-8 max-w-4xl mx-auto space-y-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-black text-[#124354]">Riwayat Laporan</h3>
-              <button onClick={() => setIsAuditModalOpen(true)} className="px-4 py-2 bg-[#4274D9] hover:bg-[#083A4F] text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
+              <button onClick={() => setIsAuditModalOpen(true)} className="px-4 py-2 bg-[#4274D9] hover:bg-[#293681] text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
                 <Plus size={16} /> Unggah Laporan
               </button>
             </div>
@@ -774,7 +774,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
               <div className="sticky bottom-0 bg-white p-5 border-t border-gray-100 flex gap-3 z-10 justify-end -mx-8 -mb-8 mt-5 rounded-b-[2rem]">
                 <button type="button" onClick={() => setIsEditProfileModalOpen(false)} className="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all">Batal</button>
-                <button type="submit" disabled={profileForm.processing} className="px-8 py-3 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-all disabled:opacity-50">Simpan Perubahan</button>
+                <button type="submit" disabled={profileForm.processing} className="px-8 py-3 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition-all disabled:opacity-50">Simpan Perubahan</button>
               </div>
             </form>
           </div>
@@ -783,7 +783,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
       {/* ================= MODAL FORM TAMBAH KEBUTUHAN ================= */}
       {isNeedModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm transition-all">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-sm transition-all">
           <div className="bg-white rounded-[2rem] p-6 md:p-8 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in-95 duration-200">
 
             <div className="flex justify-between items-center mb-6">
@@ -886,7 +886,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                 <button
                   type="submit"
                   disabled={processing}
-                  className="flex-1 py-3 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
+                  className="flex-1 py-3 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50"
                 >
                   {processing ? 'Menyimpan...' : 'Terbitkan Kebutuhan'}
                 </button>
@@ -899,7 +899,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
       {/* 3. Modal Tambah Pengurus */}
       {isPengurusModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-black text-[#124354]">Tambah Pengurus</h3>
@@ -932,7 +932,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                 <label className="block text-xs font-bold text-gray-500 mb-1.5">Jabatan / Posisi</label>
                 <input type="text" value={formPengurus.data.jabatan} onChange={e => formPengurus.setData('jabatan', e.target.value)} required className="w-full p-3 text-sm rounded-xl bg-gray-50 border border-gray-200 outline-none" />
               </div>
-              <button type="submit" disabled={formPengurus.processing} className="w-full py-3 mt-4 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-colors disabled:opacity-50">Simpan Profil Pengurus</button>
+              <button type="submit" disabled={formPengurus.processing} className="w-full py-3 mt-4 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition-colors disabled:opacity-50">Simpan Profil Pengurus</button>
             </form>
           </div>
         </div>
@@ -940,7 +940,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
 
       {/* 4. Modal Tambah Laporan Audit */}
       {isAuditModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#083A4F]/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#293681]/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl">
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-black text-[#124354]">Unggah Laporan Keuangan</h3>
@@ -1014,7 +1014,7 @@ export default function ProfilPantiDashboard({ pantiData, needs = [] }: { pantiD
                     </div>
                 )}
                 </div>
-              <button type="submit" disabled={formAudit.processing} className="w-full py-3 mt-4 bg-[#4274D9] hover:bg-[#083A4F] text-white font-bold rounded-xl transition-colors disabled:opacity-50">Unggah Dokumen</button>
+              <button type="submit" disabled={formAudit.processing} className="w-full py-3 mt-4 bg-[#4274D9] hover:bg-[#293681] text-white font-bold rounded-xl transition-colors disabled:opacity-50">Unggah Dokumen</button>
             </form>
           </div>
         </div>

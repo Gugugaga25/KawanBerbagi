@@ -161,7 +161,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                 
                 {/* INFO PANTI */}
                 <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style={{ backgroundColor: COLORS.navy }}>
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style={{ backgroundColor: COLORS.teal }}>
                     <Heart size={24} className="fill-current" />
                   </div>
                   <div>
@@ -379,8 +379,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                   <button
                     onClick={handleSubmit}
                     disabled={processing || nominalValue < 10000 || !data.metode_pembayaran}
-                    className="w-full text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
-                    style={{ backgroundColor: COLORS.navy }}
+                    className="w-full text-white font-bold py-3.5 rounded-xl shadow-md transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed bg-[#4274D9] hover:bg-[#293681]"
                   >
                     {processing ? 'Memproses...' : 'Lanjutkan Pembayaran'}
                   </button>
@@ -390,7 +389,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                 </div>
 
                 {/* CARD INFO PENGGUNAAN DANA */}
-                <div className="bg-gradient-to-br from-[#083A4F] to-[#12546e] text-white rounded-xl p-5 shadow-sm">
+                <div className="bg-gradient-to-br from-[#4274D9] to-[#293681] text-white rounded-xl p-5 shadow-sm">
                   <div className="flex items-center gap-2 mb-3">
                     <Info size={18} className="text-[#C0D5D6]" />
                     <h4 className="font-bold text-sm">Transparansi Dana</h4>

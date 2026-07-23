@@ -497,7 +497,7 @@ export default function CariPanti({
               {/* Info Campaign */}
               <div className="rounded-2xl p-4 bg-[#4274D9]/10 border border-gray-200">
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-[#4274D9]/80">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-[#4274D9]/20">
                     <Package size={20} color="#293681" />
                   </div>
                   <div>
