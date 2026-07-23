@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { 
-  ArrowLeft, Wallet, Heart, CreditCard, 
-  Smartphone, CheckCircle2, MessageSquare, 
+import {
+  ArrowLeft, Wallet, Heart, CreditCard,
+  Smartphone, CheckCircle2, MessageSquare,
   Building2, ShieldCheck, Menu, ChevronDown, Coffee,
   Info, Users, Sparkles
 } from 'lucide-react';
@@ -93,7 +93,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
       <Head title={`Donasi - ${panti?.nama_yayasan || 'Panti'}`} />
 
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
@@ -105,24 +105,24 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
       `}>
         <DonaturSidebar
           activeTab="cari"
-          onTabChange={() => {}} 
+          onTabChange={() => { }}
           donaturData={auth?.user}
           stats={{ totalDonasi: 0, pantiTerbantu: 0 }}
         />
       </div>
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#F4F3EF]">
-        
+
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#083A4F] z-30">
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[#fff] z-30">
           <div className="flex items-center gap-3 text-white">
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors focus:outline-none"
+              className="p-2 rounded-xl text-white bg-[#4274D9] hover:bg-[#293681] transition-colors focus:outline-none"
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
-            <span className="font-extrabold tracking-wide uppercase text-sm">Donasi Uang</span>
+            <span className="font-extrabold tracking-wide uppercase text-sm text-[#293681]">Donasi Uang</span>
           </div>
         </div>
 
@@ -132,15 +132,15 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
-          
+
           {/* MAX WIDTH DIBESARKAN UNTUK 2 KOLOM */}
           <div className="max-w-6xl mx-auto">
-            
+
             {/* KEMBALI & HEADER INFO (Full Width) */}
             <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6">
               <div className="flex items-center gap-4">
-                <Link 
-                  href={`/donatur/panti/${panti?.id}`} 
+                <Link
+                  href={`/donatur/panti/${panti?.id}`}
                   className="p-2 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors focus:outline-none"
                   style={{ color: COLORS.navy }}
                 >
@@ -155,10 +155,10 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
 
             {/* GRID LAYOUT: KIRI FORM, KANAN INFO */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-              
+
               {/* KOLOM KIRI (FORM) */}
               <div className="lg:col-span-2 space-y-6">
-                
+
                 {/* INFO PANTI */}
                 <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm" style={{ backgroundColor: COLORS.teal }}>
@@ -174,13 +174,13 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  
+
                   {/* NOMINAL */}
                   <section className="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
                     <h4 className="font-bold mb-4 flex items-center gap-2" style={{ color: COLORS.navy }}>
                       <Wallet size={18} style={{ color: COLORS.teal }} /> Pilih Nominal Donasi
                     </h4>
-                    
+
                     <div className="grid grid-cols-2 gap-3 mb-4">
                       {presetNominals.map((preset) => {
                         const isSelected = data.nominal === preset.value.toString();
@@ -203,7 +203,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                     </div>
 
                     <div className="relative mt-2">
-                      <div 
+                      <div
                         className="flex items-center border rounded-xl overflow-hidden transition-all focus-within:ring-1 focus-within:border-transparent"
                         style={{
                           borderColor: '#e5e7eb',
@@ -230,7 +230,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                     <h4 className="font-bold mb-4 flex items-center gap-2" style={{ color: COLORS.navy }}>
                       <CreditCard size={18} style={{ color: COLORS.teal }} /> Metode Pembayaran
                     </h4>
-                    
+
                     <div className="relative" ref={dropdownRef}>
                       <button
                         type="button"
@@ -284,14 +284,14 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
 
                   {/* PESAN & DUKUNGAN */}
                   <section className="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
-                     <h4 className="font-bold mb-4 flex items-center gap-2" style={{ color: COLORS.navy }}>
+                    <h4 className="font-bold mb-4 flex items-center gap-2" style={{ color: COLORS.navy }}>
                       <MessageSquare size={18} style={{ color: COLORS.teal }} /> Pesan & Dukungan
                     </h4>
 
                     <div className="space-y-3 mb-5">
                       <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all border-gray-200">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="w-4 h-4 rounded border-gray-300 focus:ring-0"
                           style={{ color: COLORS.teal }}
                           checked={data.is_anonim}
@@ -303,10 +303,10 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all border-gray-200" 
+                      <label className="flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all border-gray-200"
                         style={{ backgroundColor: data.developer_tip ? '#F2F8F9' : '#ffffff' }}>
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           className="w-4 h-4 rounded border-gray-300 focus:ring-0"
                           style={{ color: COLORS.teal }}
                           checked={data.developer_tip}
@@ -338,26 +338,26 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
 
                   {/* SUBMIT BUTTON (MOBILE ONLY - di Desktop muncul di kanan) */}
                   <div className="lg:hidden pt-2 pb-10">
-                     <button
-                        type="submit"
-                        disabled={processing || nominalValue < 10000 || !data.metode_pembayaran}
-                        className="w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        style={{ backgroundColor: COLORS.navy }}
-                      >
-                        {processing ? 'Memproses...' : `Bayar ${formatRupiah(totalPembayaran)}`}
-                        {!processing && <ShieldCheck size={20} />}
-                      </button>
+                    <button
+                      type="submit"
+                      disabled={processing || nominalValue < 10000 || !data.metode_pembayaran}
+                      className="w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: COLORS.navy }}
+                    >
+                      {processing ? 'Memproses...' : `Bayar ${formatRupiah(totalPembayaran)}`}
+                      {!processing && <ShieldCheck size={20} />}
+                    </button>
                   </div>
                 </form>
               </div>
 
               {/* KOLOM KANAN (INFO & SUMMARY) */}
               <div className="space-y-6 hidden lg:block">
-                
+
                 {/* RINGKASAN & TOMBOL BAYAR (Sticky) */}
                 <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                   <h4 className="font-bold text-sm uppercase tracking-wider mb-4 border-b pb-3" style={{ color: COLORS.teal }}>Ringkasan Donasi</h4>
-                  
+
                   <div className="space-y-3 mb-5 text-sm text-gray-600">
                     <div className="flex justify-between items-center">
                       <span>Donasi Tunai</span>
@@ -419,7 +419,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                     <Users size={18} style={{ color: COLORS.teal }} />
                     <h4 className="font-bold text-sm" style={{ color: COLORS.navy }}>Orang Baik Terkini</h4>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {recentDonors.length === 0 ? (
                       <p className="text-xs text-gray-400 italic text-center py-4">Belum ada donatur terbaru</p>
@@ -446,7 +446,7 @@ export default function DonasiUang({ auth, panti, recentDonors = [] }: { auth: a
                 </div>
 
               </div>
-              
+
             </div>
           </div>
         </div>

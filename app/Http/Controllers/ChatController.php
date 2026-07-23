@@ -6,6 +6,7 @@ use App\Models\Chat;
 use App\Models\Message;
 use App\Models\Donor;
 use App\Models\Shelter;
+use App\Models\AiMessage;
 use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -289,29 +290,99 @@ class ChatController extends Controller
         ]);
     }
 
+    public function getBotMessages()
+    {
+        $donor = Donor::where('id_user', auth()->id())->firstOrFail();
+
+        $aiMessages = AiMessage::where('id_donor', $donor->id_donor)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        if ($aiMessages->isEmpty()) {
+            $welcomeText = "Halo! Saya Asisten AI KawanBerbagi. 🤖\n\nSaya bisa membantu Anda merekomendasikan panti asuhan yang membutuhkan donasi barang Anda di lokasi tertentu.\n\nSilakan tanyakan sesuatu seperti:\n\"Saya mau donasi beras di daerah Bandung\" atau\n\"Ada yang butuh pakaian hangat di daerah Bogor?\"";
+            
+            $welcomeMsg = AiMessage::create([
+                'id_donor' => $donor->id_donor,
+                'sender' => 'ai',
+                'message' => $welcomeText,
+                'metadata' => null,
+            ]);
+            
+            $aiMessages = collect([$welcomeMsg]);
+        }
+
+        $formatted = $aiMessages->map(function ($msg) {
+            $meta = $msg->metadata ?? [];
+            return [
+                'id_message' => $msg->id_ai_message,
+                'id_chat' => 'ai-assistant',
+                'id_sender' => $msg->sender === 'user' ? auth()->id() : 'ai-assistant-sender',
+                'message' => $msg->message,
+                'is_read' => true,
+                'created_at' => $msg->created_at->toIso8601String(),
+                'shelters' => $meta['shelters'] ?? null,
+                'is_fallback' => $meta['is_fallback'] ?? false,
+            ];
+        });
+
+        return response()->json([
+            'messages' => $formatted,
+        ]);
+    }
+
+    public function clearBotMessages()
+    {
+        $donor = Donor::where('id_user', auth()->id())->firstOrFail();
+
+        AiMessage::where('id_donor', $donor->id_donor)->delete();
+
+        return $this->getBotMessages();
+    }
+
     public function sendBotMessage(Request $request)
     {
         $request->validate([
             'message' => 'required|string',
-            'history' => 'nullable|array',
         ]);
 
-        $userMessage = $request->input('message');
-        $history = $request->input('history', []);
+        $donor = Donor::where('id_user', auth()->id())->firstOrFail();
+        $userText = $request->input('message');
+
+        // 1. Simpan pesan pengguna ke database
+        $userAiMsg = AiMessage::create([
+            'id_donor' => $donor->id_donor,
+            'sender' => 'user',
+            'message' => $userText,
+        ]);
+
+        // 2. Ambil riwayat chat AI donor dari database untuk konteks Gemini
+        $dbHistory = AiMessage::where('id_donor', $donor->id_donor)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $history = $dbHistory->map(function ($item) {
+            return [
+                'role' => $item->sender === 'user' ? 'user' : 'model',
+                'message' => $item->message ?? '',
+            ];
+        })->toArray();
+
         $gemini = new GeminiService();
 
-        // 1. Ekstrak parameter pencarian menggunakan AI
-        $searchParams = $gemini->extractSearchParams($history);
+        // 3. Ekstrak parameter pencarian menggunakan AI dengan menyertakan kota profil donatur
+        $donorKota = $donor->kota ? trim($donor->kota) : null;
+        $searchParams = $gemini->extractSearchParams($history, $donorKota);
         $item = $searchParams['item'] ?? null;
-        $location = $searchParams['location'] ?? null;
+        $location = $searchParams['location'] ?? $donorKota;
         $kategori = $searchParams['kategori'] ?? null;
+
+        $searchParams['location'] = $location;
 
         $shelters = collect();
         $isFallback = false;
 
-        // 2. Lakukan pencarian jika ada item atau lokasi yang dicari
+        // 4. Lakukan pencarian jika ada item atau lokasi yang dicari
         if ($item || $location) {
-            // Coba pencarian utama: cari panti yang butuh item spesifik di lokasi tersebut
             $query = Shelter::where('status', 'Active');
 
             if ($location) {
@@ -330,9 +401,9 @@ class ChatController extends Controller
                 }
             }])->get();
 
-            // 3. Jika pencarian utama kosong dan ada pencarian barang spesifik, lakukan fallback ke kategori umum
+            // 5. Fallback 1: Jika pencarian spesifik barang kosong di lokasi tersebut, coba cari berdasarkan kategori
             if ($shelters->isEmpty() && $item) {
-                $fallbackCategory = $kategori ?? 'Sandang'; // default ke Sandang jika tidak terdeteksi
+                $fallbackCategory = $kategori ?? 'Sandang';
                 
                 $fallbackQuery = Shelter::where('status', 'Active');
                 
@@ -350,9 +421,19 @@ class ChatController extends Controller
 
                 $isFallback = true;
             }
+
+            // 6. Fallback 2: Jika di lokasi/kota tersebut belum ada panti terdaftar sama sekali,
+            // ambil panti-panti aktif dari wilayah lain agar donatur tetap melihat opsi panti yang membutuhkan donasi
+            if ($shelters->isEmpty()) {
+                $shelters = Shelter::where('status', 'Active')
+                    ->with('needs')
+                    ->limit(5)
+                    ->get();
+                $isFallback = true;
+            }
         }
 
-        // 4. Petakan data panti asuhan untuk dikembalikan ke frontend
+        // 6. Petakan data panti asuhan untuk dikembalikan ke frontend
         $mappedShelters = $shelters->map(function($shelter) {
             return [
                 'id_shelter' => $shelter->id_shelter,
@@ -373,15 +454,41 @@ class ChatController extends Controller
             ];
         })->toArray();
 
-        // 5. Sintesis jawaban AI berdasarkan hasil pencarian database
+        // 7. Sintesis jawaban AI berdasarkan hasil pencarian database
         $aiResponseText = $gemini->synthesizeResponse($history, $searchParams, $mappedShelters, $isFallback);
+
+        // 8. Simpan respon AI ke database
+        $aiMsg = AiMessage::create([
+            'id_donor' => $donor->id_donor,
+            'sender' => 'ai',
+            'message' => $aiResponseText,
+            'metadata' => [
+                'shelters' => $mappedShelters,
+                'is_fallback' => $isFallback,
+                'search_params' => $searchParams,
+            ],
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => $aiResponseText,
-            'shelters' => $mappedShelters,
-            'is_fallback' => $isFallback,
-            'search_params' => $searchParams,
+            'message' => [
+                'id_message' => $aiMsg->id_ai_message,
+                'id_chat' => 'ai-assistant',
+                'id_sender' => 'ai-assistant-sender',
+                'message' => $aiMsg->message,
+                'is_read' => true,
+                'created_at' => $aiMsg->created_at->toIso8601String(),
+                'shelters' => $mappedShelters,
+                'is_fallback' => $isFallback,
+            ],
+            'user_message' => [
+                'id_message' => $userAiMsg->id_ai_message,
+                'id_chat' => 'ai-assistant',
+                'id_sender' => auth()->id(),
+                'message' => $userAiMsg->message,
+                'is_read' => true,
+                'created_at' => $userAiMsg->created_at->toIso8601String(),
+            ]
         ]);
     }
 

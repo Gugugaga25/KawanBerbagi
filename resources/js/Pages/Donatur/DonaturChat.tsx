@@ -6,6 +6,9 @@ import {
 import DonaturSidebar, { DonaturTabType } from '@/Components/Donatur/DonaturSidebar';
 import DonaturHeader from '@/Components/Donatur/DonaturHeader';
 import { useToast } from '@/Components/UI/Toast';
+import Modal from '@/Components/Modal';
+import SecondaryButton from '@/Components/SecondaryButton';
+import DangerButton from '@/Components/DangerButton';
 
 interface Message {
   id_message: number | string;
@@ -71,6 +74,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
   const [isBotTyping, setIsBotTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollingIntervalRef = useRef<number | null>(null);
+  const [showClearAiModal, setShowClearAiModal] = useState(false);
 
   const isAiSelected = activeChatId === 'ai-assistant';
 
@@ -89,37 +93,53 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
       }
     : chats.find(c => c.id_chat === activeChatId);
 
-  // LocalStorage Helper for AI Chat History
-  const getAiHistory = (): Message[] => {
-    const history = localStorage.getItem('kawanberbagi_ai_history');
-    if (history) {
-      try {
-        return JSON.parse(history);
-      } catch (e) {
-        return [];
+  // Fetch AI messages from backend database
+  const fetchAiMessages = async (silent = false) => {
+    if (!silent) setLoadingMessages(true);
+    try {
+      const response = await fetch('/chat/bot/messages', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        }
+      });
+      if (response.status === 401) {
+        window.location.href = '/login';
+        return;
       }
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages);
+      }
+    } catch (error) {
+      console.error('Error fetching AI messages:', error);
+    } finally {
+      if (!silent) setLoadingMessages(false);
     }
-    // Default welcome message from AI
-    const defaultWelcome: Message = {
-      id_message: 'welcome-ai',
-      id_chat: 'ai-assistant',
-      id_sender: 'ai-assistant-sender',
-      message: 'Halo! Saya Asisten AI KawanBerbagi. 🤖\n\nSaya bisa membantu Anda merekomendasikan panti asuhan yang membutuhkan donasi barang Anda di lokasi tertentu.\n\nSilakan tanyakan sesuatu seperti:\n"Saya mau donasi beras di daerah Bandung" atau\n"Ada yang butuh pakaian hangat di daerah Bogor?"',
-      is_read: true,
-      created_at: new Date().toISOString(),
-    };
-    return [defaultWelcome];
   };
 
-  const saveAiHistory = (history: Message[]) => {
-    localStorage.setItem('kawanberbagi_ai_history', JSON.stringify(history));
-  };
-
-  const handleClearAiHistory = () => {
-    if (confirm('Apakah Anda yakin ingin menghapus seluruh riwayat obrolan dengan Asisten AI?')) {
-      localStorage.removeItem('kawanberbagi_ai_history');
-      setMessages(getAiHistory());
-      showToast('Riwayat obrolan Asisten AI berhasil dihapus.', 'success', 'Riwayat Dihapus');
+  const executeClearAiHistory = async () => {
+    setShowClearAiModal(false);
+    setLoadingMessages(true);
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const response = await fetch('/chat/bot/clear', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken,
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages);
+        showToast('Riwayat obrolan Asisten AI berhasil dihapus.', 'success', 'Riwayat Dihapus');
+      }
+    } catch (error) {
+      console.error('Error clearing AI history:', error);
+    } finally {
+      setLoadingMessages(false);
     }
   };
 
@@ -185,7 +205,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
         if (pollingIntervalRef.current) {
           window.clearInterval(pollingIntervalRef.current);
         }
-        setMessages(getAiHistory());
+        fetchAiMessages();
       } else {
         fetchMessages(activeChatId as number);
         startPolling(activeChatId as number);
@@ -260,8 +280,8 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
     handleCancelImage();
 
     if (isAiSelected) {
-      const userMsg: Message = {
-        id_message: `user-${Date.now()}`,
+      const tempUserMsg: Message = {
+        id_message: `temp-user-${Date.now()}`,
         id_chat: 'ai-assistant',
         id_sender: auth.user.id_user,
         message: messageText,
@@ -269,10 +289,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
         created_at: new Date().toISOString(),
       };
 
-      const updatedHistory = [...messages, userMsg];
-      setMessages(updatedHistory);
-      saveAiHistory(updatedHistory);
-
+      setMessages(prev => [...prev, tempUserMsg]);
       setIsBotTyping(true);
 
       try {
@@ -285,30 +302,15 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': csrfToken,
           },
-          body: JSON.stringify({ 
-            message: messageText,
-            history: updatedHistory.map(h => ({
-              role: h.id_sender == auth.user.id_user ? 'user' : 'model',
-              message: h.message
-            }))
-          }),
+          body: JSON.stringify({ message: messageText }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          const aiMsg: Message = {
-            id_message: `ai-${Date.now()}`,
-            id_chat: 'ai-assistant',
-            id_sender: 'ai-assistant-sender',
-            message: data.message,
-            is_read: true,
-            created_at: new Date().toISOString(),
-            shelters: data.shelters,
-          };
-
-          const finalHistory = [...updatedHistory, aiMsg];
-          setMessages(finalHistory);
-          saveAiHistory(finalHistory);
+          setMessages(prev => {
+            const filtered = prev.filter(m => m.id_message !== tempUserMsg.id_message);
+            return [...filtered, data.user_message, data.message];
+          });
         } else {
           const errorMsg: Message = {
             id_message: `ai-err-${Date.now()}`,
@@ -318,9 +320,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
             is_read: true,
             created_at: new Date().toISOString(),
           };
-          const finalHistory = [...updatedHistory, errorMsg];
-          setMessages(finalHistory);
-          saveAiHistory(finalHistory);
+          setMessages(prev => [...prev, errorMsg]);
         }
       } catch (error) {
         console.error('Error with chatbot response:', error);
@@ -550,7 +550,7 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
 
                     {isAiSelected && (
                       <button
-                        onClick={handleClearAiHistory}
+                        onClick={() => setShowClearAiModal(true)}
                         title="Hapus Riwayat Chat"
                         className="p-2 rounded-xl text-red-500 hover:bg-red-50 transition-all cursor-pointer flex items-center justify-center"
                       >
@@ -705,20 +705,25 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
                     )}
                     
                     <form onSubmit={handleSendMessage} className="p-3 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-10 h-10 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 flex items-center justify-center transition shrink-0 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <Paperclip size={16} />
-                      </button>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleImageSelect}
-                        accept="image/*"
-                        className="hidden"
-                      />
+                      {!isAiSelected && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-10 h-10 rounded-xl border border-gray-200 text-gray-500 hover:text-gray-700 flex items-center justify-center transition shrink-0 hover:bg-gray-50 cursor-pointer"
+                            title="Kirim Gambar"
+                          >
+                            <Paperclip size={16} />
+                          </button>
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleImageSelect}
+                            accept="image/*"
+                            className="hidden"
+                          />
+                        </>
+                      )}
                       <input
                         type="text"
                         value={inputMessage}
@@ -772,6 +777,31 @@ export default function DonaturChat({ chats: initialChats, activeChatId: initial
 
           </div>
         </div>
+
+      {/* Modal Konfirmasi Hapus Riwayat Chat AI */}
+      <Modal show={showClearAiModal} onClose={() => setShowClearAiModal(false)} maxWidth="sm">
+        <div className="p-6">
+          <div className="flex items-center gap-3 text-red-600 mb-3">
+            <div className="p-2.5 bg-red-50 rounded-2xl">
+              <Trash2 size={24} />
+            </div>
+            <h2 className="text-lg font-bold text-[#293681]">
+              Hapus Riwayat AI
+            </h2>
+          </div>
+          <p className="text-sm text-gray-500 font-medium leading-relaxed">
+            Apakah Anda yakin ingin menghapus seluruh riwayat obrolan dengan Asisten AI?
+          </p>
+          <div className="mt-6 flex justify-end gap-3">
+            <SecondaryButton onClick={() => setShowClearAiModal(false)}>
+              Batal
+            </SecondaryButton>
+            <DangerButton onClick={executeClearAiHistory}>
+              Ya, Hapus
+            </DangerButton>
+          </div>
+        </div>
+      </Modal>
 
       </main>
     </div>

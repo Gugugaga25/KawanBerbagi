@@ -525,8 +525,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/donatur/chat/init/{id_shelter}', [App\Http\Controllers\ChatController::class, 'initChat'])->name('donatur.chat.init');
     Route::get('/panti/chat', [App\Http\Controllers\ChatController::class, 'shelterIndex'])->name('panti.chat');
     Route::get('/chat/unread-count', [App\Http\Controllers\ChatController::class, 'getUnreadCount'])->name('chat.unread_count');
-    Route::get('/chat/{id_chat}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+    Route::get('/chat/bot/messages', [App\Http\Controllers\ChatController::class, 'getBotMessages'])->name('chat.bot.messages');
     Route::post('/chat/bot/send', [App\Http\Controllers\ChatController::class, 'sendBotMessage'])->name('chat.bot.send');
+    Route::post('/chat/bot/clear', [App\Http\Controllers\ChatController::class, 'clearBotMessages'])->name('chat.bot.clear');
+    Route::get('/chat/{id_chat}/messages', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
     Route::post('/chat/{id_chat}/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
 
     // Admin Chat

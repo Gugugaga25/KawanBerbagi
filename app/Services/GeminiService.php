@@ -79,10 +79,11 @@ class GeminiService
 
         $contents = [];
         foreach ($history as $chat) {
+            $msgText = $chat['message'] ?? ($chat['parts'][0]['text'] ?? '');
             $contents[] = [
-                'role' => $chat['role'] === 'model' ? 'model' : 'user',
+                'role' => ($chat['role'] ?? '') === 'model' ? 'model' : 'user',
                 'parts' => [
-                    ['text' => $chat['message']]
+                    ['text' => $msgText]
                 ]
             ];
         }
@@ -126,31 +127,33 @@ class GeminiService
     /**
      * Extract search parameters (item, location, kategori) from conversation history.
      */
-    public function extractSearchParams(array $history): array
+    public function extractSearchParams(array $history, ?string $donorKota = null): array
     {
         $historyStr = "";
         foreach ($history as $h) {
-            $roleName = $h['role'] === 'model' ? 'Asisten AI' : 'Donatur';
-            $historyStr .= "{$roleName}: {$h['message']}\n";
+            $roleName = ($h['role'] ?? '') === 'model' ? 'Asisten AI' : 'Donatur';
+            $msgText = $h['message'] ?? ($h['parts'][0]['text'] ?? '');
+            $historyStr .= "{$roleName}: {$msgText}\n";
         }
+
+        $donorInfoStr = $donorKota ? "Kota tempat tinggal donatur dari profil: \"{$donorKota}\"" : "Kota tempat tinggal donatur: Tidak diketahui";
 
         $prompt = <<<PROMPT
 Analisis percakapan bahasa Indonesia berikut dari donatur yang ingin melakukan donasi ke panti asuhan:
 ---
 {$historyStr}
 ---
+Info Profil Donatur:
+{$donorInfoStr}
 
-Tugas Anda: Ekstrak parameter pencarian berdasarkan pesan terakhir dari donatur, dengan mempertimbangkan konteks percakapan di atas jika pesan terakhir kurang spesifik (misal: jika donatur sebelumnya mencari "beras di Bandung" lalu bertanya "Ada panti lainnya?", maka item tetap "beras" dan lokasi tetap "bandung").
+Tugas Anda: Ekstrak parameter pencarian berdasarkan pesan terakhir dari donatur, dengan mempertimbangkan konteks percakapan di atas.
 
 Ekstrak parameter pencarian dan kembalikan HANYA objek JSON dengan properti berikut:
-1. "item": string atau null. Nama barang spesifik yang ingin didonasikan (misal: "baju batik", "beras", "susu bayi"). Lakukan pemetaan sinonim cerdas ke kata benda yang lebih spesifik yang mungkin ada di database (misalnya: jika donatur mengetik "sembako", petakan menjadi "beras" atau "minyak goreng"; jika mengetik "baju bekas" atau "pakaian layak pakai", petakan menjadi "pakaian"; jika mengetik "buku tulis", petakan menjadi "buku").
-2. "location": string atau null. Nama kota, kabupaten, atau daerah (misal: "bogor", "bandung", "jakarta timur"). Cukup ambil nama daerah/kotanya saja tanpa kata jalan/jalan raya jika ada.
-3. "kategori": string atau null. Harus merupakan salah satu dari kategori berikut sesuai jenis barangnya:
-   - "Pangan" (jika berkaitan dengan makanan/minuman seperti beras, minyak, mie instan, bumbu dapur)
-   - "Sandang" (jika berkaitan dengan pakaian, kain, selimut, mukena, sarung, sepatu, popok)
-   - "Pendidikan" (jika berkaitan dengan buku tulis, alat tulis, buku iqra, meja belajar)
-   - "Kesehatan" (jika berkaitan dengan obat-obatan, vitamin, susu formula bayi, hand sanitizer)
-   - "Lain-lain" (jika kategori lainnya)
+1. "item": string atau null. Nama barang spesifik yang ingin didonasikan (misal: "baju batik", "beras", "susu bayi"). Lakukan pemetaan sinonim cerdas ke kata benda yang lebih spesifik (misal: "sembako" -> "beras", "baju bekas" -> "pakaian"). Jika donatur hanya bertanya mencari panti tanpa menyebut barang spesifik, isikan null.
+2. "location": string atau null. Nama kota, kabupaten, atau daerah.
+   - PENTING: Jika donatur menyebut "terdekat", "tempat saya", "lokasi saya", "di mana", "sekitar sini", ATAU jika donatur tidak menyebutkan kota lain secara spesifik, gunakan kota tempat tinggal donatur dari profil ("{$donorKota}").
+   - Jika donatur menyebut kota/daerah lain secara eksplisit (misal "di Bogor" atau "Bandung"), gunakan kota/daerah tersebut.
+3. "kategori": string atau null. Harus salah satu dari: "Pangan", "Sandang", "Pendidikan", "Kesehatan", atau "Lain-lain".
 
 Format output harus berupa JSON valid tanpa markdown code block. Contoh:
 {
@@ -163,7 +166,7 @@ PROMPT;
         $response = $this->generateContent($prompt, true);
 
         if (!$response) {
-            return ['item' => null, 'location' => null, 'kategori' => null];
+            return ['item' => null, 'location' => $donorKota, 'kategori' => null];
         }
 
         // Clean markdown code blocks from response if present
@@ -175,7 +178,7 @@ PROMPT;
         $cleanResponse = trim($cleanResponse);
 
         $decoded = json_decode($cleanResponse, true);
-        return is_array($decoded) ? $decoded : ['item' => null, 'location' => null, 'kategori' => null];
+        return is_array($decoded) ? $decoded : ['item' => null, 'location' => $donorKota, 'kategori' => null];
     }
 
     /**

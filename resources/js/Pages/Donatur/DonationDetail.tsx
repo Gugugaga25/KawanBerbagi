@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { 
-  ArrowLeft, 
-  Copy, 
-  Check, 
-  ExternalLink, 
-  Clock, 
-  Truck, 
-  CheckCircle2, 
-  MapPin, 
-  User, 
-  Phone, 
-  MessageSquare, 
-  Camera, 
+import {
+  ArrowLeft,
+  Copy,
+  Check,
+  ExternalLink,
+  Clock,
+  Truck,
+  CheckCircle2,
+  MapPin,
+  User,
+  Phone,
+  MessageSquare,
+  Camera,
   X,
   Menu
 } from 'lucide-react';
@@ -90,7 +90,7 @@ interface DonationDetailProps {
   stats?: { totalDonasi: number; pantiTerbantu: number };
 }
 
-export default function DonationDetail({ 
+export default function DonationDetail({
   donation,
   auth,
   donaturData = null,
@@ -108,20 +108,20 @@ export default function DonationDetail({
   else if (donation.status === 'Diterima') currentStageIndex = 2;
 
   const stages = [
-    { 
-      title: donation.status === 'Menunggu Konfirmasi Jemput' ? 'Menunggu Konfirmasi' : 'Diproses', 
-      desc: donation.status === 'Menunggu Konfirmasi Jemput' ? 'Menunggu pihak panti menyetujui penjemputan' : 'Donasi sedang dipersiapkan oleh Donatur', 
-      icon: Clock 
+    {
+      title: donation.status === 'Menunggu Konfirmasi Jemput' ? 'Menunggu Konfirmasi' : 'Diproses',
+      desc: donation.status === 'Menunggu Konfirmasi Jemput' ? 'Menunggu pihak panti menyetujui penjemputan' : 'Donasi sedang dipersiapkan oleh Donatur',
+      icon: Clock
     },
-    { 
-      title: donation.status === 'Akan Dijemput' ? 'Akan Dijemput' : 'Dikirim', 
-      desc: donation.status === 'Akan Dijemput' ? 'Panti telah mengonfirmasi akan menjemput barang' : (donation.kurir !== '-' ? `${donation.kurir} (${donation.resi})` : 'Dalam perjalanan kurir'), 
-      icon: Truck 
+    {
+      title: donation.status === 'Akan Dijemput' ? 'Akan Dijemput' : 'Dikirim',
+      desc: donation.status === 'Akan Dijemput' ? 'Panti telah mengonfirmasi akan menjemput barang' : (donation.kurir !== '-' ? `${donation.kurir} (${donation.resi})` : 'Dalam perjalanan kurir'),
+      icon: Truck
     },
-    { 
-      title: 'Diterima', 
-      desc: 'Barang donasi telah diterima dan diverifikasi oleh Panti', 
-      icon: CheckCircle2 
+    {
+      title: 'Diterima',
+      desc: 'Barang donasi telah diterima dan diverifikasi oleh Panti',
+      icon: CheckCircle2
     },
   ];
 
@@ -136,8 +136,8 @@ export default function DonationDetail({
   const getWhatsAppLink = (phone: string) => {
     if (!phone || phone === '-') return '#';
     const cleanNumber = phone.replace(/[^0-9]/g, '');
-    const formattedNumber = cleanNumber.startsWith('0') 
-      ? '62' + cleanNumber.slice(1) 
+    const formattedNumber = cleanNumber.startsWith('0')
+      ? '62' + cleanNumber.slice(1)
       : cleanNumber;
     return `https://wa.me/${formattedNumber}?text=Halo%20Pengurus%20${encodeURIComponent(donation.panti.nama)}%2C%20saya%20ingin%20menanyakan%20perihal%20donasi%20${encodeURIComponent(donation.barang)}%20(${donation.jumlah}%20${donation.satuan})%20dengan%20ID%20${donation.id}.`;
   };
@@ -152,35 +152,35 @@ export default function DonationDetail({
 
   return (
     <div className="flex h-screen font-sans bg-[#F8FAFC] text-[#293681] overflow-hidden">
-      
+
       {/* ================= OVERLAY MOBILE ================= */}
       {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity" 
-          onClick={() => setIsMobileMenuOpen(false)} 
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* ================= SIDEBAR ================= */}
       <div className={`fixed inset-y-0 left-0 z-50 h-full transform transition-transform duration-300 ease-in-out w-64 lg:w-64 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <DonaturSidebar 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange} 
-          donaturData={donaturData} 
-          stats={stats} 
+        <DonaturSidebar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          donaturData={donaturData}
+          stats={stats}
         />
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        
+
         {/* Header Mobile */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-[#293681] z-30 shadow-md">
+        <div className="lg:hidden flex items-center justify-between p-4 bg-[#fff] z-30 shadow-md">
           <div className="flex items-center gap-3 text-white">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 rounded-xl bg-[#4274D9] hover:bg-[#293681] transition-colors">
               <Menu size={20} />
             </button>
-            <span className="font-extrabold tracking-wide uppercase text-sm">Rincian Donasi</span>
+            <span className="font-extrabold tracking-wide uppercase text-sm text-[#293681]">Rincian Donasi</span>
           </div>
         </div>
 
@@ -196,14 +196,14 @@ export default function DonationDetail({
 
             {/* BUTTON KEMBALI & BADGE ID */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <Link 
-                href={route('donatur.dashboard') + '?tab=donasi'} 
+              <Link
+                href={route('donatur.dashboard') + '?tab=donasi'}
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-sm font-bold text-slate-600 hover:text-[#293681] rounded-xl shadow-sm transition-all group w-fit"
               >
-                <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" /> 
+                <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
                 Kembali ke Riwayat
               </Link>
-              
+
               <div className="bg-white px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-black tracking-wide uppercase text-slate-500 shadow-sm self-start sm:self-auto">
                 ID Transaksi: <span className="text-[#4274D9]">{donation.id}</span>
               </div>
@@ -254,10 +254,10 @@ export default function DonationDetail({
 
             {/* ================= SUSUNAN LAYOUT GRID ================= */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-              
+
               {/* KOLOM KIRI (Spesifikasi Barang & Timeline) */}
               <div className="lg:col-span-2 space-y-6">
-                
+
                 {/* 1. Item Details Card */}
                 <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-100 shadow-sm">
                   <div className="flex items-center gap-2 mb-4 text-[10px] font-black uppercase tracking-wider text-slate-400">
@@ -333,18 +333,17 @@ export default function DonationDetail({
                         return (
                           <div key={stage.title} className="relative pl-12">
                             {!isLast && (
-                              <div 
-                                className="absolute left-4 top-8 bottom-0 w-0.5 -ml-[1px]" 
+                              <div
+                                className="absolute left-4 top-8 bottom-0 w-0.5 -ml-[1px]"
                                 style={{ backgroundColor: isCompleted ? COLORS.teal : COLORS.mist }}
                               />
                             )}
 
-                            <span 
-                              className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${
-                                isCompleted 
-                                  ? 'text-white border-transparent' 
+                            <span
+                              className={`absolute left-0 top-0 rounded-full w-8 h-8 flex items-center justify-center border-2 transition-all ${isCompleted
+                                  ? 'text-white border-transparent'
                                   : 'bg-white border-slate-200 text-slate-400'
-                              }`}
+                                }`}
                               style={{
                                 backgroundColor: isCompleted ? COLORS.teal : undefined,
                                 borderColor: isCompleted ? COLORS.teal : undefined
@@ -359,10 +358,9 @@ export default function DonationDetail({
 
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <h4 
-                                  className={`text-sm font-extrabold uppercase tracking-wider ${
-                                    isCurrent ? 'text-[#4274D9]' : isCompleted ? 'text-slate-700' : 'text-slate-400'
-                                  }`}
+                                <h4
+                                  className={`text-sm font-extrabold uppercase tracking-wider ${isCurrent ? 'text-[#4274D9]' : isCompleted ? 'text-slate-700' : 'text-slate-400'
+                                    }`}
                                 >
                                   {stage.title}
                                 </h4>
@@ -411,7 +409,7 @@ export default function DonationDetail({
 
               {/* KOLOM KANAN (Info Panti & Bukti Penerimaan) */}
               <div className="space-y-6">
-                
+
                 {/* 3. Panti Details Card */}
                 <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-4">
                   <h3 className="text-base font-extrabold mb-5 flex items-center gap-2 text-[#293681] border-b border-slate-50 pb-3">
@@ -460,12 +458,12 @@ export default function DonationDetail({
                   {donation.status === 'Diterima' ? (
                     donation.bukti_penerimaan ? (
                       <div className="space-y-3">
-                        <div 
+                        <div
                           onClick={() => setIsLightboxOpen(true)}
                           className="group relative cursor-zoom-in rounded-xl overflow-hidden aspect-video border border-slate-200 bg-slate-50 transition-shadow hover:shadow-md"
                         >
-                          <img 
-                            src={donation.bukti_penerimaan} 
+                          <img
+                            src={donation.bukti_penerimaan}
                             alt="Bukti Penerimaan"
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                             onError={(e) => {
@@ -511,7 +509,7 @@ export default function DonationDetail({
       {/* ================= LIGHTBOX MODAL FOR IMAGE ZOOM ================= */}
       {isLightboxOpen && donation.bukti_penerimaan && (
         <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <button 
+          <button
             onClick={() => setIsLightboxOpen(false)}
             className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 text-white hover:text-red-500 rounded-full transition duration-150"
             title="Tutup Preview"
@@ -520,9 +518,9 @@ export default function DonationDetail({
           </button>
 
           <div className="max-w-4xl max-h-[85vh] w-full flex items-center justify-center p-2 rounded-2xl overflow-hidden bg-black/40">
-            <img 
-              src={donation.bukti_penerimaan} 
-              alt="Bukti Penerimaan Fullscreen" 
+            <img
+              src={donation.bukti_penerimaan}
+              alt="Bukti Penerimaan Fullscreen"
               className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-200"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=1200';
