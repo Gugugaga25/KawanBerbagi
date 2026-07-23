@@ -87,12 +87,12 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
   return (
     <div className="space-y-6">
       {/* Header & Actions */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h3 className="text-2xl font-extrabold text-[#293681]">Manajemen Panti Asuhan</h3>
-          <p className="text-sm text-gray-500 mt-1">Kelola verifikasi dan data panti yang terdaftar di sistem.</p>
+          <h3 className="text-xl sm:text-2xl font-extrabold text-[#293681]">Manajemen Panti Asuhan</h3>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Kelola verifikasi dan data panti yang terdaftar di sistem.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full md:w-auto">
           {/* Search Input */}
           <div className="relative flex-1 sm:w-64">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -101,7 +101,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Cari nama panti/lokasi..."
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 focus:border-[#407E8C] transition-all"
+              className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/20 focus:border-[#4274D9] transition-all"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#407E8C]/20 transition-all cursor-pointer"
+            className="px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-[#124354] focus:outline-none focus:ring-2 focus:ring-[#4274D9]/20 transition-all cursor-pointer"
           >
             <option value="semua">Semua Status</option>
             <option value="Terverifikasi">Terverifikasi</option>
@@ -118,7 +118,7 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
 
           <button 
             onClick={openAddModal}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#4274D9] text-white rounded-xl text-xs font-bold hover:bg-[#293681] transition-colors shadow-sm cursor-pointer"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-[#4274D9] text-white rounded-xl text-xs font-bold hover:bg-[#293681] transition-colors shadow-sm cursor-pointer whitespace-nowrap"
           >
             <Plus size={16} /> Daftarkan Panti
           </button>
@@ -126,9 +126,9 @@ export default function PantiManagement({ pantis = [] }: { pantis?: any[] }) {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible">
-        <div className="overflow-visible">
-          <table className="w-full text-left border-separate border-spacing-0">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto w-full no-scrollbar">
+          <table className="w-full text-left border-separate border-spacing-0 min-w-[760px]">
             <thead className="text-white text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4 font-bold rounded-tl-2xl" style={{background: COLORS.teal}}>Nama Panti</th>
