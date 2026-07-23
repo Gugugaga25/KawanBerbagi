@@ -535,7 +535,7 @@ function Nav() {
         {/* === MENU MOBILE === */}
         {open && (
           <div
-            className="md:hidden px-5 pb-6 flex flex-col gap-4 absolute w-full shadow-lg border-b border-slate-100 bg-white/95 backdrop-blur-md"
+            className="md:hidden px-5 pb-6 pt-2 flex flex-col gap-4 absolute left-0 right-0 w-full shadow-lg border-b border-slate-100 bg-white/95 backdrop-blur-md z-50"
           >
             {links.map((l) => {
               let isActive = false;
@@ -560,13 +560,46 @@ function Nav() {
                 </a>
               );
             })}
-            <a
-              href="#mulai"
-              onClick={(e) => handleNavClick(e, "/#mulai")}
-              className="text-center text-sm font-bold px-5 py-3.5 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20 hover:bg-[#293681] transition-all duration-300"
-            >
-              Mulai Donasi
-            </a>
+
+            <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
+              {auth?.user ? (
+                <>
+                  <Link
+                    href={
+                      auth.user.id_role_user === 'RL01ADM' ? route('admin.dashboard') :
+                      auth.user.id_role_user === 'RL02PAN' ? route('panti.dashboard') :
+                      route('donatur.dashboard')
+                    }
+                    className="w-full text-center text-sm font-bold py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20"
+                  >
+                    Dashboard ({auth.user.name})
+                  </Link>
+                  <Link
+                    href={route("logout")}
+                    method="post"
+                    as="button"
+                    className="w-full text-center text-sm font-bold py-2.5 rounded-full text-[#293681] border border-[#293681]/30 hover:bg-slate-50"
+                  >
+                    Keluar
+                  </Link>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <Link
+                    href={route("login")}
+                    className="w-full text-center text-sm font-bold py-3 rounded-full text-[#293681] border-2 border-[#293681] hover:bg-[#293681] hover:text-white transition-all"
+                  >
+                    Masuk
+                  </Link>
+                  <Link
+                    href={route("register")}
+                    className="w-full text-center text-sm font-bold py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/20 hover:bg-[#293681] transition-all"
+                  >
+                    Daftar
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </header>
@@ -581,28 +614,28 @@ function Hero() {
   const donors = useCountUp(5200);
 
   return (
-    <section id="top" className="relative overflow-hidden pt-16 pb-24" style={{ backgroundColor: COLORS.cream }}>
+    <section id="top" className="relative w-full max-w-full overflow-hidden pt-12 sm:pt-16 pb-16 sm:pb-24" style={{ backgroundColor: COLORS.cream }}>
       {/* Dynamic particles live background */}
       <InteractiveParticles />
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-10 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <Reveal>
             <div className="max-w-xl">
               <h1
-                className="text-4xl sm:text-6xl leading-[1.08] font-extrabold tracking-tight"
+                className="text-2xl min-[380px]:text-3xl sm:text-5xl lg:text-6xl leading-[1.1] font-extrabold tracking-tight"
                 style={{ color: COLORS.teal }}
               >
                 ARSIP KEBAIKAN.
               </h1>
               <h1
-                className="text-4xl sm:text-6xl leading-[1.08] font-extrabold tracking-tight mb-6"
+                className="text-2xl min-[380px]:text-3xl sm:text-5xl lg:text-6xl leading-[1.1] font-extrabold tracking-tight mb-5"
                 style={{ color: COLORS.navy }}
               >
                 DONASI TEPAT SASARAN.
               </h1>
               <p
-                className="text-lg sm:text-xl leading-relaxed mb-8 max-w-xl font-medium"
+                className="text-sm sm:text-lg leading-relaxed mb-6 max-w-xl font-medium"
                 style={{ color: COLORS.navy, opacity: 0.8 }}
               >
                 Platform donasi berbasis kebutuhan panti asuhan yang transparan dan terukur.
@@ -610,46 +643,46 @@ function Hero() {
                 Anda tersalurkan ke tujuan yang tepat.
               </p>
 
-              <div className="flex gap-12 mt-10">
+              <div className="grid grid-cols-3 gap-2 sm:gap-8 mt-8">
                 <div>
-                  <h3 className="text-3xl font-extrabold" style={{ color: COLORS.navy }}>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold" style={{ color: COLORS.navy }}>
                     {orphanages}+
                   </h3>
-                  <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
-                  <p className="text-sm font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
+                  <div className="w-8 sm:w-10 h-[3px] rounded-full my-1.5" style={{ background: COLORS.teal }} />
+                  <p className="text-xs sm:text-sm font-semibold leading-tight" style={{ color: COLORS.navy, opacity: 0.6 }}>
                     Panti Terdaftar
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-3xl font-extrabold" style={{ color: COLORS.navy }}>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold" style={{ color: COLORS.navy }}>
                     {(donors / 1000).toFixed(1)}K
                   </h3>
-                  <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
-                  <p className="text-sm font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
+                  <div className="w-8 sm:w-10 h-[3px] rounded-full my-1.5" style={{ background: COLORS.teal }} />
+                  <p className="text-xs sm:text-sm font-semibold leading-tight" style={{ color: COLORS.navy, opacity: 0.6 }}>
                     Donatur Aktif
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-3xl font-extrabold" style={{ color: COLORS.navy }}>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold" style={{ color: COLORS.navy }}>
                     {Math.floor(donated / 1000)}K+
                   </h3>
-                  <div className="w-10 h-[3px] rounded-full my-2" style={{ background: COLORS.teal }} />
-                  <p className="text-sm font-semibold" style={{ color: COLORS.navy, opacity: 0.6 }}>
+                  <div className="w-8 sm:w-10 h-[3px] rounded-full my-1.5" style={{ background: COLORS.teal }} />
+                  <p className="text-xs sm:text-sm font-semibold leading-tight" style={{ color: COLORS.navy, opacity: 0.6 }}>
                     Barang Tersalurkan
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 mt-10">
+              <div className="flex flex-col sm:flex-row gap-3.5 mt-8 w-full">
                 <Link
                   href={auth?.user ? "/dashboard" : "/login"}
-                  className="inline-flex items-center justify-center gap-2 text-base font-bold px-6 py-3.5 rounded-full text-white hover:brightness-110 shadow-lg shadow-[#4274D9]/30 transition bg-[#4274D9] hover:bg-[#293681]"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm sm:text-base font-bold px-6 py-3.5 rounded-full text-white hover:brightness-110 shadow-lg shadow-[#4274D9]/30 transition bg-[#4274D9] hover:bg-[#293681]"
                 >
-                  Cari Panti Terdekat <ArrowRight size={20} />
+                  Cari Panti Terdekat <ArrowRight size={18} />
                 </Link>
                 <Link
                   href="/register?role=yayasan"
-                  className="inline-flex items-center justify-center gap-2 text-base font-bold px-6 py-3.5 rounded-full border-2 transition border-[#293681] text-[#293681] hover:bg-[#293681] hover:text-white"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm sm:text-base font-bold px-6 py-3.5 rounded-full border-2 transition border-[#293681] text-[#293681] hover:bg-[#293681] hover:text-white"
                 >
                   Daftarkan Panti Anda
                 </Link>
@@ -657,69 +690,121 @@ function Hero() {
             </div>
           </Reveal>
 
-          <Reveal delay={150}>
-            <div className="relative h-[500px] sm:h-[560px] flex items-center justify-center">
-              {/* Background circular decorations with blur */}
-              <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-[#4274D9]/10 blur-3xl" />
-              <div className="absolute bottom-1/4 right-1/4 w-60 h-60 rounded-full bg-[#F59E0B]/5 blur-3xl" />
-              
-              {/* Mockup Card 1: GPS Radar Illustration */}
-              <div className="absolute left-4 top-10 sm:left-10 w-64 p-5 rounded-3xl bg-white/95 border border-gray-100 shadow-2xl float-slow relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#4274D9]/10 flex items-center justify-center text-[#4274D9]">
-                    <MapPin size={20} />
+          {/* MOBILE ILLUSTRATION (Compact Stack) */}
+          <div className="lg:hidden mt-8 w-full max-w-md mx-auto">
+            <Reveal delay={150}>
+              <div className="flex flex-col gap-3.5">
+                {/* Mockup Card 1: GPS Radar */}
+                <div className="p-4 rounded-2xl bg-white/95 border border-gray-100 shadow-lg flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#4274D9]/10 flex items-center justify-center text-[#4274D9] shrink-0">
+                      <MapPin size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-[#293681]">Panti Terdekat</h4>
+                      <p className="text-[11px] text-[#4274D9] font-bold">Panti Asuhan Nurul Iman (1.2 km)</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-[#293681]">Panti Terdekat</h4>
-                    <p className="text-[11px] text-[#4274D9] font-bold">Mencari via GPS...</p>
-                  </div>
+                  <span className="text-[10px] bg-[#4274D9]/10 text-[#4274D9] px-2.5 py-1 rounded-full font-bold shrink-0">GPS Active</span>
                 </div>
-                <div className="mt-4 flex flex-col gap-2">
-                  <div className="flex items-center justify-between text-xs p-2.5 rounded-2xl bg-gray-50 border border-gray-100">
-                    <span className="font-semibold text-gray-700">Panti Asuhan Nurul Iman</span>
-                    <span className="text-[10px] bg-[#4274D9]/10 text-[#4274D9] px-2 py-0.5 rounded-full font-bold">1.2 km</span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs p-2.5 rounded-2xl bg-gray-50/50">
-                    <span className="font-medium text-gray-400">Yayasan Kasih Ibu</span>
-                    <span className="text-[10px] text-gray-400 px-2 py-0.5 font-semibold">3.8 km</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Mockup Card 2: Transactional Quota Lock */}
-              <div className="absolute right-4 bottom-10 sm:right-6 w-72 p-5 rounded-3xl bg-[#293681] text-white shadow-2xl float-medium relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] bg-[#4274D9] text-white px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Quota Locked</span>
-                  <span className="text-xs text-gray-300">TRX-742</span>
-                </div>
-                <h4 className="font-bold text-base leading-snug">Donasi 20 Box Susu Bayi</h4>
-                <p className="text-[11px] text-gray-300 mt-1">Untuk Panti Asuhan Sayap Kasih</p>
-                
-                <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Status Pengiriman</p>
-                    <p className="text-xs font-bold text-[#F59E0B] flex items-center gap-1 mt-0.5">
-                      <Truck size={14} /> Sedang Dikirim
+                {/* Mockup Card 2: Transactional Quota Lock */}
+                <div className="p-4 rounded-2xl bg-[#293681] text-white shadow-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] bg-[#4274D9] text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Quota Locked</span>
+                    <span className="text-[10px] text-gray-300">TRX-742</span>
+                  </div>
+                  <h4 className="font-bold text-sm leading-snug">Donasi 20 Box Susu Bayi</h4>
+                  <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-xs">
+                    <p className="text-[#F59E0B] font-bold flex items-center gap-1.5 text-[11px]">
+                      <Truck size={13} /> Sedang Dikirim
                     </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center font-bold text-xs text-white">
-                    100%
+                    <span className="text-white/80 font-bold text-[11px]">100% Terpenuhi</span>
                   </div>
                 </div>
-              </div>
 
-              {/* Mockup Card 3: Verification Badge / Impact Stats */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 p-4 rounded-2xl bg-white/95 border border-gray-100 shadow-xl float-fast flex items-center gap-3 relative z-10">
-                <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
-                  <ShieldCheck size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-400 font-medium">Sistem Donasi</p>
-                  <p className="text-xs font-extrabold text-emerald-700">100% Terverifikasi</p>
+                {/* Mockup Card 3: Verification Badge */}
+                <div className="p-3.5 rounded-2xl bg-white/95 border border-gray-100 shadow-md flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div className="flex-1 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] text-gray-400 font-medium">Sistem Platform KawanBerbagi</p>
+                      <p className="text-xs font-extrabold text-emerald-700">100% Terverifikasi Resmi</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Reveal>
+            </Reveal>
+          </div>
+
+          {/* DESKTOP ILLUSTRATION (3D Floating Cards) */}
+          <div className="hidden lg:block">
+            <Reveal delay={150}>
+              <div className="relative h-[560px] flex items-center justify-center">
+                {/* Background circular decorations with blur */}
+                <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-[#4274D9]/10 blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/4 w-60 h-60 rounded-full bg-[#F59E0B]/5 blur-3xl" />
+                
+                {/* Mockup Card 1: GPS Radar Illustration */}
+                <div className="absolute left-10 top-10 w-64 p-5 rounded-3xl bg-white/95 border border-gray-100 shadow-2xl float-slow z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#4274D9]/10 flex items-center justify-center text-[#4274D9]">
+                      <MapPin size={20} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-[#293681]">Panti Terdekat</h4>
+                      <p className="text-[11px] text-[#4274D9] font-bold">Mencari via GPS...</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-xs p-2.5 rounded-2xl bg-gray-50 border border-gray-100">
+                      <span className="font-semibold text-gray-700">Panti Asuhan Nurul Iman</span>
+                      <span className="text-[10px] bg-[#4274D9]/10 text-[#4274D9] px-2 py-0.5 rounded-full font-bold">1.2 km</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs p-2.5 rounded-2xl bg-gray-50/50">
+                      <span className="font-medium text-gray-400">Yayasan Kasih Ibu</span>
+                      <span className="text-[10px] text-gray-400 px-2 py-0.5 font-semibold">3.8 km</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mockup Card 2: Transactional Quota Lock */}
+                <div className="absolute right-6 bottom-10 w-72 p-5 rounded-3xl bg-[#293681] text-white shadow-2xl float-medium z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] bg-[#4274D9] text-[#ffffff] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Quota Locked</span>
+                    <span className="text-xs text-gray-300">TRX-742</span>
+                  </div>
+                  <h4 className="font-bold text-base leading-snug">Donasi 20 Box Susu Bayi</h4>
+                  <p className="text-[11px] text-gray-300 mt-1">Untuk Panti Asuhan Sayap Kasih</p>
+                  
+                  <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Status Pengiriman</p>
+                      <p className="text-xs font-bold text-[#F59E0B] flex items-center gap-1 mt-0.5">
+                        <Truck size={14} /> Sedang Dikirim
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 rounded-full border-2 border-white/20 flex items-center justify-center font-bold text-xs text-white">
+                      100%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mockup Card 3: Verification Badge / Impact Stats */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 p-4 rounded-2xl bg-white/95 border border-gray-100 shadow-xl float-fast flex items-center gap-3 z-10">
+                  <div className="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-400 font-medium">Sistem Donasi</p>
+                    <p className="text-xs font-extrabold text-emerald-700">100% Terverifikasi</p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
         </div>
       </div>
     </section>
@@ -848,39 +933,42 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
   return (
     <Reveal delay={delay}>
       <div
-        className="rounded-3xl p-6 h-full flex flex-col border border-white/20 bg-white/95 shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/25 hover:-translate-y-1.5 transition-all duration-300 group"
+        className="rounded-3xl p-6 h-[340px] flex flex-col justify-between border border-white/20 bg-white/95 shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/25 hover:-translate-y-1.5 transition-all duration-300 group"
       >
-        <div className="flex items-start justify-between mb-5">
-          <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#4274D9]/10 text-[#4274D9] group-hover:scale-110 transition-transform duration-300"
-          >
-            <PackageCheck size={22} />
-          </div>
-          {c.urgent && (
-            <span
-              className="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider animate-pulse"
-              style={{ backgroundColor: "#FDF2F2", color: "#EC4899" }}
+        <div>
+          <div className="flex items-center justify-between mb-4 h-10">
+            <div
+              className="w-10 h-10 rounded-2xl flex items-center justify-center bg-[#4274D9]/10 text-[#4274D9] group-hover:scale-110 transition-transform duration-300"
             >
-              Mendesak
-            </span>
-          )}
+              <PackageCheck size={20} />
+            </div>
+            {c.urgent ? (
+              <span className="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 animate-pulse">
+                Mendesak
+              </span>
+            ) : (
+              <span className="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-100/80 text-slate-500 border border-slate-200/60">
+                Biasa
+              </span>
+            )}
+          </div>
+
+          <h3 className="text-base sm:text-lg font-extrabold mb-1 text-[#293681] group-hover:text-[#4274D9] transition-colors truncate">
+            {c.item}
+          </h3>
+          <p className="text-xs flex items-center gap-1 text-gray-500 font-medium truncate">
+            <MapPin size={13} className="text-[#4274D9] shrink-0" /> <span className="truncate">{c.name} · {c.location}</span>
+          </p>
         </div>
 
-        <h3 className="text-lg font-extrabold mb-1 text-[#293681] group-hover:text-[#4274D9] transition-colors">
-          {c.item}
-        </h3>
-        <p className="text-xs flex items-center gap-1 mb-6 text-gray-500 font-medium">
-          <MapPin size={13} className="text-[#4274D9]" /> {c.name} · {c.location}
-        </p>
-
-        <div className="mt-auto">
-          <div className="flex justify-between text-xs mb-2.5 font-bold text-gray-500 tabular-nums">
+        <div className="mt-auto pt-4">
+          <div className="flex justify-between text-xs mb-2 font-bold text-gray-500 tabular-nums">
             <span>Terpenuhi</span>
             <span>
               {c.filled}/{c.total} {c.unit} ({pct}%)
             </span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden mb-6 bg-gray-100">
+          <div className="h-2 rounded-full overflow-hidden mb-5 bg-gray-100">
             <div 
               className="h-full rounded-full bg-gradient-to-r from-[#4274D9] to-[#293681]" 
               style={{ width: `${pct}%`, transition: "width 1s ease-out" }} 
@@ -899,6 +987,20 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
 }
 
 function ActiveNeeds() {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scrollRef.current && window.innerWidth < 1024) {
+        scrollRef.current.scrollTo({ left: 80, behavior: "smooth" });
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+        }, 800);
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative overflow-hidden py-16 sm:py-24" style={{ background: "linear-gradient(180deg, #18224B 0%, #293681 100%)" }}>
       {/* Background radial glowing circles */}
@@ -916,13 +1018,19 @@ function ActiveNeeds() {
           <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-[#F8FAFC]">
             Barang yang Ditunggu Hari Ini
           </h2>
-          <p className="text-base sm:text-lg mb-14 max-w-2xl text-gray-300 leading-relaxed">
+          <p className="text-base sm:text-lg mb-10 max-w-2xl text-gray-300 leading-relaxed">
             Daftar wishlist kebutuhan riil dengan kuota transaksi terkunci aman. Salurkan sumbangan Anda ke panti terverifikasi.
           </p>
         </Reveal>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <div
+          ref={scrollRef}
+          className="flex lg:grid lg:grid-cols-4 gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 scroll-smooth"
+        >
           {CAMPAIGNS.map((c, i) => (
-            <CampaignCard key={c.item} c={c} delay={i * 100} />
+            <div key={c.item} className="w-[280px] sm:w-[320px] lg:w-auto shrink-0 snap-start">
+              <CampaignCard c={c} delay={i * 100} />
+            </div>
           ))}
         </div>
       </div>
@@ -1086,6 +1194,20 @@ const TESTIMONIALS = [
 ];
 
 function Trust() {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scrollRef.current && window.innerWidth < 1024) {
+        scrollRef.current.scrollTo({ left: 80, behavior: "smooth" });
+        setTimeout(() => {
+          scrollRef.current?.scrollTo({ left: 0, behavior: "smooth" });
+        }, 800);
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative overflow-hidden py-16 sm:py-24 bg-[#F8FAFC]">
       {/* Background decoration blur */}
@@ -1105,8 +1227,11 @@ function Trust() {
             </h2>
           </div>
         </Reveal>
-        
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div
+          ref={scrollRef}
+          className="flex lg:grid lg:grid-cols-3 gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory no-scrollbar -mx-5 px-5 sm:mx-0 sm:px-0 scroll-smooth"
+        >
           {TESTIMONIALS.map((t, i) => {
             const initials = t.name
               .split(" ")
@@ -1116,30 +1241,30 @@ function Trust() {
               .toUpperCase();
 
             return (
-              <Reveal key={t.name} delay={i * 100}>
-                <div 
-                  className="rounded-3xl p-8 h-full flex flex-col border border-slate-100 bg-white shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/15 hover:-translate-y-1.5 transition-all duration-300 relative"
-                >
-                  <Quote size={28} className="text-[#F59E0B]/20 mb-4 self-start" />
-                  <p className="text-xs sm:text-sm leading-relaxed mb-6 flex-1 text-gray-500 font-medium italic">
-                    "{t.quote}"
-                  </p>
-                  
-                  <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                    <div className="w-10 h-10 rounded-full bg-[#4274D9]/10 text-[#4274D9] flex items-center justify-center font-extrabold text-xs shrink-0">
-                      {initials}
-                    </div>
-                    <div>
-                      <p className="text-sm font-extrabold text-[#293681] leading-tight">
-                        {t.name}
-                      </p>
-                      <p className="text-xs text-gray-400 font-semibold mt-0.5 leading-none">
-                        {t.role}
-                      </p>
+              <div key={t.name} className="w-[285px] sm:w-[340px] lg:w-auto shrink-0 snap-start">
+                <Reveal delay={i * 100}>
+                  <div className="rounded-3xl p-8 h-full flex flex-col border border-slate-100 bg-white shadow-xl hover:shadow-2xl hover:shadow-[#4274D9]/15 hover:-translate-y-1.5 transition-all duration-300 relative">
+                    <Quote size={28} className="text-[#F59E0B]/20 mb-4 self-start" />
+                    <p className="text-xs sm:text-sm leading-relaxed mb-6 flex-1 text-gray-500 font-medium italic">
+                      "{t.quote}"
+                    </p>
+
+                    <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                      <div className="w-10 h-10 rounded-full bg-[#4274D9]/10 text-[#4274D9] flex items-center justify-center font-extrabold text-xs shrink-0">
+                        {initials}
+                      </div>
+                      <div>
+                        <p className="text-sm font-extrabold text-[#293681] leading-tight">
+                          {t.name}
+                        </p>
+                        <p className="text-xs text-gray-400 font-semibold mt-0.5 leading-none">
+                          {t.role}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Reveal>
+                </Reveal>
+              </div>
             );
           })}
         </div>
@@ -1463,7 +1588,7 @@ function Footer() {
 /* ---------- Page ---------- */
 export default function DonationLanding() {
   return (
-    <div style={{ backgroundColor: COLORS.cream }}>
+    <div style={{ backgroundColor: COLORS.cream }} className="w-full max-w-full overflow-x-hidden font-sans">
       <Nav />
       <Hero />
       <ProblemSection />

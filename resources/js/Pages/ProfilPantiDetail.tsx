@@ -394,10 +394,10 @@ export default function ProfilPantiDetail({
                 
                 </div>
                 
-                <div className="px-5 md:px-8 pb-4">
-                  <div className="flex justify-between items-start">
+                <div className="px-4 sm:px-8 pb-4">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
                     {/* Profil Image dengan Opsi Hapus */}
-                    <div className="-mt-14 md:-mt-20 w-28 h-28 md:w-36 md:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-sm bg-[#4274D9] text-white font-black text-5xl overflow-hidden relative z-10 group">
+                    <div className="-mt-12 sm:-mt-20 w-24 h-24 sm:w-36 sm:h-36 rounded-full flex items-center justify-center border-4 border-white shadow-md bg-[#4274D9] text-white font-black text-3xl sm:text-5xl overflow-hidden relative z-10 group shrink-0">
                       {panti?.logo_url || panti?.foto || panti?.foto_profil ? (
                         <>
                           <img src={panti.foto_profil ? '/storage/' + panti.foto_profil : (panti.logo_url || panti.foto)} alt="Logo" className="w-full h-full object-cover transition-all group-hover:brightness-75" />
@@ -417,31 +417,31 @@ export default function ProfilPantiDetail({
                     </div>
 
                     {/* BUTTON DONASI UANG & CHAT */}
-                    <div className="mt-4 mr-1 md:mr-4 flex gap-2 items-center">
-                    {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
+                    <div className="mt-2 sm:mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+                      {(!isLoggedIn || auth?.user?.id_role_user === 'RL03DON') && (
+                        <Link 
+                          href={route('donatur.chat.init', panti?.id_shelter)} 
+                          className="flex-1 sm:flex-none px-3.5 py-2 sm:px-6 sm:py-2.5 text-[#4274D9] rounded-full font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 text-xs sm:text-base border border-[#4274D9] hover:bg-[#293681] hover:text-white hover:border-[#293681]"
+                        >
+                          <MessageCircle size={16} className="shrink-0" /> <span className="whitespace-nowrap">Hubungi Panti</span>
+                        </Link>
+                      )}
                       <Link 
-                      href={route('donatur.chat.init', panti?.id_shelter)} 
-                      className="px-5 py-2 md:px-6 md:py-2.5 text-[#4274D9] rounded-full font-bold shadow-md transition-all flex items-center gap-2 text-sm md:text-base border border-[#4274D9] hover:bg-[#293681] hover:text-white hover:border-[#293681]"
+                        href={`/donatur/donasi-uang/${panti?.id_shelter}`} 
+                        className="flex-1 sm:flex-none px-3.5 py-2 sm:px-6 sm:py-2.5 text-white rounded-full font-bold shadow-md transition-colors flex items-center justify-center gap-1.5 text-xs sm:text-base bg-[#4274D9] hover:bg-[#293681]"
                       >
-                      <MessageCircle size={18} /> Hubungi Panti
+                        <Wallet size={16} className="shrink-0" /> <span className="whitespace-nowrap">Donasi Tunai</span>
                       </Link>
-                    )}
-                    <Link 
-                    href={`/donatur/donasi-uang/${panti?.id_shelter}`} 
-                    className="px-5 py-2 md:px-6 md:py-2.5 hover:bg-[#1A2359] text-white rounded-full font-bold shadow-md transition-colors flex items-center gap-2 text-sm md:text-base bg-[#4274D9] hover:bg-[#293681]"
-                    >
-                    <Wallet size={18} /> Donasi Tunai
-                    </Link>
-                    
-                    {!isPantiOwner && (
-                      <button 
-                        onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
-                        className="p-2.5 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-400 border border-gray-300 transition-colors cursor-pointer"
-                        title="Laporkan Akun Panti Ini"
-                      >
-                        <Flag size={18} />
-                      </button>
-                    )}
+                      
+                      {!isPantiOwner && (
+                        <button 
+                          onClick={() => openReportModal('panti', panti?.id_shelter || 1, panti?.nama_yayasan || panti?.nama)} 
+                          className="p-2 sm:p-2.5 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-400 border border-gray-300 transition-colors cursor-pointer shrink-0"
+                          title="Laporkan Akun Panti Ini"
+                        >
+                          <Flag size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -529,38 +529,13 @@ export default function ProfilPantiDetail({
                             {getInitials(panti?.nama_yayasan || panti?.nama || 'Yayasan')}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between mb-1">
-                              <div className="flex items-center gap-1.5 flex-wrap pr-2">
-                                <span className="font-bold text-sm md:text-base truncate">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</span>
-                                <CheckCircle2 size={14} className="text-[#4274D9] fill-blue-50 shrink-0" />
-                                <span className="text-gray-500 text-xs md:text-sm truncate">@{panti?.user?.name || 'panti_resmi'} · {new Date(post.time || Date.now()).toLocaleDateString()}</span>
-                              </div>
-                              
-                              {/* TOMBOL LIKE DAN REPORT POSTINGAN */}
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button 
-                                  onClick={() => toggleLike(post.id)}
-                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-sm ${
-                                    post.isLiked 
-                                      ? 'bg-red-50 border-red-200 text-red-500' 
-                                      : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-red-500 hover:border-red-200'
-                                  }`}
-                                >
-                                  <Heart size={14} className={post.isLiked ? 'fill-red-500' : ''} />
-                                  {post.likes}
-                                </button>
-                                {!isPantiOwner && (
-                                  <button 
-                                    onClick={() => openReportModal('postingan', panti?.id_shelter || 1, `Postingan #${post.id}`)}
-                                    className="p-1.5 ml-1 text-red-500 bg-red-50 hover:bg-red-100 rounded-full transition-colors border border-red-200"
-                                    title="Laporkan Postingan"
-                                  >
-                                    <Flag size={14} />
-                                  </button>
-                                )}
-                              </div>
+                            <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                              <span className="font-bold text-sm md:text-base text-[#293681] truncate">{panti?.nama_yayasan || panti?.nama || 'Yayasan Kasih Ibu'}</span>
+                              <CheckCircle2 size={14} className="text-[#4274D9] fill-blue-50 shrink-0" />
+                              <span className="text-gray-400 text-xs md:text-sm truncate">@{panti?.user?.name || 'panti_resmi'} · {new Date(post.time || Date.now()).toLocaleDateString()}</span>
                             </div>
-                            <p className="text-sm mt-1 text-gray-800 leading-relaxed whitespace-pre-line">
+                            
+                            <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
                               {post.content}
                             </p>
                             {post.image && (
@@ -568,6 +543,32 @@ export default function ProfilPantiDetail({
                                 <img src={'/storage/' + post.image} className="w-full h-full object-cover" alt="Post" />
                               </div>
                             )}
+
+                            {/* FOOTER BAR: TOMBOL LIKE DAN REPORT POSTINGAN */}
+                            <div className="mt-3 pt-2.5 flex items-center justify-between border-t border-gray-100 max-w-xl">
+                              <button 
+                                onClick={() => toggleLike(post.id)}
+                                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-all shadow-sm ${
+                                  post.isLiked 
+                                    ? 'bg-red-50 border-red-200 text-red-500' 
+                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-500 hover:border-red-200'
+                                }`}
+                              >
+                                <Heart size={15} className={post.isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'} />
+                                <span>{post.likes} Suka</span>
+                              </button>
+
+                              {!isPantiOwner && (
+                                <button 
+                                  onClick={() => openReportModal('postingan', panti?.id_shelter || 1, `Postingan #${post.id}`)}
+                                  className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                                  title="Laporkan Postingan"
+                                >
+                                  <Flag size={14} />
+                                  <span>Laporkan</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

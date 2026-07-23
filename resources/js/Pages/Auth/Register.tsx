@@ -186,9 +186,9 @@ export default function Register() {
           formOnRight ? "lg:translate-x-full" : "lg:translate-x-0"
         }`}
       >
-        <div className="px-6 sm:px-10 lg:px-20 xl:px-28 pt-10 sm:pt-12 lg:pt-16 pb-14">
+        <div className="px-4 min-[400px]:px-6 sm:px-10 lg:px-16 xl:px-24 pt-14 sm:pt-14 lg:pt-16 pb-12">
           {/* Tombol Kembali */}
-          <div className="absolute top-6 left-6 sm:top-8 sm:left-8 z-20">
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
           {/* @ts-ignore */}
           <Link
             href="/"
@@ -323,14 +323,14 @@ export default function Register() {
               </div>
 
               {/* Single Toggle Role Switcher Button */}
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#4274D9]/20 px-3 py-1.5 rounded-lg border border-[#D0E7E6]">
+              <div className="flex flex-col min-[440px]:flex-row min-[440px]:items-center justify-between gap-3 mb-6">
+                <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#4274D9]/15 px-3 py-1.5 rounded-lg border border-[#D0E7E6] self-start">
                   {role === "donatur" ? "Pendaftaran Donatur" : "Pendaftaran Yayasan"}
                 </span>
                 <button
                   type="button"
                   onClick={() => switchRole()}
-                  className="inline-flex items-center gap-2 text-xs font-extrabold px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-[#293681] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group"
+                  className="inline-flex items-center gap-2 text-xs font-extrabold px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-[#293681] shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer self-start min-[440px]:self-auto group"
                 >
                   {role === "donatur" ? (
                     <>
@@ -402,7 +402,7 @@ export default function Register() {
                       {errors.email && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.email}</p>}
                     </Field>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3.5 sm:gap-4">
                       <Field icon={Phone} label="No. WhatsApp">
                         <input
                           required
@@ -568,7 +568,7 @@ export default function Register() {
                             {errors.email && <p className="text-red-500 text-xs mt-1.5 font-semibold">{errors.email}</p>}
                           </Field>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3.5 sm:gap-4">
                             <Field icon={User} label="Nama Penanggung Jawab">
                               <input
                                 required
@@ -838,9 +838,9 @@ export default function Register() {
         </div>
       </div>
 
-      {/* ======================= EXPLANATION PANEL (scrolls independently) ======================= */}
+      {/* ======================= EXPLANATION PANEL (hidden on mobile, visible on desktop) ======================= */}
       <div
-        className={`w-full lg:w-1/2 relative overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
+        className={`hidden lg:block lg:w-1/2 relative overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] transform ${
           formOnRight ? "lg:-translate-x-full" : "lg:translate-x-0"
         }`}
         style={{ backgroundColor: COLORS.navy }}
