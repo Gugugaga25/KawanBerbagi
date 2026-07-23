@@ -70,7 +70,9 @@ export default function ResetPassword({
         {/* Logo Brand */}
         <div className="text-center flex justify-center w-full">
           <div className="inline-flex flex-col items-center justify-center gap-1 text-center">
-            <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-16 h-16 object-contain" />
+            <div className="w-16 h-16 rounded-2xl bg-[#293681] p-3 flex items-center justify-center shadow-md mb-1">
+              <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-full h-full object-contain" />
+            </div>
             <span className="text-3xl font-bold tracking-tight" style={{ color: COLORS.navy }}>
               KawanBerbagi
               <span style={{ color: COLORS.teal }}>.</span>

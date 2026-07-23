@@ -33,6 +33,7 @@ function Nav() {
     { label: "Fitur", href: "/#fitur" },
     { label: "Profil Panti", href: "/profil-panti" },
     { label: "Tentang Kami", href: "/about" },
+    { label: "FAQ", href: "/faq" },
   ];
 
   return (
@@ -758,7 +759,7 @@ export default function ProfilPantiDetail({
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
               <div>
                 <span className="text-2xl font-bold flex items-center gap-2" style={{ color: COLORS.cream }}>
-                  <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
+                  <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
                   <span>KawanBerbagi<span style={{ color: COLORS.gold }}>.</span></span>
                 </span>
                 <p className="text-sm mt-4 max-w-xs leading-relaxed" style={{ color: COLORS.cream, opacity: 0.6 }}>
@@ -768,15 +769,27 @@ export default function ProfilPantiDetail({
               {[
                 {
                   title: "Untuk Donatur",
-                  links: ["Cari Panti", "Lacak Donasi", "Riwayat Dampak"],
+                  links: [
+                    { name: "Cari Panti", href: "/#top" },
+                    { name: "Lacak Donasi", href: "/login" },
+                    { name: "Riwayat Dampak", href: "/login" },
+                  ],
                 },
                 {
                   title: "Untuk Panti",
-                  links: ["Daftarkan Yayasan", "Buat Wishlist", "Panduan Verifikasi"],
+                  links: [
+                    { name: "Daftarkan Yayasan", href: "/register?role=yayasan" },
+                    { name: "Buat Wishlist", href: "/register?role=yayasan" },
+                    { name: "Panduan Verifikasi", href: "/register?role=yayasan" },
+                  ],
                 },
                 {
-                  title: "Kepercayaan",
-                  links: ["Dokumen Legalitas", "Keamanan Data", "Pusat Bantuan"],
+                  title: "Kepercayaan & Bantuan",
+                  links: [
+                    { name: "Pusat Bantuan (FAQ)", href: "/faq" },
+                    { name: "Dokumen Legalitas", href: "/#fitur" },
+                    { name: "Keamanan Data", href: "/#fitur" },
+                  ],
                 },
               ].map((col) => (
                 <div key={col.title}>
@@ -788,14 +801,14 @@ export default function ProfilPantiDetail({
                   </h5>
                   <ul className="flex flex-col gap-3">
                     {col.links.map((l) => (
-                      <li key={l}>
-                        <a
-                          href="#"
+                      <li key={l.name}>
+                        <Link
+                          href={l.href}
                           className="text-sm hover:opacity-100 transition-opacity"
                           style={{ color: COLORS.cream, opacity: 0.75 }}
                         >
-                          {l}
-                        </a>
+                          {l.name}
+                        </Link>
                       </li>
                     ))}
                   </ul>

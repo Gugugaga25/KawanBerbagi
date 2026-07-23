@@ -312,6 +312,16 @@ export default function Register() {
             )
           ) : (
             <div key={role} className="transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
+              {/* Mobile Brand Logo Header */}
+              <div className="lg:hidden mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#293681] p-2 flex items-center justify-center shadow-md">
+                  <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-full h-full object-contain" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight text-[#293681]">
+                  KawanBerbagi<span className="text-[#4274D9]">.</span>
+                </span>
+              </div>
+
               {/* Single Toggle Role Switcher Button */}
               <div className="flex justify-between items-center mb-6">
                 <span className="text-xs font-bold text-[#4274D9] uppercase tracking-wider bg-[#4274D9]/20 px-3 py-1.5 rounded-lg border border-[#D0E7E6]">
@@ -851,7 +861,7 @@ export default function Register() {
           <div className="mb-10 lg:mb-12">
             {/* @ts-ignore */}
             <Link href="/" className="flex items-center gap-2">
-              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
+              <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
               <span className="text-2xl font-bold" style={{ color: COLORS.cream }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.gold }}>.</span>

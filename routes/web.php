@@ -53,6 +53,10 @@ Route::get('/about', function () {
     return Inertia::render('About');
 })->name('about');
 
+Route::get('/faq', function () {
+    return Inertia::render('Faq');
+})->name('faq');
+
 // Route penengah pasca-login (Auto-redirect sesuai role/tabel data)
 Route::get('/dashboard', function () {
     $userId = auth()->id();

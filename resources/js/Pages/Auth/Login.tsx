@@ -99,7 +99,9 @@ export default function Login({ status }: { status?: string }) {
           {/* Logo Brand */}
           <div className="text-center flex justify-center w-full">
             <div className="inline-flex flex-col items-center justify-center gap-1 text-center">
-              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-16 h-16 object-contain" />
+              <div className="w-16 h-16 rounded-2xl bg-[#293681] p-3 flex items-center justify-center shadow-md mb-1">
+                <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-full h-full object-contain" />
+              </div>
               <span className="text-3xl font-bold tracking-tight" style={{ color: COLORS.navy }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.teal }}>.</span>
@@ -392,7 +394,7 @@ export default function Login({ status }: { status?: string }) {
           <div className="absolute top-10 right-10 xl:right-14">
             {/* @ts-ignore */}
             <Link href="/" className="flex items-center gap-2">
-              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
+              <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
               <span className="text-2xl font-bold" style={{ color: COLORS.cream }}>
                 KawanBerbagi
                 <span style={{ color: COLORS.gold }}>.</span>

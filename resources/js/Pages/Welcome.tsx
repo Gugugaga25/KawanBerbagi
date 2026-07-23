@@ -411,6 +411,7 @@ function Nav() {
       { label: "Fitur", href: "/#fitur" },
       { label: "Profil Panti", href: "/profil-panti" },
       { label: "Tentang Kami", href: "/about" },
+      { label: "FAQ", href: "/faq" },
     ];
 
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -574,6 +575,7 @@ function Nav() {
 
 /* ---------- Hero ---------- */
 function Hero() {
+  const { auth } = usePage<any>().props;
   const donated = useCountUp(18000);
   const orphanages = useCountUp(320);
   const donors = useCountUp(5200);
@@ -639,18 +641,18 @@ function Hero() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-10">
-                <a
-                  href="#mulai"
+                <Link
+                  href={auth?.user ? "/dashboard" : "/login"}
                   className="inline-flex items-center justify-center gap-2 text-base font-bold px-6 py-3.5 rounded-full text-white hover:brightness-110 shadow-lg shadow-[#4274D9]/30 transition bg-[#4274D9] hover:bg-[#293681]"
                 >
                   Cari Panti Terdekat <ArrowRight size={20} />
-                </a>
-                <a
-                  href="#daftar-panti"
+                </Link>
+                <Link
+                  href="/register?role=yayasan"
                   className="inline-flex items-center justify-center gap-2 text-base font-bold px-6 py-3.5 rounded-full border-2 transition border-[#293681] text-[#293681] hover:bg-[#293681] hover:text-white"
                 >
                   Daftarkan Panti Anda
-                </a>
+                </Link>
               </div>
             </div>
           </Reveal>
@@ -841,6 +843,7 @@ const CAMPAIGNS = [
 ];
 
 function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: number }) {
+  const { auth } = usePage<any>().props;
   const pct = Math.round((c.filled / c.total) * 100);
   return (
     <Reveal delay={delay}>
@@ -883,12 +886,12 @@ function CampaignCard({ c, delay }: { c: (typeof CAMPAIGNS)[number]; delay: numb
               style={{ width: `${pct}%`, transition: "width 1s ease-out" }} 
             />
           </div>
-          <a
-            href="#daftar"
+          <Link
+            href={auth?.user ? "/dashboard" : "/login"}
             className="inline-flex items-center justify-center gap-2 text-sm font-bold w-full py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/25 hover:bg-[#293681] hover:shadow-lg transition-all duration-300"
           >
             Penuhi Kuota <ArrowRight size={16} />
-          </a>
+          </Link>
         </div>
       </div>
     </Reveal>
@@ -1153,14 +1156,14 @@ function ForEveryone() {
       body: "Daftarkan yayasan, buat wishlist kuota kebutuhan riil, dan konfirmasi barang tiba cukup dengan sekali foto.",
       points: ["Verifikasi legalitas terpercaya", "Kuota anti-mubazir", "Notifikasi stok menipis otomatis"],
       cta: "Daftarkan Panti",
-      href: "#daftar-panti",
+      href: "/register?role=yayasan",
     },
     {
       title: "Untuk Donatur",
       body: "Temukan panti terdekat via GPS, dapatkan kepastian kuota terkunci, dan lacak status donasi secara transparan.",
       points: ["Pencarian panti terdekat via GPS", "Pelacakan resi real-time", "Bukti foto serah terima langsung"],
       cta: "Mulai Donasi",
-      href: "#mulai",
+      href: "/register?role=donatur",
     },
   ];
   return (
@@ -1202,12 +1205,12 @@ function ForEveryone() {
                     </li>
                   ))}
                 </ul>
-                <a
+                <Link
                   href={p.href}
                   className="inline-flex items-center justify-center gap-2 text-sm font-bold px-6 py-3 rounded-full text-white bg-[#4274D9] shadow-md shadow-[#4274D9]/25 hover:bg-[#293681] hover:shadow-lg transition-all duration-300 mt-auto self-start"
                 >
                   {p.cta} <ArrowRight size={16} />
-                </a>
+                </Link>
               </div>
             </Reveal>
           ))}
@@ -1349,18 +1352,18 @@ function FinalCTA() {
             Baik Anda ingin menyumbang barang atau mendaftarkan panti asuhan, prosesnya singkat dan setiap langkah terpantau transparan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-            <a
-              href="#top"
+            <Link
+              href="/register?role=donatur"
               className="inline-flex items-center justify-center gap-2 text-base font-bold px-8 py-4 rounded-full text-[#293681] bg-white shadow-xl hover:shadow-2xl hover:shadow-white/20 hover:-translate-y-0.5 transition-all duration-300"
             >
               Jadi Donatur <ArrowRight size={20} />
-            </a>
-            <a
-              href="#daftar-panti"
+            </Link>
+            <Link
+              href="/register?role=yayasan"
               className="inline-flex items-center justify-center gap-2 text-base font-bold px-8 py-4 rounded-full border-2 border-white/60 text-white hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300"
             >
               Daftarkan Yayasan
-            </a>
+            </Link>
           </div>
           <div
             className="inline-flex items-center gap-2 text-xs font-bold px-5 py-2.5 rounded-full border border-white/10"
@@ -1376,18 +1379,31 @@ function FinalCTA() {
 
 /* ---------- Footer ---------- */
 function Footer() {
+  const { auth } = usePage<any>().props;
   const columns = [
     {
       title: "Untuk Donatur",
-      links: ["Cari Panti", "Lacak Donasi", "Riwayat Dampak"],
+      links: [
+        { name: "Cari Panti", href: auth?.user ? "/dashboard" : "/login" },
+        { name: "Lacak Donasi", href: auth?.user ? "/dashboard" : "/login" },
+        { name: "Riwayat Dampak", href: auth?.user ? "/dashboard" : "/login" },
+      ],
     },
     {
       title: "Untuk Panti",
-      links: ["Daftarkan Yayasan", "Buat Wishlist", "Panduan Verifikasi"],
+      links: [
+        { name: "Daftarkan Yayasan", href: "/register?role=yayasan" },
+        { name: "Buat Wishlist", href: auth?.user ? "/dashboard" : "/register?role=yayasan" },
+        { name: "Panduan Verifikasi", href: "/register?role=yayasan" },
+      ],
     },
     {
-      title: "Kepercayaan",
-      links: ["Dokumen Legalitas", "Keamanan Data", "Pusat Bantuan"],
+      title: "Kepercayaan & Bantuan",
+      links: [
+        { name: "Pusat Bantuan (FAQ)", href: "/faq" },
+        { name: "Dokumen Legalitas", href: "/#fitur" },
+        { name: "Keamanan Data", href: "/#fitur" },
+      ],
     },
   ];
   return (
@@ -1396,7 +1412,7 @@ function Footer() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           <div>
             <span className="text-2xl font-bold flex items-center gap-2" style={{ color: COLORS.cream }}>
-              <img src="/images/logokb2.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain bg-white rounded-full p-0.5 shadow-sm" />
+              <img src="/images/logokb2_white.png" alt="Logo KawanBerbagi" className="w-8 h-8 object-contain" />
               <span>KawanBerbagi<span style={{ color: COLORS.gold }}>.</span></span>
             </span>
             <p className="text-sm mt-4 max-w-xs leading-relaxed" style={{ color: COLORS.cream, opacity: 0.6 }}>
@@ -1414,14 +1430,14 @@ function Footer() {
               </h5>
               <ul className="flex flex-col gap-3">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#"
+                  <li key={l.name}>
+                    <Link
+                      href={l.href}
                       className="text-sm hover:opacity-100 transition-opacity"
                       style={{ color: COLORS.cream, opacity: 0.75 }}
                     >
-                      {l}
-                    </a>
+                      {l.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
